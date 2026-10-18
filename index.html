@@ -1057,6 +1057,74 @@ body{margin:0}
 #app[data-w="d"] .cats{padding-block:0 12px}
 #app[data-w="d"] main{min-height:60vh}
 @media (min-width:1500px){.grid{grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}}
+/* ===== Marketplace: Active Sellers strip + search row ===== */
+:root{--sa:var(--lime);--sa2:#b9f01a;--sa-ink:#0e1f10}
+.sa{margin:4px 0 16px}
+.sa[hidden]{display:none}
+.sa-h{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px}
+.sa-t{display:flex;align-items:center;gap:10px;margin:0;font-size:clamp(20px,5.4vw,24px);font-weight:800;letter-spacing:-.02em;line-height:1.2}
+.sa-t svg{color:var(--fg);flex:none}
+.sa-all{border:0;background:none;color:var(--fg);font-weight:600;font-size:16px;display:inline-flex;align-items:center;gap:4px;padding:6px 0 6px 10px;cursor:pointer;white-space:nowrap;border-radius:8px}
+.sa-all:hover{text-decoration:underline;text-decoration-color:var(--sa);text-decoration-thickness:3px;text-underline-offset:4px}
+.sa-all:focus-visible,.sa-c:focus-visible,.fbtn:focus-visible,.sa-row:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.sa-scroll{position:relative}
+.sa-bar{display:flex;gap:2px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:2px 0 4px;margin:0}
+.sa-bar::-webkit-scrollbar{display:none}
+.sa-bar[data-r="1"]{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent)}
+.sa-bar[data-l="1"]{-webkit-mask-image:linear-gradient(90deg,transparent,#000 36px);mask-image:linear-gradient(90deg,transparent,#000 36px)}
+.sa-bar[data-l="1"][data-r="1"]{-webkit-mask-image:linear-gradient(90deg,transparent,#000 36px,#000 calc(100% - 36px),transparent);mask-image:linear-gradient(90deg,transparent,#000 36px,#000 calc(100% - 36px),transparent)}
+.sa-c{box-sizing:border-box;flex:0 0 98px;display:flex;flex-direction:column;align-items:center;gap:5px;border:0;background:none;padding:2px 2px 4px;text-align:center;color:var(--fg);scroll-snap-align:start;cursor:pointer;min-width:0;border-radius:16px}
+.sa-ring{width:58px;height:58px;flex:none;border-radius:50%;padding:3px;display:grid;place-items:center;background:transparent;transition:transform .16s}
+.sa-ring.on{background:linear-gradient(135deg,var(--sa2),var(--sa))}
+.sa-c:hover .sa-ring,.sa-row:hover .sa-ring{transform:scale(1.05)}
+.sa-av{width:100%;height:100%;border-radius:50%;border:3px solid var(--bg);background:var(--surface2);display:grid;place-items:center;overflow:hidden;font:800 15px var(--fd);color:var(--fg);text-transform:uppercase;line-height:1}
+.sa-ring:not(.on) .sa-av{border-color:var(--line);border-width:1.5px}
+.sa-av img{width:100%;height:100%;object-fit:cover;display:block}
+.sa-av svg{width:100%;height:100%;display:block}
+.sa-n{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;max-width:100%;font-weight:600;font-size:14px;line-height:1.25;overflow:hidden;overflow-wrap:break-word;hyphens:auto;text-align:center}
+.sa-s{display:block;max-width:100%;margin-top:auto;font-size:10.5px;line-height:1.2;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sa-star{font-style:normal;color:#f5a623}
+.sa-arr{display:none;position:absolute;top:22px;z-index:2;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--fg);place-items:center;cursor:pointer;box-shadow:0 4px 14px rgba(14,31,16,.18);padding:0}
+.sa-arr:hover{background:var(--surface2)}
+.sa-prev{left:-6px}.sa-next{right:-6px}
+@media (hover:hover) and (pointer:fine){
+ .sa-bar[data-l="1"]~.sa-prev,.sa-bar[data-r="1"]~.sa-next{display:grid}
+}
+.srch2{display:flex;align-items:center;gap:12px;margin:4px 0 16px;max-width:780px}
+.srch2 .search{flex:1;min-width:0;height:54px;border-radius:999px;background:var(--surface2);border:0;padding:0 20px;gap:12px;box-shadow:0 8px 22px rgba(14,31,16,.08),0 1px 2px rgba(14,31,16,.06)}
+.srch2 .search svg{color:var(--fg);flex:none}
+.srch2 .search input{font-size:16px;padding:0;height:100%}
+.srch2 .search input::placeholder{color:var(--muted);opacity:.8}
+.srch2 .search:focus-within{box-shadow:0 0 0 2px var(--fg),0 8px 22px rgba(14,31,16,.08)}
+.fbtn{flex:none;width:54px;height:54px;border-radius:50%;border:0;padding:0;background:linear-gradient(135deg,var(--sa2),var(--sa));color:var(--sa-ink);display:grid;place-items:center;cursor:pointer;box-shadow:0 8px 20px rgba(168,214,0,.38);transition:transform .16s,box-shadow .16s}
+.fbtn:hover{transform:translateY(-1px)}
+.fbtn svg{stroke-width:2.4}
+.fbtn[aria-pressed="true"]{box-shadow:0 0 0 3px var(--bg),0 0 0 5px var(--sa),0 8px 20px rgba(168,214,0,.38)}
+.sa-row{box-sizing:border-box;max-width:100%;display:flex;align-items:center;gap:14px;width:100%;text-align:left;border:1.5px solid var(--line);border-radius:16px;padding:10px 14px 10px 10px;background:var(--surface);color:var(--fg);cursor:pointer}
+.sa-row:hover{background:var(--surface2)}
+.sa-row .sa-ring{width:56px;height:56px}
+.sa-row .sa-i{flex:1;min-width:0}
+.sa-row .sa-nm{display:flex;align-items:center;gap:6px;font-weight:700;min-width:0}
+.sa-row .sa-nm span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sa-row .sa-s{font-size:12.5px;margin-top:2px;white-space:normal}
+.sa-row .sa-go{color:var(--fg);font-size:22px;line-height:1;flex:none}
+.mlist:has(.sa-row){display:grid;grid-template-columns:minmax(0,1fr);gap:10px;min-width:0}
+.mlist .sa-row{min-width:0;width:100%}
+.sa-empty{margin:0;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){.sa-ring,.fbtn{transition:none}.sa-bar{scroll-behavior:auto}}
+.form[hidden]{display:none}
+.ptag{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:99px;font-size:11px;font-weight:700;line-height:1.55;background:var(--surface2);border:1px solid var(--line);color:var(--fg);vertical-align:middle;white-space:nowrap}
+.ptag.p-growth{background:var(--lime);border-color:#0e1f10;color:#0e1f10}
+.ptag.p-elite{background:#0e1f10;border-color:#0e1f10;color:#f5d36a}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:14px 0 18px}
+.pcard{display:flex;flex-direction:column;gap:8px;background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:18px}
+.pcard.cur{border-color:var(--fg);box-shadow:0 0 0 3px var(--lime)}
+.pcard h4{margin:0;font-size:20px}.pcard .pr{font-size:22px;font-weight:800}.pcard .pr small{font-size:12px;font-weight:600;color:var(--muted)}
+.pcard ul{margin:4px 0 10px;padding:0 0 0 18px;font-size:13.5px;line-height:1.5;flex:1}
+.pm{margin:0 0 14px}.pmh{display:flex;justify-content:space-between;gap:10px;font-size:14px;margin-bottom:6px}
+.pmb{height:10px;border-radius:99px;background:var(--surface2);border:1.5px solid var(--edge,var(--line));overflow:hidden}.pmb i{display:block;height:100%;background:var(--lime)}.pmb i.full{background:#e0553d}
+.krow{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}.krow:first-of-type{border-top:0}.krow label{flex:1;min-width:0;display:flex;gap:10px;align-items:center}
+.pst td,.pst th{white-space:nowrap}.pst .cellb{border:0;background:none;font:inherit;font-weight:600;cursor:pointer;color:var(--fg);padding:4px 8px;border-radius:8px;border:1px dashed var(--line)}.pst .cellb:hover{background:var(--surface2)}
 </style>
 <div id="devbar"></div>
 <div id="stage" data-dev="web"><div id="frame"><div class="sbar" aria-hidden="true"><span>9:41</span><i></i><span>5G</span></div><div id="scroller"><div id="app" data-w="d"></div></div></div></div>
@@ -1109,12 +1177,14 @@ moon:'<path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/>',
 type:'<path d="M4 7V5h10v2M9 5v14M7 19h4M14 13v-1h6v1M17 12v7M15.5 19h3"/>',
 dot:'<circle cx="12" cy="12" r="3"/>',
 bot:'<rect x="4" y="8" width="16" height="11" rx="3"/><path d="M12 8V4M9 13h.01M15 13h.01M9 16h6"/>',
+filter:'<path d="M4 7h16M7 12h10M10 17h4"/>',
+chev:'<path d="m9 6 6 6-6 6"/>',
 };
 const I=(n,s=18)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[n]}</svg>`;
 
 /* ---------- live data (loaded from Supabase) ---------- */
 let ME='';let MYV='__none__';
-const bdg=(v,s=16)=>v.official?`<span class="bdg seal" title="Official Subora store"><svg width="${s}" height="${s}" viewBox="0 0 24 24" aria-label="Official Subora store" role="img"><defs><linearGradient id="gld" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd35a"/><stop offset="1" stop-color="#f0951c"/></linearGradient></defs><circle cx="12" cy="12" r="11" fill="url(#gld)"/><circle cx="12" cy="12" r="9.6" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="1.1"/><path d="M7.2 12.4l3.2 3.2 6.4-7" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`:v.verified?`<span class="bdg tick" title="Verified vendor"><svg width="${s}" height="${s}" viewBox="0 0 24 24" aria-label="Verified vendor" role="img"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><circle cx="12" cy="12" r="9.6" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1.1"/><path d="M7.2 12.4l3.2 3.2 6.4-7" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`:'';
+const bdg0=(v,s=16)=>v.official?`<span class="bdg seal" title="Official Subora store"><svg width="${s}" height="${s}" viewBox="0 0 24 24" aria-label="Official Subora store" role="img"><defs><linearGradient id="gld" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd35a"/><stop offset="1" stop-color="#f0951c"/></linearGradient></defs><circle cx="12" cy="12" r="11" fill="url(#gld)"/><circle cx="12" cy="12" r="9.6" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="1.1"/><path d="M7.2 12.4l3.2 3.2 6.4-7" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`:v.verified?`<span class="bdg tick" title="Verified vendor"><svg width="${s}" height="${s}" viewBox="0 0 24 24" aria-label="Verified vendor" role="img"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><circle cx="12" cy="12" r="9.6" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1.1"/><path d="M7.2 12.4l3.2 3.2 6.4-7" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`:'';
 const VENDORS={__none__:{name:'',user:'',rating:0,sales:0,trust:0,since:'',bio:'',offers:[],dist:[0,0,0,0,0],stats:[null,null,null],resp:'',suspended:false}};
 const VFEED={};
 const P=(id,title,cat,v,price,old,dur,stock,status,rating,sold,deliv,desc)=>({id,title,cat,v,price,old,dur,stock,status,rating,sold,deliv,desc,reason:''});
@@ -1189,11 +1259,11 @@ const PLAY='<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" 
 function navItems(){
  if(S.role==='vendor'){
   const vp=myP().filter(p=>p.status==='pending').length,rf=myO().filter(o=>o.status==='refund_requested').length;
-  return [{v:'vendor',s:'overview',l:'Overview',i:'chart'},{v:'vendor',s:'listings',l:'Listings',i:'list',b:vp},{v:'vendor',s:'new',l:'New listing',i:'plus'},{v:'vendor',s:'orders',l:'Orders',i:'box'},{v:'vendor',s:'messages',l:'Messages',i:'chat'},{v:'vendor',s:'automation',l:'Stock & delivery',i:'bot'},{v:'vendor',s:'refunds',l:'Refunds & disputes',i:'undo',b:rf},{v:'vendor',s:'wallet',l:'Wallet',i:'wallet'},{v:'vendor',s:'ads',l:'Sponsored ads',i:'mega'},{v:'vendor',s:'promos',l:'Promotions',i:'gift'},{v:'vendor',s:'analytics',l:'Analytics',i:'chart'},{v:'vendor',s:'profile',l:'Public profile',i:'user'},{v:'vendor',s:'verify',l:'Verification',i:'shield',b:S.kyc.status==='verified'?0:'!'},{v:'vendor',s:'settings',l:'Store settings',i:'gear'}];
+  return [{v:'vendor',s:'overview',l:'Overview',i:'chart'},{v:'vendor',s:'listings',l:'Listings',i:'list',b:vp},{v:'vendor',s:'new',l:'New listing',i:'plus'},{v:'vendor',s:'orders',l:'Orders',i:'box'},{v:'vendor',s:'messages',l:'Messages',i:'chat'},{v:'vendor',s:'automation',l:'Stock & delivery',i:'bot'},{v:'vendor',s:'refunds',l:'Refunds & disputes',i:'undo',b:rf},{v:'vendor',s:'wallet',l:'Wallet',i:'wallet'},{v:'vendor',s:'plan',l:'Plan',i:'gift'},{v:'vendor',s:'ads',l:'Sponsored ads',i:'mega'},{v:'vendor',s:'promos',l:'Promotions',i:'gift'},{v:'vendor',s:'analytics',l:'Analytics',i:'chart'},{v:'vendor',s:'profile',l:'Public profile',i:'user'},{v:'vendor',s:'verify',l:'Verification',i:'shield',b:S.kyc.status==='verified'?0:'!'},{v:'vendor',s:'settings',l:'Store settings',i:'gear'}];
  }
  if(S.role==='admin'){
   const q=S.products.filter(p=>p.status==='pending').length,d=S.cases.filter(c=>c.status!=='resolved').length,w=S.wd.filter(x=>x.status==='queued').length,kq=kycQueue().length;
-  return [{v:'admin',s:'review',l:'Listing review',i:'list',b:q},{v:'admin',s:'kyc',l:'Verifications',i:'shield',b:kq},{v:'admin',s:'disputes',l:'Disputes',i:'undo',b:d},{v:'admin',s:'payouts',l:'Payouts',i:'wallet',b:w},{v:'admin',s:'reports',l:'Reports & flags',i:'flag',b:S.reports.filter(r=>r.status==='open').length+S.flags.filter(f=>f.status==='open').length},{v:'admin',s:'analytics',l:'Analytics',i:'chart'},{v:'admin',s:'settings',l:'Settings',i:'gear'},{v:'admin',s:'people',l:'Accounts',i:'user'},{v:'admin',s:'audit',l:'Audit log',i:'list'}];
+  return [{v:'admin',s:'review',l:'Listing review',i:'list',b:q},{v:'admin',s:'kyc',l:'Verifications',i:'shield',b:kq},{v:'admin',s:'disputes',l:'Disputes',i:'undo',b:d},{v:'admin',s:'payouts',l:'Payouts',i:'wallet',b:w},{v:'admin',s:'reports',l:'Reports & flags',i:'flag',b:S.reports.filter(r=>r.status==='open').length+S.flags.filter(f=>f.status==='open').length},{v:'admin',s:'analytics',l:'Analytics',i:'chart'},{v:'admin',s:'plans',l:'Vendor plans',i:'gift'},{v:'admin',s:'settings',l:'Settings',i:'gear'},{v:'admin',s:'people',l:'Accounts',i:'user'},{v:'admin',s:'audit',l:'Audit log',i:'list'}];
  }
  const ex=S.subs.filter(s=>s.left>0&&s.left<=5).length;
  return [{v:'buyer',s:'subs',l:'My subscriptions',i:'shield',b:ex},{v:'buyer',s:'orders',l:'Orders',i:'box'},{v:'buyer',s:'messages',l:'Messages',i:'chat'},{v:'buyer',s:'saved',l:'Saved',i:'heart'},{v:'buyer',s:'wallet',l:'Wallet',i:'wallet'},{v:'buyer',s:'disputes',l:'Disputes',i:'undo'},{v:'buyer',s:'profile',l:'My profile',i:'user'}];
@@ -1215,6 +1285,7 @@ function devbarHTML(){return ''}
 function header(){
  const bal=S.role==='vendor'?S.vw.avail:S.buyer.wallet;
  const onStore=S.view==='store'||S.view==='product';
+ const inBody=S.view==='store';
  const acts=!S.auth
   ?`<button class="btn sm" data-act="nav" data-view="login">Log in</button><button class="btn sm pri" data-act="nav" data-view="signup">Sign up</button>`
   :`<button class="chip bell" data-act="notifs" aria-label="Notifications, ${unread()} unread">${I('bell')}${unread()?`<span class="badge">${unread()}</span>`:''}</button>${S.role!=='admin'?`<button class="chip" data-act="nav" data-view="${S.role==='vendor'?'vendor':'buyer'}" data-sub="wallet" aria-label="Wallet">${I('wallet')}<b>${N(bal)}</b></button>`:''}
@@ -1226,9 +1297,9 @@ function header(){
  ${S.auth?`<button class="hamb chip" data-act="menu" aria-label="Open menu">${I('list')}</button>`:''}
  <button class="logo" data-act="nav" data-view="home" aria-label="Subora home"><i class="lg"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#0e1f10"/><rect x=".75" y=".75" width="30.5" height="30.5" rx="8.4" fill="none" stroke="#d1fe17" stroke-opacity=".35" stroke-width="1.5"/><path d="M21.6 8.4A5.4 5.4 0 1 0 16 16.2" fill="none" stroke="#d1fe17" stroke-width="3.8" stroke-linecap="round"/><path d="M16 16.2A5.4 5.4 0 1 1 10.4 23.6" fill="none" stroke="#ffffff" stroke-width="3.8" stroke-linecap="round"/><circle cx="23.4" cy="6.6" r="1.7" fill="#d1fe17"/></svg></i>Subora</button>
  ${S.auth?`<nav class="links" aria-label="Main"><button data-act="nav" data-view="home">Home</button><button data-act="nav" data-view="store">Marketplace</button></nav>`:(S.view==='home'?`<nav class="links" aria-label="On this page"><button data-act="hjump2" data-id="buy">How it works</button><button data-act="hjump2" data-id="safe">Safety</button><button data-act="hjump2" data-id="faq">FAQ</button></nav>`:`<nav class="links" aria-label="Main"><button data-act="nav" data-view="home">Back to home</button></nav>`)}
- ${!S.auth?'<span class="hspace"></span>':''}<label class="search" ${!S.auth?'hidden':''}>${I('search',17)}<input id="q" placeholder="Search ChatGPT, courses, templates, vendors" value="${esc(S.q)}" aria-label="Search listings"></label>
+ ${(!S.auth||inBody)?'<span class="hspace"></span>':''}${inBody?'':`<label class="search" ${!S.auth?'hidden':''}>${I('search',17)}<input id="q" placeholder="Search ChatGPT, courses, templates, vendors" value="${esc(S.q)}" aria-label="Search listings"></label>`}
  <div class="hacts"><button class="chip tgl" data-act="theme" aria-label="${isDark()?'Switch to light mode':'Switch to dark mode'}" title="${isDark()?'Light mode':'Dark mode'}"><span class="knob">${I(isDark()?'moon':'sun',14)}</span></button><button class="chip" data-act="region" aria-label="Region and currency" hidden><b class="cc">${REG.c}</b>${REG.cur}</button>${acts}</div></div>
- ${onStore?`<div class="wrap"><nav class="cats" aria-label="Categories">${CATS.map(c=>`<button class="${S.cat===c?'on':''}" data-act="cat" data-id="${c}">${catL(c)}</button>`).join('')}</nav></div>`:''}
+ ${onStore&&!inBody?`<div class="wrap"><nav class="cats" aria-label="Categories">${CATS.map(c=>`<button class="${S.cat===c?'on':''}" data-act="cat" data-id="${c}">${catL(c)}</button>`).join('')}</nav></div>`:''}
  </header>`;
 }
 
@@ -1333,10 +1404,128 @@ function home(){
  <div class="faq">${faq.map(f=>`<details><summary>${f[0]}</summary><p>${f[1]}</p></details>`).join('')}</div>
  <div class="cta" style="margin-top:34px"><div><h2>Ready when you are</h2><p style="margin:6px 0 0;opacity:.8">${S.auth?'Your subscriptions and wallet are one tap away.':'Create a free account and fund your wallet in a minute.'}</p></div><div style="display:flex;gap:10px;flex-wrap:wrap">${S.auth?`<button class="btn pri" data-act="nav" data-view="store">Go to marketplace</button>`:`<button class="btn pri" data-act="nav" data-view="signup">Create account</button><button class="btn" data-act="nav" data-view="login">Log in</button>`}</div></div></div>`;
 }
+/* ---------- Vendor plans: shared helpers and screens ---------- */
+let PLANS={};
+const PORDER=['free','starter','growth','elite'];
+const fmtL=ts=>{try{return new Date(ts).toLocaleString('en-GB',{timeZone:'Africa/Lagos',day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}catch(e){return ''}};
+const fmtLD=ts=>{try{return new Date(ts).toLocaleDateString('en-GB',{timeZone:'Africa/Lagos',day:'numeric',month:'short',year:'numeric'})}catch(e){return ''}};
+const plim=v=>v==null?'Unlimited':v;
+const planLabel=k=>(PLANS[k]&&PLANS[k].label)||k;
+const bdg=(v,s=16)=>bdg0(v,s)+(!v.official&&v.planBadge?`<span class="ptag p-${esc(v.plan)}">${esc(v.planBadge)}</span>`:'');
+function planPrompt(msg,hint){S.modal={t:'upg',msg:msg,hint:hint||''};paintModal()}
+function perkLines(p){
+ const L=[];
+ L.push(`${plim(p.listing_limit)} live listings${p.fair_use?' (fair-use cap)':''}`);
+ L.push(`${plim(p.slots_per_product)} slots per product`);
+ L.push(p.copies_per_product==null?'Same product: any number, each must differ':(p.copies_per_product===1?'No duplicate listings':`Same product up to ${p.copies_per_product} times`));
+ L.push(p.weekend_listing?'Can list on weekends':'No weekend listing');
+ L.push(`${plim(p.featured_per_month)} featured listing${p.featured_per_month===1?'':'s'} a month`);
+ L.push(`${plim(p.discount_codes)} discount code${p.discount_codes===1?'':'s'} at once`);
+ L.push(`${Math.round((p.fee_rate==null?FEE:+p.fee_rate)*1000)/10}% fee on each sale`);
+ if(p.levy_waived)L.push('Marketing levy waived');
+ return L;
+}
+function planView(){
+ const P=S.plan;
+ if(!P||!Object.keys(PLANS).length)return `<div class="panel empty">Plan details are not available yet. If this keeps showing, ask the Subora team to finish the plan setup.</div>`;
+ const cur=PLANS[P.plan]||{};const L=P.limits||{};
+ const meter=(label,u,l,note)=>{const pct=l==null?0:(l===0?(u>0?100:0):Math.min(100,Math.round(u/l*100)));return `<div class="pm"><div class="pmh"><span>${label}</span><b>${u} / ${l==null?'No limit':l}</b></div><div class="pmb"><i class="${pct>=100?'full':''}" style="width:${pct}%"></i></div>${note?`<div class="xs muted" style="margin-top:4px">${note}</div>`:''}</div>`};
+ let st;
+ if(P.plan==='admin')st='Subora account: no plan and no limits.';
+ else if(P.grace_until)st=`Grace period until ${fmtL(P.grace_until)} (Lagos time). Choose which listings stay live below. Nothing is deleted.`;
+ else if(P.period_end)st=P.auto_renew?`Renews on ${fmtLD(P.period_end)}${P.next_plan?` as ${planLabel(P.next_plan)}`:''}, paid from your available balance.`:`Ends on ${fmtLD(P.period_end)}. It will not renew.`;
+ else st='Free plan: nothing to pay.';
+ const live=myP().filter(p=>p.status==='live');
+ const feat=L.featured_per_month,pinned={};(S.pins||[]).forEach(x=>pinned[x.product_id]=x.ends_at);
+ const keep=new Set(P.keep_ids||[]);
+ const needKeep=P.grace_until&&L.listing_limit!=null&&live.length>L.listing_limit;
+ const grid=P.plan==='admin'?'':`<div class="pgrid">${PORDER.map(k=>{const pl=PLANS[k];if(!pl)return '';const isCur=k===P.plan;const rank=PORDER.indexOf(k),cr=PORDER.indexOf(P.plan);
+  const btn=isCur?`<button class="btn full" disabled>Your plan</button>`:k==='free'?(P.plan!=='free'&&P.auto_renew?`<button class="btn full" data-act="plan_pick" data-id="free">Cancel renewal</button>`:''):rank>cr?`<button class="btn pri full" data-act="plan_pick" data-id="${k}">Upgrade</button>`:`<button class="btn full" data-act="plan_pick" data-id="${k}">Switch at renewal</button>`;
+  return `<div class="pcard ${isCur?'cur':''}"><h4>${esc(pl.label)}</h4><div class="pr">${k==='free'?'₦0':N(+pl.price)} <small>per month</small></div><ul>${perkLines(pl).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>${btn}</div>`}).join('')}</div>`;
+ return `<div class="panel"><div class="mh" style="margin-bottom:6px"><h3 style="margin:0">${esc(cur.label||P.plan)} plan</h3>${cur.badge?`<span class="ptag p-${esc(P.plan)}" style="margin:0">${esc(cur.badge)} badge</span>`:''}</div><p class="muted sm" style="margin:0 0 14px">${st}</p>
+  ${meter('Listings in use',P.listings_used,L.listing_limit,L.fair_use?'Fair-use cap. Contact support to raise it.':'Drafts and paused listings count too. Archive one to free a place.')}
+  ${meter('Discount codes running',P.codes_used,L.discount_codes)}
+  ${meter('Featured listings used this month',P.featured_used,L.featured_per_month,'Resets on the 1st, Lagos time.')}
+  <dl class="kv"><dt>Slots per product</dt><dd>${plim(L.slots_per_product)}</dd><dt>Copies of one product</dt><dd>${L.copies_per_product==null?'No limit':L.copies_per_product}</dd><dt>Weekend listing</dt><dd>${L.weekend_listing?'Yes':'No (opens at Growth)'}</dd><dt>Fee on each sale</dt><dd>${Math.round((L.fee_rate==null?FEE:+L.fee_rate)*1000)/10}%</dd></dl></div>
+ ${needKeep?`<div class="panel" style="margin-top:14px"><h3>Choose the listings that stay live</h3><p class="muted sm" style="margin:0 0 10px">Your plan allows ${L.listing_limit} live listings and you have ${live.length}. Pick up to ${L.listing_limit}. When the grace period ends, the others are paused (never deleted) and the best sellers fill any places you leave open.</p>${live.map(x=>`<div class="krow"><label><input type="checkbox" class="keepbox" value="${x.id}" ${keep.has(x.id)?'checked':''}> <span>${esc(x.title)}</span></label><span class="xs muted">${x.sold} sold</span></div>`).join('')}<div style="margin-top:12px"><button class="btn pri" data-act="plan_keep">Save my choice</button></div></div>`:''}
+ ${P.paused_by_plan>0?`<div class="panel" style="margin-top:14px"><b>${P.paused_by_plan} listing${P.paused_by_plan===1?'':'s'} paused by your plan.</b> <span class="muted sm">They come back automatically when you upgrade.</span></div>`:''}
+ <div class="sec"><h2 style="font-size:20px">Plans</h2></div>${grid}
+ <div class="panel"><h3>Featured listings</h3><p class="muted sm" style="margin:0 0 10px">A featured listing is pinned to the top of the marketplace for 24 hours. ${feat===0?'Your plan does not include featured listings.':feat==null?'Your plan has no monthly limit.':`You have used ${P.featured_used} of ${feat} this month.`}</p>${live.length?live.map(x=>`<div class="krow"><span style="flex:1;min-width:0">${esc(x.title)}</span>${pinned[x.id]?`<span class="pill good">Featured until ${fmtL(pinned[x.id])}</span>`:`<button class="btn sm" data-act="feature" data-id="${x.id}">Feature for 24 hours</button>`}</div>`).join(''):'<div class="muted sm">You have no live listings yet.</div>'}</div>
+ ${(S.planPays||[]).length?`<div class="sec"><h2 style="font-size:20px">Plan payments</h2></div><div class="tw"><table><thead><tr><th>Date</th><th>Plan</th><th>Type</th><th class="num">Amount</th></tr></thead><tbody>${S.planPays.map(x=>`<tr><td class="xs mono">${esc(fmtL(x.created_at))}</td><td>${esc(planLabel(x.plan))}</td><td>${esc(x.kind)}</td><td class="num">${N(+x.amount)}</td></tr>`).join('')}</tbody></table></div>`:''}`;
+}
+
+/* ---------- Admin: vendor plans console ---------- */
+const PF=[['price','Price per month (₦)','num'],['listing_limit','Live listings at once','num',1],['slots_per_product','Slots per product','num',1],['copies_per_product','Copies of the same product','num',1],['weekend_listing','Create listings on weekends','bool'],['homepage_ranking','Appears in homepage ranking','bool'],['active_sellers_ring','Active Sellers ring','bool'],['badge','Plan badge text','text',1],['featured_per_month','Featured listings a month','num',1],['discount_codes','Discount codes at once','num',1],['status_posts_per_day','Status posts a day (used in a later phase)','num',1],['alerts_whatsapp','WhatsApp order alerts (used in a later phase)','bool'],['store_link','Store link','sel',['standard','custom']],['analytics','Sales analytics','sel',['totals','listing','listing_buyers','full']],['support','Support','sel',['normal','priority','priority_fastest']],['fee_rate','Fee on each sale (%)','pct',1],['levy_waived','Marketing levy waived','bool']];
+const pfv=(f,v)=>{const k=f[2];if(k==='bool')return v?'Yes':'No';if(f[0]==='price'&&v==null)return 'Not applicable';if(v==null)return k==='text'?'None':k==='pct'?'Platform default':'Unlimited';if(f[0]==='price')return N(+v);if(k==='pct')return (Math.round(v*1000)/10)+'%';return String(v)};
+const RULEN={limit:'limit',fair_use:'fair-use cap',slots:'slots',duplicate:'duplicate',weekend:'weekend'};
+const KINDN={listing_cap:'Listing cap',weekend_access:'Weekend access',trial:'Free trial',plan:'Plan by hand'};
+async function apLoad(){const A=S.ap;try{A.ov=ok(await sb.rpc('admin_plan_overview'));A.us=ok(await sb.rpc('admin_plan_usage',{p_plan:A.fp||null,p_filter:A.ff||null}));A.ovr=ok(await sb.rpc('admin_plan_overrides_list'));A.loaded=true;A.err=''}catch(e){A.err=cleanErr(e)}A.loading=false;render()}
+function adminPlansView(){
+ const A=S.ap=S.ap||{tab:'overview'};
+ if(!A.loaded&&!A.err&&!A.loading){A.loading=true;setTimeout(apLoad,0)}
+ const tabs=[['overview','Overview'],['usage','Usage'],['overrides','Overrides'],['settings','Plan settings']];
+ const tb=`<div class="tabs" role="tablist">${tabs.map(t=>`<button class="${A.tab===t[0]?'on':''}" data-act="ap_tab" data-id="${t[0]}">${t[1]}</button>`).join('')}</div>`;
+ if(A.err)return tb+`<div class="panel"><h3>Could not load plan data</h3><p class="muted sm">${esc(A.err)}</p><p class="muted sm">If this mentions a missing function, run 004_plans_admin_reads.sql in Supabase first.</p><button class="btn" data-act="ap_reload">Try again</button></div>`;
+ if(!A.loaded)return tb+`<div class="panel empty">Loading plan data…</div>`;
+ const o=A.ov||{},sub=o.subscribers||{};
+ if(A.tab==='overview'){
+  const inc=o.income_month_by_plan||{};
+  return tb+`<div class="kpis">${['free','starter','growth','elite'].map(k=>`<div class="kpi ${k==='elite'?'hi':''}"><span>${esc(planLabel(k))} vendors</span><b>${sub[k]||0}</b></div>`).join('')}</div>
+  <div class="panel" style="margin-top:14px"><h3>This month</h3><dl class="kv"><dt>New subscriptions</dt><dd>${o.new||0}</dd><dt>Renewed</dt><dd>${o.renewed||0}</dd><dt>Upgraded</dt><dd>${o.upgraded||0}</dd><dt>Expired or failed</dt><dd>${o.expired||0}</dd><dt>Cancelled</dt><dd>${o.cancelled||0}</dd></dl></div>
+  <div class="panel" style="margin-top:14px"><h3>Plan income</h3><dl class="kv"><dt>This month</dt><dd>${N(+o.income_month_total||0)}</dd>${['starter','growth','elite'].map(k=>`<dt>${esc(planLabel(k))}</dt><dd>${N(+inc[k]||0)}</dd>`).join('')}<dt>All time</dt><dd>${N(+o.income_all_time||0)}</dd></dl></div>
+  <div class="panel" style="margin-top:14px"><div class="mh" style="margin-bottom:6px"><h3 style="margin:0">Upgrade targets</h3><button class="btn sm" data-act="ap_near">See them</button></div><p class="muted sm" style="margin:0"><b>${o.free_near_limit||0}</b> Free vendor${(o.free_near_limit||0)===1?' is':'s are'} at 80% or more of their listing limit.</p></div>
+  <div style="margin-top:14px"><button class="btn" data-act="ap_run">Run the daily plan job now</button> <span class="muted xs">Renews due plans, sends reminders and pauses listings after grace.</span></div>`;
+ }
+ if(A.tab==='usage'){
+  const rows=A.us||[];
+  return tb+`<div class="form" style="margin:0 0 12px;align-items:end"><div class="fld"><label for="ap_fp">Plan</label><select id="ap_fp">${[['','All plans'],['free','Free'],['starter','Starter'],['growth','Growth'],['elite','Elite'],['admin','Subora']].map(x=>`<option value="${x[0]}" ${(A.fp||'')===x[0]?'selected':''}>${x[1]}</option>`).join('')}</select></div><div class="fld"><label for="ap_ff">Show</label><select id="ap_ff">${[['','Everyone'],['near','Near the limit (80%+)'],['at','At the limit']].map(x=>`<option value="${x[0]}" ${(A.ff||'')===x[0]?'selected':''}>${x[1]}</option>`).join('')}</select></div><div class="fld"><button class="btn" data-act="ap_filter">Apply</button></div></div>
+  ${rows.length?`<div class="tw"><table class="pst"><thead><tr><th>Vendor</th><th>Plan</th><th class="num">Listings</th><th class="num">Top slots</th><th class="num">Most copies</th><th>Refused</th><th></th></tr></thead><tbody>${rows.map(r=>`<tr><td class="t">${esc(r.store_name)}</td><td>${esc(planLabel(r.plan))}</td><td class="num">${r.listings_used} / ${r.listing_limit==null?'∞':r.listing_limit}</td><td class="num">${r.max_slots}</td><td class="num">${r.max_copies}</td><td class="sm">${r.refused_total?Object.entries(r.refused||{}).map(([k,n])=>`${esc(RULEN[k]||k)} ${n}`).join(', '):'None'}</td><td>${r.at_limit?'<span class="pill bad">At limit</span>':r.near_limit?'<span class="pill warn">Near limit</span>':''}</td></tr>`).join('')}</tbody></table></div>`:'<div class="panel empty">No vendors match.</div>'}`;
+ }
+ if(A.tab==='overrides'){
+  const rows=A.ovr||[];
+  return tb+`<div style="margin:0 0 12px"><button class="btn pri" data-act="ap_grantform">${I('plus',14)} Grant an override</button></div>
+  ${rows.length?`<div class="tw"><table class="pst"><thead><tr><th>Vendor</th><th>Override</th><th>Value</th><th>Reason</th><th>Ends</th><th></th></tr></thead><tbody>${rows.map(r=>`<tr><td class="t">${esc(r.store_name)}</td><td>${esc(KINDN[r.kind]||r.kind)}</td><td>${r.kind==='listing_cap'?r.int_value+' listings':r.kind==='weekend_access'?(r.bool_value?'Allowed':'Blocked'):esc(planLabel(r.plan))}</td><td class="sm">${esc(r.reason)}</td><td class="xs">${esc(fmtLD(r.expires_at))}</td><td><button class="btn sm" data-act="ap_endform" data-id="${r.id}">End</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="panel empty">No active overrides.</div>'}`;
+ }
+ const cols=['free','starter','growth','elite','admin'].filter(k=>PLANS[k]);
+ return tb+`<p class="muted sm" style="margin:0 0 10px">Click a value to change it. Every change needs a reason and is written to the audit log. Changes apply to new actions; existing listings are never removed.</p><div class="tw"><table class="pst"><thead><tr><th>Setting</th>${cols.map(k=>`<th>${esc(planLabel(k))}</th>`).join('')}</tr></thead><tbody>${PF.map(f=>`<tr><td class="t">${esc(f[1])}</td>${cols.map(k=>k==='admin'?`<td class="muted">${esc(pfv(f,PLANS[k][f[0]]))}</td>`:`<td><button class="cellb" data-act="ap_edit" data-id="${k}|${f[0]}">${esc(pfv(f,PLANS[k][f[0]]))}</button></td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+}
+
+/* ---------- Active Sellers strip (real vendors from the database) ---------- */
+const kfmt=n=>n>=1000?(Math.round(n/100)/10)+'k':String(n);
+const SPARK='<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 1.5c.7 5.6 4.9 9.8 10.5 10.5-5.6.7-9.8 4.9-10.5 10.5C11.3 16.9 7.1 12.7 1.5 12 7.1 11.3 11.3 7.1 12 1.5z"/></svg>';
+const subMark=()=>`<svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" fill="#0e1f10"/><path d="M21.6 8.4A5.4 5.4 0 1 0 16 16.2" fill="none" stroke="#d1fe17" stroke-width="3.8" stroke-linecap="round"/><path d="M16 16.2A5.4 5.4 0 1 1 10.4 23.6" fill="none" stroke="#ffffff" stroke-width="3.8" stroke-linecap="round"/><circle cx="23.4" cy="6.6" r="1.7" fill="#d1fe17"/></svg>`;
+/* every vendor account that exists and is not suspended, best sellers first */
+const sellersList=()=>Object.entries(VENDORS)
+ .filter(([id,v])=>id!=='__none__'&&v.name&&!v.suspended)
+ .sort((a,b)=>(!!b[1].ranked-!!a[1].ranked)||(b[1].sales-a[1].sales)||(!!b[1].official-!!a[1].official)||(b[1].rating-a[1].rating)||a[1].name.localeCompare(b[1].name))
+ .map(x=>x[0]);
+const sellerStat=v=>{
+ const r=v.rating>0?`${v.rating.toFixed(1)} <i class="sa-star">★</i>`:'';
+ const s=v.sales>0?`${kfmt(v.sales)} ${v.sales===1?'sale':'sales'}`:'';
+ return r&&s?`${r} ${s}`:(r||s||'New seller');
+};
+const sellerAv=v=>v.avatar?`<img src="${esc(v.avatar)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:v.official?subMark():`<b>${esc(init(v.name))}</b>`;
+const sellerRing=v=>`<span class="sa-ring ${v.ring?'on':''}"><span class="sa-av">${sellerAv(v)}</span></span>`;
+const sellerCell=id=>{const v=VENDORS[id];
+ return `<button class="sa-c" data-act="vprof" data-id="${esc(id)}" title="${esc(v.name)}" aria-label="Open ${esc(v.name)} store. ${esc(sellerStat(v).replace(/<[^>]+>/g,'').replace('★','stars'))}">${sellerRing(v)}<span class="sa-n">${esc(v.name)}</span><span class="sa-s">${sellerStat(v)}</span></button>`};
+function sellersStrip(){
+ const ids=sellersList();
+ if(!ids.length)return '';
+ const top=ids.slice(0,12);
+ return `<section class="sa" aria-label="Active sellers"${(S.q||S.cat!=='All')?' hidden':''}><div class="sa-h"><h2 class="sa-t">${SPARK} Active Sellers</h2><button class="sa-all" data-act="sellall">View all ${I('chev',16)}</button></div>
+ <div class="sa-scroll"><div class="sa-bar" role="group" aria-label="Sellers, best sellers first">${top.map(sellerCell).join('')}</div>
+ <button class="sa-arr sa-prev" data-act="sa-prev" aria-label="Scroll sellers left">${I('chev',16).replace('<svg ','<svg style="transform:scaleX(-1)" ')}</button><button class="sa-arr sa-next" data-act="sa-next" aria-label="Scroll sellers right">${I('chev',16)}</button></div></section>`;
+}
+const searchRow=()=>`<div class="srch2"><label class="search">${I('search',20)}<input id="q" placeholder="Search listings" value="${esc(S.q)}" aria-label="Search listings" autocomplete="off" enterkeyhint="search"></label><button class="fbtn" data-act="tfilt" aria-label="Filters" aria-pressed="${!!S.showF}">${I('filter',22)}</button></div>`;
+function saFlags(b){const l=b.scrollLeft>4,r=b.scrollLeft+b.clientWidth<b.scrollWidth-4;b.dataset.l=l?'1':'0';b.dataset.r=r?'1':'0'}
+function saInit(){document.querySelectorAll('.sa-bar').forEach(b=>{saFlags(b);b.addEventListener('scroll',()=>saFlags(b),{passive:true})})}
+window.addEventListener('resize',()=>{try{saInit()}catch(e){}});
+
+
 function market(){
  const F=S.f;
- return `<div class="wrap"><div class="sec" id="all"><div><h1 class="serif" style="font-size:clamp(36px,4.4vw,52px)">${S.cat==='All'?'Marketplace':catL(S.cat)}</h1><div class="muted sm" id="cnt">${filtered().length} listings</div></div></div>
- <div class="fbar">
+ return `<div class="wrap">${sellersStrip()}${searchRow()}<nav class="cats cats-home" aria-label="Categories">${CATS.map(c=>`<button class="${S.cat===c?'on':''}" data-act="cat" data-id="${c}">${catL(c)}</button>`).join('')}</nav><div class="sec" id="all"><div><h1 class="serif" style="font-size:clamp(26px,3.2vw,34px)">${S.cat==='All'?'Marketplace':catL(S.cat)}</h1><div class="muted sm" id="cnt">${filtered().length} listings</div></div></div>
+ <div class="fbar" ${(S.showF||F.maxp||F.deliv!=='any'||F.ver)?'':'hidden'}>
   <label>Price <select id="mf_price" class="chip">${[[0,'Any price'],[2000,'Under ₦2,000'],[5000,'Under ₦5,000'],[10000,'Under ₦10,000']].map(o=>`<option value="${o[0]}" ${F.maxp===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select></label>
   <label>Delivery <select id="mf_deliv" class="chip"><option value="any" ${F.deliv==='any'?'selected':''}>Any speed</option><option value="instant" ${F.deliv==='instant'?'selected':''}>Instant only</option></select></label>
   <label class="chip" style="cursor:pointer"><input type="checkbox" id="mf_ver" ${F.ver?'checked':''}> Verified vendors only</label>
@@ -1461,7 +1650,7 @@ function ordersTable(list,full){
  return `<div class="tw"><table><thead><tr><th>Order</th><th>Item</th><th>Buyer</th><th>Status</th><th class="num">Total</th>${full?'<th class="num">You earn</th><th></th>':''}</tr></thead><tbody>${list.map(o=>`<tr><td><span class="mono">${o.id}</span><div class="xs muted">${o.date}</div></td><td>${esc(prod(o.pid).title)}</td><td>${esc(o.buyer)}</td><td>${pill(o.status)}</td><td class="num">${N(o.total)}</td>${full?`<td class="num">${N(o.total*(1-FEE))}</td><td><div class="acts"><button class="btn sm info" data-act="vchat" data-id="${o.id}">Message</button>${o.status==='processing'?`<button class="btn sm pri" data-act="deliver" data-id="${o.id}">Mark delivered</button>`:''}${['delivered','completed'].includes(o.status)?`<button class="btn sm warn" data-act="vrefund" data-id="${o.id}">Refund</button>`:''}</div></td>`:''}</tr>`).join('')}</tbody></table></div>`;
 }
 function vendor(){
- const titles={overview:'Overview',listings:'Listings',new:'New listing',orders:'Orders',messages:'Messages',automation:'Stock & delivery',refunds:'Refunds & disputes',wallet:'Wallet',ads:'Sponsored ads',analytics:'Analytics',profile:'Public profile',verify:'Verification',settings:'Store settings',promos:'Promotions',history:'Activity history'};
+ const titles={plan:'Plan & limits',overview:'Overview',listings:'Listings',new:'New listing',orders:'Orders',messages:'Messages',automation:'Stock & delivery',refunds:'Refunds & disputes',wallet:'Wallet',ads:'Sponsored ads',analytics:'Analytics',profile:'Public profile',verify:'Verification',settings:'Store settings',promos:'Promotions',history:'Activity history'};
  if(!titles[S.sub])S.sub='overview';
  const live=myP().filter(p=>p.status==='live');
  const pend=myP().filter(p=>p.status==='pending').length;
@@ -1557,7 +1746,7 @@ function vendor(){
    <div style="margin-top:16px"><button class="btn pri" type="submit">Save profile</button></div></form>`;
  } else if(S.sub==='verify'){
   const k=S.kyc,st=k.status;
-  const feat=['Sponsored ads','Analytics','Up to '+CAP_VER+' listings (unverified accounts: '+CAP_FREE+')','Verified badge on your profile and listings'];
+  const feat=['Sponsored ads','Analytics','Verified badge on your profile and listings'];
   body=`<div class="panel"><div class="mh" style="margin-bottom:10px"><h3 style="margin:0">Verification status</h3>${st==='verified'?'<span class="pill good">Verified</span>':st==='review'?'<span class="pill warn">Under review</span>':st==='rejected'?'<span class="pill bad">Needs changes</span>':'<span class="pill">Not started</span>'}</div>
    <ol class="steps"><li><b>1. Send details</b>${st==='none'||st==='rejected'?'Fill in the form below.':'Sent '+esc(k.submitted||'')}</li><li><b>2. Review</b>${st==='verified'?'Done':'Usually within 24 hours.'}</li><li><b>3. Verified</b>${st==='verified'?'Verified '+esc(k.at||'today'):'Pro features unlock.'}</li></ol>
    ${st==='rejected'?`<div class="note" style="margin-top:12px;background:var(--bad-soft)">${I('x')}<span><b>Not approved.</b> ${esc(k.reason||'Please resubmit with clearer documents.')}</span></div>`:''}
@@ -1604,6 +1793,8 @@ function vendor(){
   body=`<div class="kpis"><div class="kpi"><span>Active campaigns</span><b>${S.ads.filter(a=>a.status==='active').length}</b></div><div class="kpi"><span>Impressions</span><b>${imp.toLocaleString()}</b></div><div class="kpi"><span>Clicks</span><b>${clk.toLocaleString()}</b></div><div class="kpi"><span>Avg. click rate</span><b>${imp?(clk/imp*100).toFixed(1):'0.0'}%</b></div></div>
   <div style="margin-bottom:14px"><button class="btn pri" data-act="promote" data-id="">${I('plus',16)} New campaign</button></div>
   <div class="tw"><table><thead><tr><th>Listing</th><th>Placement</th><th>Status</th><th class="num">Budget</th><th class="num">Views</th><th class="num">Clicks</th><th></th></tr></thead><tbody>${S.ads.map(a=>`<tr><td><span class="t">${esc(prod(a.pid).title)}</span><div class="xs muted">Started ${a.start} · ${a.days} days</div></td><td>${a.place}</td><td>${pill(a.status)}</td><td class="num">${N(a.daily*a.days)}</td><td class="num">${a.imp.toLocaleString()}</td><td class="num">${a.clk}</td><td><div class="acts">${a.status==='active'?`<button class="btn sm bad" data-act="adstop" data-id="${a.id}">Stop</button>`:''}</div></td></tr>`).join('')}</tbody></table></div>`;
+ } else if(S.sub==='plan'){
+  body=planView();
  } else if(S.sub==='promos'){
   body=promosView();
  } else if(S.sub==='analytics'){
@@ -1678,7 +1869,7 @@ function adminAnalytics(){
 }
 function admin(){
  const q=S.products.filter(p=>p.status==='pending'),dq=S.products.filter(p=>p.status==='deleting');const w=S.wd.filter(x=>x.status==='queued');const kq=kycQueue();
- const ttl={review:'Listing review',kyc:'Vendor verification',disputes:'Disputes',payouts:'Payouts',assets:'Asset protection',reports:'Reports & flags',quality:'Quality & test buys',analytics:'Analytics',settings:'Platform settings',launch:'Launch checklist',people:'Accounts',audit:'Audit log'};
+ const ttl={plans:'Vendor plans',review:'Listing review',kyc:'Vendor verification',disputes:'Disputes',payouts:'Payouts',assets:'Asset protection',reports:'Reports & flags',quality:'Quality & test buys',analytics:'Analytics',settings:'Platform settings',launch:'Launch checklist',people:'Accounts',audit:'Audit log'};
  if(!ttl[S.sub])S.sub='review';
  let body='';
  if(S.sub==='review')body=(q.length||dq.length)?`<div class="tw"><table><thead><tr><th>Listing</th><th>Request</th><th>Vendor</th><th class="num">Price</th><th></th></tr></thead><tbody>${q.map(p=>`<tr><td><span class="t">${esc(p.title)}</span><div class="xs muted">${p.cat} · ${esc(p.deliv)}</div></td><td><span class="pill warn">${p.edited?'Edit review':'New listing'}</span></td><td>${esc(VENDORS[p.v].name)}</td><td class="num">${N(p.price)}</td><td><div class="acts"><button class="btn sm pri" data-act="approve" data-id="${p.id}">Approve</button><button class="btn sm bad" data-act="reject" data-id="${p.id}">Reject</button></div></td></tr>`).join('')}${dq.map(p=>`<tr><td><span class="t">${esc(p.title)}</span><div class="xs muted">${p.cat} · ${S.orders.filter(o=>o.pid===p.id&&!['completed','refunded'].includes(o.status)).length} open orders</div></td><td><span class="pill ${p.kind==='archive'?'warn':'bad'}">${p.kind==='archive'?'Archive':'Deletion'}</span></td><td>${esc(VENDORS[p.v].name)}</td><td class="num">${N(p.price)}</td><td><div class="acts"><button class="btn sm pri" data-act="delok" data-id="${p.id}">${p.kind==='archive'?'Approve archive':'Approve deletion'}</button><button class="btn sm" data-act="deldeny" data-id="${p.id}">Decline</button></div></td></tr>`).join('')}</tbody></table></div>`:`<div class="panel empty">The review queue is clear.</div>`;
@@ -1688,6 +1879,7 @@ function admin(){
  else if(S.sub==='reports')body=reportsView();
  else if(S.sub==='quality')body=qualityView();
  else if(S.sub==='analytics')body=adminAnalytics();
+ else if(S.sub==='plans')body=adminPlansView();
  else if(S.sub==='settings')body=settingsView();
  else if(S.sub==='launch')body=launchView();
  else if(S.sub==='people')body=peopleView();
@@ -1892,7 +2084,7 @@ function settingsView(){
   <div class="fld"><label for="cf_fee">Sale fee (%)</label><input id="cf_fee" type="number" min="0" max="30" step="0.5" value="${Math.round(FEE*1000)/10}"></div>
   <div class="fld"><label for="cf_wd">Withdrawal fee (₦)</label><input id="cf_wd" type="number" min="0" max="2000" value="${WFEE}"></div>
   <div class="fld"><label for="cf_lv">Monthly marketing levy (₦)</label><input id="cf_lv" type="number" min="0" max="20000" value="${S.levy.amount}"><span class="hint">Per vendor, taken on the 1st to fund Subora adverts.</span></div></div>
-  <h3 style="margin:18px 0 12px">Listing limits</h3><div class="form">
+  <h3 style="margin:18px 0 12px">Listing limits</h3><p class="muted sm" style="margin:0 0 8px">Listing limits are now set per plan. Open <b>Vendor plans</b> in the sidebar to change them.</p><div class="form" hidden>
   <div class="fld"><label for="cf_cf">Unverified vendors</label><input id="cf_cf" type="number" min="1" max="20" value="${CAP_FREE}"><span class="hint">Listings at the same time.</span></div>
   <div class="fld"><label for="cf_cv">Verified vendors</label><input id="cf_cv" type="number" min="1" max="100" value="${CAP_VER}"><span class="hint">Listings at the same time.</span></div></div>
   <h3 style="margin:18px 0 12px">Sign-ups</h3>
@@ -2171,7 +2363,7 @@ function qualityView(){
  return `<div class="note" style="margin-bottom:16px">${I('chart')}<span>Buyers answer “Is it working?” on day 1 and day 7. A listing with 20 or more answers and over 20% failures is paused automatically and lands here. Test buys are secret purchases by Subora staff to check a vendor’s delivery.</span></div>
  <div class="tw"><table><thead><tr><th>Listing</th><th>Working</th><th>Avg delivery</th><th>Status</th><th>Last test buy</th><th></th></tr></thead><tbody>${L.map(({p,q,r})=>{const t=S.tests[p.id];const pc=Math.round(r*100);return `<tr><td><span class="t">${esc(p.title)}</span><div class="xs muted">${esc(VENDORS[p.v].name)} · ${(q.ok+q.bad).toLocaleString()} check-ins</div></td><td><div class="qrow"><span class="qbar"><i style="width:${pc}%" class="${r<.8?'bad':r<.9?'warn':''}"></i></span><b class="mono">${pc}%</b></div></td><td>${esc(q.dt)}</td><td>${p.status==='suspended'?`<span class="pill bad">${p.auto?'Auto-paused':'Paused'}</span>`:pill(p.status)}</td><td class="sm">${t?t.state==='run'?'<span class="spin sm"></span>Running':`<span class="pill ${t.ok?'good':'bad'}">${t.ok?'Passed':'Failed'}</span><div class="xs muted">${esc(t.note)}</div>`:'<span class="muted">Not tested</span>'}</td><td><div class="acts"><button class="btn sm info" data-act="testbuy" data-id="${p.id}" ${t&&t.state==='run'?'disabled':''}>Run test buy</button>${p.status==='suspended'?`<button class="btn sm good" data-act="unpause" data-id="${p.id}">Restore</button>`:''}</div></td></tr>`}).join('')}</tbody></table></div>`;
 }
-function auditView(){return lockNote('Every staff and system action is written here and can’t be edited or deleted.')+`<div style="height:12px"></div><div class="tw"><table><thead><tr><th>Time</th><th>Who</th><th>Action</th><th>Details</th></tr></thead><tbody>${S.audit.map(a=>`<tr><td class="xs mono">${esc(a.t)}</td><td>${esc(a.who)}</td><td class="t">${esc(a.a)}</td><td class="sm">${esc(a.x)}</td></tr>`).join('')}</tbody></table></div>`}
+function auditView(){return lockNote('Every staff and system action is written here and can’t be edited or deleted. Times are Lagos time.')+`<div style="height:12px"></div><div class="tw"><table><thead><tr><th>Time</th><th>Who</th><th>Vendor</th><th>Plan</th><th>Action</th><th>Before and after</th><th>Reason</th></tr></thead><tbody>${S.audit.map(a=>`<tr><td class="xs mono">${esc(a.t)}</td><td>${esc(a.who)}</td><td class="sm">${esc(a.v||'')}</td><td class="sm">${esc(a.pl?planLabel(a.pl):'')}</td><td class="t">${esc(a.a)}</td><td class="sm">${esc(a.b||a.af?(a.b||'none')+' → '+(a.af||'none'):a.x)}</td><td class="sm">${esc(a.rs||'')}</td></tr>`).join('')}</tbody></table></div>`}
 /* ---------- v3: home extras ---------- */
 function flashStrip(){const L=S.flash.filter(f=>f.end>Date.now()).map(f=>prod(f.pid)).filter(p=>p&&p.status==='live');if(!L.length)return '';return `<div class="sec"><div><h2>Flash deals</h2><div class="muted sm">Short sales with a countdown. When the timer ends, the price goes back.</div></div><button class="btn sm" data-act="nav" data-view="store">See all</button></div><div class="grid">${L.map(card).join('')}</div>`}
 function votm(){const top=Object.entries(VENDORS).filter(([k,x])=>k!=='__none__'&&!x.official&&x.sales>0&&!x.suspended).sort((a,b)=>b[1].sales-a[1].sales)[0];if(!top)return '';const id=top[0],v=top[1];const items=S.products.filter(p=>p.v===id&&p.status==='live');return `<section class="votm"><div><span class="pill gold">${I('star',12)} Top seller on Subora</span><div class="vhead" style="margin-top:14px"><span class="av big">${esc(init(v.name))}</span><div style="min-width:0"><h2>${esc(v.name)}${bdg(v,24)}</h2><div class="muted">@${esc(v.user)} · ${v.trust}% trust · ${v.sales} sales</div></div></div>${(VFEED[id]||[])[0]?`<blockquote>“${esc(VFEED[id][0].t)}”<cite>${esc(VFEED[id][0].n)}, verified buyer</cite></blockquote>`:''}<button class="btn pri" data-act="vprof" data-id="${id}">Visit store</button></div><div class="vt-r">${items.slice(0,3).map(p=>`<button class="vt-item" data-act="open" data-id="${p.id}"><span class="tile c-${p.cat} mini">${esc(init(p.title))}</span><span><b>${esc(p.title)}</b><small>${N(fp(p))}</small></span></button>`).join('')}</div></section>`}
@@ -2267,8 +2459,9 @@ function render(){
  $('#devbar').innerHTML=devbarHTML();
  $('#stage').dataset.dev=S.dev;
  const app=$('#app');app.dataset.text=S.ui.text;app.dataset.lite=S.ui.lite?'1':'0';app.dataset.focus=S.ui.focus?'1':'0';
- app.innerHTML='<a class="skip" href="#main">Skip to content</a>'+header()+`<main id="main" tabindex="-1">${S.auth&&['store','home','product'].includes(S.view)?topStrip():''}${view}</main>`+footHTML()+bnavHTML()+fabHTML()+cookieHTML()+tourHTML()+modal();
+ app.innerHTML='<a class="skip" href="#main">Skip to content</a>'+header()+`<main id="main" tabindex="-1">${S.auth&&S.view==='product'?topStrip():''}${view}</main>`+footHTML()+bnavHTML()+fabHTML()+cookieHTML()+tourHTML()+modal();
  fit();
+ try{saInit()}catch(e){}
  const m=$('#msgs');if(m)m.scrollTop=m.scrollHeight;
 }
 let tt;
@@ -2539,6 +2732,9 @@ document.addEventListener('click',e=>{
  case 'cat':S.cat=id;S.q='';go('store');break;
  case 'open':S.modal=null;S.pid=id;S.view='product';S.modal=null;render();jump();break;
  case 'vprof':S.vid=id;S.view='vprofile';S.modal=null;render();jump();break;
+ case 'sellall':S.modal={t:'sellers'};paintModal();break;
+ case 'tfilt':S.showF=!S.showF;render();break;
+ case 'sa-prev':case 'sa-next':{const b=$('.sa-bar');if(b)b.scrollBy({left:(a==='sa-next'?1:-1)*Math.max(160,b.clientWidth*.8),behavior:S.ui.lite?'auto':'smooth'})}break;
  case 'chatseller':{if(!S.auth){gate();break}if(S.role!=='buyer'){toast('Switch to the buyer view to chat');break}const p=S.products.find(x=>x.v===id&&x.status==='live');if(!p){toast('This vendor has no live listings to chat about');break}ensureThread(p.id);S.view='buyer';S.sub='messages';S.modal=null;render();jump()}break;
  case 'add':if(!S.auth){gate();break}if($('#agree')&&!$('#agree').checked){toast('Read and tick the vendor terms first');break}if(!assetOk(id))break;if(S.role!=='buyer'){toast('Switch to the buyer view to shop');break}if(!S.cart.includes(id))S.cart.push(id);render();toast('Added to cart');break;
  case 'buynow':if(!S.auth){gate();break}if($('#agree')&&!$('#agree').checked){toast('Read and tick the vendor terms first');break}if(!assetOk(id))break;if(S.role!=='buyer'){toast('Switch to the buyer view to shop');break}if(!S.cart.includes(id))S.cart.push(id);S.modal={t:'cart'};render();break;
@@ -2730,7 +2926,7 @@ document.addEventListener('submit',e=>{
 });
 document.addEventListener('input',e=>{
  const t=e.target;
- if(t.id==='q'){S.q=t.value;if(S.view!=='store'){S.view='store';render();const q=$('#q');q.focus();q.setSelectionRange(q.value.length,q.value.length);return}const g=$('#grid');if(g)g.innerHTML=gridHTML();const c=$('#cnt');if(c)c.textContent=filtered().length+' listings'}
+ if(t.id==='q'){S.q=t.value;if(S.view!=='store'){S.view='store';render();const q=$('#q');q.focus();q.setSelectionRange(q.value.length,q.value.length);return}const sa=$('.sa');if(sa)sa.hidden=!!S.q||S.cat!=='All';const g=$('#grid');if(g)g.innerHTML=gridHTML();const c=$('#cnt');if(c)c.textContent=filtered().length+' listings'}
  if(t.id==='rq'){const q=t.value.toLowerCase();document.querySelectorAll('.rrow').forEach(r=>r.hidden=!r.dataset.q.includes(q))}
  if(t.id==='su_pw'){const s=t.value.length<8?Math.min(pwScore(t.value),1):pwScore(t.value);document.querySelectorAll('#meter i').forEach((b,i)=>b.classList.toggle('on',i<s));const h=$('#mhint');if(h)h.textContent=['Use 8+ characters with a number and a capital letter.','Weak','Fair','Good','Strong'][t.value.length<8?0:s]}
  if(/^c\d$/.test(t.id)){t.value=t.value.replace(/\D/g,'').slice(0,1);const n=$('#c'+(+t.id[1]+1));if(n&&t.value)n.focus()}
@@ -2864,7 +3060,7 @@ const SUBORA_CONFIG={
   COMPANY_LINE:''   // paste your pk_live_... / pk_test_... key here to enable wallet funding
 };
 const sb=window.supabase.createClient(SUBORA_CONFIG.SUPABASE_URL,SUBORA_CONFIG.SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
-const ok=r=>{if(r.error)throw new Error(r.error.message||String(r.error));return r.data};
+const ok=r=>{if(r.error){const e=new Error(r.error.message||String(r.error));e.hint=r.error.hint||'';throw e}return r.data};
 const rpc=(fn,args)=>sb.rpc(fn,args||{}).then(ok);
 const LIVE={uid:null,profile:null,vendorRow:null,chans:[],byUuid:{},ready:false,pend:null};
 
@@ -2899,7 +3095,7 @@ function mapVendor(r,fb,rows){
   return {official:!!r.official,verified:!!r.verified,name:r.store_name,user:r.username||'',rating:+r.rating||0,sales:r.sales_count||0,
     trust:r.trust==null?0:r.trust,since:fmtM(r.created_at),bio:r.bio||'',offers:r.offers||[],dist,
     stats:[r.on_time_pct==null?null:+r.on_time_pct,r.no_dispute_pct==null?null:+r.no_dispute_pct,r.good_rating_pct==null?null:+r.good_rating_pct],
-    resp:'',suspended:!!r.suspended,asset:!!r.asset_verified,bond:+r.bond||0};
+    resp:'',suspended:!!r.suspended,asset:!!r.asset_verified,bond:+r.bond||0,avatar:r.avatar_url||r.logo_url||'',plan:r.plan||'free',planBadge:r.plan_badge||'',ring:!!r.plan_ring,ranked:!!r.plan_ranked};
 }
 const mapNote=n=>({id:n.id,ic:n.icon||'bell',t:n.title,d:n.body||'',w:rel(n.created_at),r:!!n.read,go:n.link_view?[n.link_view,n.link_sub||'']:null});
 
@@ -3003,7 +3199,8 @@ async function hydrate(){
   S.banks=banks.map(b=>b.bank_name+' •••• '+b.last4);S.bankIds=banks.map(b=>b.id);
 
   /* vendor specifics */
-  S.ads=[];S.wd=[];S.pool={};
+  S.ads=[];S.wd=[];S.pool={};S.plan=null;S.planPays=[];S.pins=[];
+  try{PLANS={};ok(await sb.from('plan_settings').select('*')).forEach(x=>PLANS[x.plan]=x)}catch(e){PLANS={}}
   if(isV){
     const [vr,wds,ads,pool,kyc,sec]=await Promise.all([
       sb.from('vendors').select('*').eq('id',uid).single().then(ok),
@@ -3014,6 +3211,7 @@ async function hydrate(){
       sb.from('product_secrets').select('product_id').eq('vendor_id',uid).then(ok)
     ]);
     LIVE.vendorRow=vr;
+    try{S.plan=ok(await sb.rpc('my_plan'));S.planPays=ok(await sb.from('plan_payments').select('*').eq('vendor_id',uid).order('created_at',{ascending:false}).limit(12));S.pins=ok(await sb.from('featured_pins').select('*').eq('vendor_id',uid).gt('ends_at',new Date().toISOString()))}catch(e){S.plan=null}
     const me=VENDORS[uid]||(VENDORS[uid]=mapVendor({id:uid,store_name:vr.store_name,username:vr.username,bio:vr.bio,offers:vr.offers,official:vr.official,verified:vr.kyc_status==='verified',rating:vr.rating,sales_count:vr.sales_count,trust:vr.trust,created_at:vr.created_at,suspended:vr.suspended,bond:vr.bond},null,[]));
     me.name=vr.store_name;me.user=vr.username||'';me.bio=vr.bio||'';me.offers=vr.offers||[];me.verified=vr.kyc_status==='verified';me.suspended=vr.suspended;
     const lastKyc=kyc.find(k=>k.kind==='standard'),lastAsset=kyc.find(k=>k.kind==='asset');
@@ -3043,7 +3241,7 @@ async function hydrate(){
     S.wd=allWd.map(w=>({id:w.id,amt:+w.amount,bank:w.bank_label||'Bank account',date:fmtD(w.created_at),status:w.status,vname:nameOf(w.vendor_id)||nm(w.vendor_id)}));
     S.kycq=kycs.map(k=>({id:k.id,name:nameOf(k.vendor_id)||nm(k.vendor_id),type:k.kind==='asset'?'Asset seller: video selfie, address, deposit':'Subscriptions and software',submitted:fmtD(k.submitted_at),status:k.status,kind:k.kind,vendor:k.vendor_id,details:k.details||{},paths:k.doc_paths||[],legal:k.full_name}));
     S.reports=reps.map(r=>{const sup=r.reason==='Support request',app=r.reason==='Suspension appeal';return {id:r.id,kind:sup?'Support':app?'Appeal':r.kind==='vendor'?'Vendor':'Listing',target:sup||app?nm(r.reporter_id):r.kind==='vendor'?(nameOf(r.target_id)||'Vendor'):(pt[r.target_id]||'Listing'),tid:r.target_id,by:nm(r.reporter_id),reason:sup?(r.details||''):r.reason+(r.details?': '+r.details:''),when:fmtT(r.created_at),status:r.status}});
-    S.audit=aud.map(a=>({t:fmtT(a.created_at),who:a.actor_label||'System',a:a.action,x:a.detail||''}));
+    S.audit=aud.map(a=>({t:fmtL(a.created_at),who:a.actor_label||'System',a:a.action,x:a.detail||'',v:a.vendor_id?(nameOf(a.vendor_id)||''):'',pl:a.plan_at_time||'',b:a.before_value||'',af:a.after_value||'',rs:a.reason||''}));
     S.flags=flg.map(f=>({id:f.id,who:f.side==='buyer'?nm(f.buyer_id):nameOf(f.vendor_id),to:f.side==='buyer'?nameOf(f.vendor_id):nm(f.buyer_id),text:f.original||'',reason:f.reason||'Flagged',when:fmtT(f.created_at),status:f.flag_status==='open'?'open':f.flag_status}));
     const fo={};flg.forEach(f=>fo[f.id]=f.original);
     S.threads.forEach(t=>t.msgs.forEach(m=>{if(m.flag&&fo[m.id])m.orig=fo[m.id]}));
@@ -3095,7 +3293,7 @@ function debounce(fn,ms){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>f
 const H={},HF={};
 let BUSY=false;
 const cleanErr=e=>{let m=String((e&&e.message)||e||'Something went wrong');return m.replace(/^.*?exception:\s*/i,'').replace(/^(AuthApiError|AuthError):\s*/,'')};
-async function run(fn){if(BUSY)return;BUSY=true;document.body.style.cursor='progress';try{await fn()}catch(e){console.error(e);toast(cleanErr(e))}finally{BUSY=false;document.body.style.cursor=''}}
+async function run(fn){if(BUSY)return;BUSY=true;document.body.style.cursor='progress';try{await fn()}catch(e){console.error(e);if(e&&typeof e.hint==='string'&&e.hint.indexOf('plan:')===0)planPrompt(cleanErr(e),e.hint);else toast(cleanErr(e))}finally{BUSY=false;document.body.style.cursor=''}}
 document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(!el)return;const h=H[el.dataset.act];if(!h)return;e.stopImmediatePropagation();e.preventDefault();run(()=>h(el,el.dataset.id,e))},true);
 document.addEventListener('submit',e=>{const f=e.target;const h=HF[f.dataset.act];if(!h)return;e.preventDefault();e.stopImmediatePropagation();run(()=>h(f))},true);
 const gv=i=>(($('#'+i)||{}).value||'').trim();
@@ -3328,11 +3526,11 @@ H.editgo=async(el,id)=>{
 async function addListing(status){
   const vrow=LIVE.vendorRow||{};
   const type=document.querySelector('#f_type .on').dataset.id;
-  if(status==='pending'){
-    const cap=S.kyc.status==='verified'?CAP_VER:CAP_FREE;
-    if(myOpen().length>=cap){toast(S.kyc.status==='verified'?'You have reached the limit of '+CAP_VER+' listings. Pause or archive one to add another.':'Unverified vendors can have '+CAP_FREE+' listings. Verify your account to list up to '+CAP_VER+'.');return}
-    const k=svcKey(nlVal('f_svc'),nlVal('f_plan'));
-    if(S.products.some(x=>x.v===MYV&&!['archived','rejected','deleted'].includes(x.status)&&svcKey(px(x).svc,px(x).plan)===k)){toast('You already have a listing for this service and plan. Edit that one instead.');return}
+  {
+    const t0=$('#f_title').value.trim();
+    const pc=ok(await sb.rpc('precheck_listing',{p_category:type,p_title:t0,p_service:($('#f_svc').value.trim()||t0),p_plan:($('#f_plan').value.trim()||'Standard'),
+      p_duration:type==='Courses'?'Lifetime':$('#f_dur').value,p_stock:Math.min(50,Math.max(1,type==='Courses'?50:(+$('#f_stock').value||1)))}));
+    if(pc&&pc.ok===false){planPrompt(pc.message,'plan:'+pc.rule);return}
   }
   let ccode='';
   if(type==='Courses'){
@@ -3585,6 +3783,83 @@ async function boot(){
   else if(S.auth){const d=dest();S.view=d[0]==='store'?'home':d[0];S.sub=d[1]}
   render();
 }
+
+MODALS.sellers=(m,head)=>{const ids=sellersList();return {c:head('Active sellers')+`<p class="muted sm" style="margin:0">Ranked by completed sales. Tap a seller to open their store.</p><div class="mlist">${ids.length?ids.map(id=>{const v=VENDORS[id];
+ return `<button class="sa-row" data-act="vprof" data-id="${esc(id)}" aria-label="Open ${esc(v.name)} store">${sellerRing(v)}<span class="sa-i"><span class="sa-nm"><span>${esc(v.name)}</span>${bdg(v,15)}</span><span class="sa-s">${sellerStat(v)}${v.trust>0?` · ${v.trust}% trust`:''}</span></span><span class="sa-go" aria-hidden="true">›</span></button>`}).join(''):'<p class="sa-empty">No sellers yet.</p>'}</div>`}};
+
+/* ---------- Vendor plans: modals and actions ---------- */
+MODALS.upg=(m,head)=>({cls:'c',c:head('Upgrade your plan')+`<p style="margin:0 0 14px">${esc(m.msg)}</p><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn pri" data-act="plan_open">See plans</button><button class="btn" data-act="close">Not now</button></div>`});
+MODALS.planconfirm=(m,head)=>{
+ const P=S.plan,pl=PLANS[m.id];if(!P||!pl)return {cls:'c',c:head('Plan')+'<p>Plan details are not available.</p>'};
+ const cr=PORDER.indexOf(P.plan==='free'?'free':P.plan),rk=PORDER.indexOf(m.id);
+ let t,b;
+ if(m.id==='free'){t='Cancel renewal';b=`Your ${planLabel(P.plan)} plan stays active until ${fmtLD(P.period_end)}. After that you move to Free, with a 3-day grace period before any listings above the Free limit are paused. Nothing is deleted. No refund is given for the current period.`}
+ else if(rk>cr){t='Switch to '+pl.label;b=`You pay ${N(+pl.price)} now from your available wallet balance${P.plan!=='free'?', minus credit for the days you have not used on your current plan':''}. A new 30-day period starts today and it renews automatically each month.`}
+ else{t='Switch to '+pl.label+' at renewal';b=`You keep your ${planLabel(P.plan)} plan until ${fmtLD(P.period_end)}. Then ${pl.label} starts at ${N(+pl.price)} a month, with a 3-day grace period before any listings above its limit are paused. Nothing is deleted.`}
+ return {cls:'c',c:head(t)+`<p style="margin:0 0 14px">${b}</p><button class="btn pri full" data-act="plan_do" data-id="${m.id}">Confirm</button>`};
+};
+H.plan_open=async()=>{S.modal=null;S.view='vendor';S.sub='plan';render();jump()};
+H.plan_pick=async(el,id)=>{S.modal={t:'planconfirm',id};paintModal()};
+H.plan_do=async(el,id)=>{
+ const r=ok(await sb.rpc('change_plan',{p_plan:id}));
+ const msg={subscribed:'You are now on the '+planLabel(id)+' plan',upgraded:'Upgraded to '+planLabel(id),downgrade_scheduled:'Done. The change happens when your current period ends',cancelled:'Renewal cancelled. Your plan stays until the end of the period',kept:'Your plan will keep renewing'}[r&&r.action]||'Done';
+ await after(msg,'vendor','plan');
+};
+H.plan_keep=async()=>{const ids=[...document.querySelectorAll('.keepbox:checked')].map(x=>x.value);ok(await sb.rpc('choose_listings_to_keep',{p_ids:ids}));await after('Saved. These listings stay live.','vendor','plan')};
+H.feature=async(el,id)=>{ok(await sb.rpc('feature_listing',{p_product:id}));await after('Your listing is featured for 24 hours','vendor','plan')};
+
+/* ---------- Admin: vendor plans actions ---------- */
+H.ap_tab=async(el,id)=>{S.ap.tab=id;render()};
+H.ap_reload=async()=>{Object.assign(S.ap,{loaded:false,err:'',loading:false});render()};
+H.ap_filter=async()=>{S.ap.fp=$('#ap_fp').value;S.ap.ff=$('#ap_ff').value;Object.assign(S.ap,{loaded:false,loading:false});render()};
+H.ap_near=async()=>{Object.assign(S.ap,{tab:'usage',fp:'free',ff:'near',loaded:false,loading:false});render()};
+H.ap_run=async()=>{const r=ok(await sb.rpc('admin_run_plan_lifecycle'));toast(`Done. Renewed ${r.renewed}, lapsed ${r.lapsed}, retried ${r.retried}, listings paused ${r.paused}`);Object.assign(S.ap,{loaded:false,loading:false});render()};
+H.ap_edit=async(el,id)=>{S.modal={t:'apedit',id};paintModal()};
+MODALS.apedit=(m,head)=>{
+ const [pl,key]=m.id.split('|'),f=PF.find(x=>x[0]===key),v=PLANS[pl][key];let inp,nul='';
+ if(f[2]==='bool')inp=`<select id="ae_val"><option value="1" ${v?'selected':''}>Yes</option><option value="0" ${!v?'selected':''}>No</option></select>`;
+ else if(f[2]==='sel')inp=`<select id="ae_val">${f[3].map(o=>`<option ${o===v?'selected':''}>${o}</option>`).join('')}</select>`;
+ else if(f[2]==='text'){inp=`<input id="ae_val" value="${esc(v||'')}">`;nul=1}
+ else{inp=`<input id="ae_val" type="number" min="0" step="any" value="${v==null?'':(f[2]==='pct'?Math.round(v*1000)/10:v)}">`;nul=f[3]}
+ return {cls:'c',c:head(planLabel(pl)+': '+f[1])+`<div class="fld"><label for="ae_val">New value</label>${inp}</div>${nul?`<label style="display:flex;gap:8px;align-items:center;margin:0 0 10px"><input type="checkbox" id="ae_null" ${v==null?'checked':''}> ${f[2]==='text'?'No badge':f[2]==='pct'?'Use the platform fee':'Unlimited'}</label>`:''}<div class="fld"><label for="ae_reason">Reason (required)</label><input id="ae_reason" placeholder="Why are you changing this?"></div><button class="btn pri full" data-act="ap_save" data-id="${m.id}">Save change</button>`};
+};
+H.ap_save=async(el,id)=>{
+ const [pl,key]=id.split('|'),f=PF.find(x=>x[0]===key),reason=gv('ae_reason');
+ if(reason.length<3){toast('Add a reason first');return}
+ const nul=$('#ae_null')&&$('#ae_null').checked;let val;
+ if(f[2]==='bool')val=$('#ae_val').value==='1';
+ else if(f[2]==='sel')val=$('#ae_val').value;
+ else if(f[2]==='text')val=nul?null:($('#ae_val').value.trim()||null);
+ else if(nul)val=null;
+ else{const n=parseFloat($('#ae_val').value);if(!(n>=0)){toast('Enter a number');return}val=f[2]==='pct'?Math.round(n*10)/1000:n}
+ ok(await sb.rpc('admin_set_plan_setting',{p_plan:pl,p_field:key,p_value:val,p_reason:reason}));
+ Object.assign(S.ap,{loaded:false,loading:false});await after('Plan setting saved','admin','plans');
+};
+H.ap_grantform=async()=>{S.modal={t:'apgrant'};paintModal()};
+MODALS.apgrant=(m,head)=>{
+ const vs=Object.entries(VENDORS).filter(([id,v])=>id!=='__none__'&&v.name&&!v.official);
+ return {cls:'c',c:head('Grant an override')+`<div class="fld"><label for="ag_v">Vendor</label><select id="ag_v">${vs.map(([id,v])=>`<option value="${esc(id)}">${esc(v.name)}</option>`).join('')}</select></div>
+ <div class="fld"><label for="ag_k">Override</label><select id="ag_k">${Object.entries(KINDN).map(([k,l])=>`<option value="${k}">${l}</option>`).join('')}</select></div>
+ <div class="fld"><label for="ag_i">Listing cap (for “Listing cap”)</label><input id="ag_i" type="number" min="1" placeholder="e.g. 150"></div>
+ <div class="fld"><label for="ag_b">Weekend access (for “Weekend access”)</label><select id="ag_b"><option value="1">Allow weekend listing</option><option value="0">Block weekend listing</option></select></div>
+ <div class="fld"><label for="ag_p">Plan (for “Free trial” or “Plan by hand”)</label><select id="ag_p">${['starter','growth','elite'].map(k=>`<option value="${k}">${esc(planLabel(k))}</option>`).join('')}</select></div>
+ <div class="fld"><label for="ag_e">Ends on (required)</label><input id="ag_e" type="date"></div>
+ <div class="fld"><label for="ag_r">Reason (required)</label><input id="ag_r" placeholder="Why is this exception needed?"></div>
+ <button class="btn pri full" data-act="ap_grant">Grant override</button>`};
+};
+H.ap_grant=async()=>{
+ const k=$('#ag_k').value,d=$('#ag_e').value,reason=gv('ag_r');
+ if(!d){toast('Choose an end date');return}if(reason.length<3){toast('Add a reason first');return}
+ let i=null,b=null,pl=null;
+ if(k==='listing_cap'){i=parseInt($('#ag_i').value,10);if(!(i>0)){toast('Enter the new listing cap');return}}
+ else if(k==='weekend_access')b=$('#ag_b').value==='1';
+ else pl=$('#ag_p').value;
+ ok(await sb.rpc('admin_grant_override',{p_vendor:$('#ag_v').value,p_kind:k,p_int:i,p_bool:b,p_plan:pl,p_reason:reason,p_expires:new Date(d+'T23:59:00+01:00').toISOString()}));
+ Object.assign(S.ap,{tab:'overrides',loaded:false,loading:false});await after('Override granted','admin','plans');
+};
+H.ap_endform=async(el,id)=>{S.modal={t:'apend',id};paintModal()};
+MODALS.apend=(m,head)=>({cls:'c',c:head('End this override')+`<div class="fld"><label for="ax_r">Reason (required)</label><input id="ax_r" placeholder="Why is it ending early?"></div><button class="btn pri full" data-act="ap_end" data-id="${m.id}">End override</button>`});
+H.ap_end=async(el,id)=>{const r=gv('ax_r');if(r.length<3){toast('Add a reason first');return}ok(await sb.rpc('admin_end_override',{p_id:id,p_reason:r}));Object.assign(S.ap,{loaded:false,loading:false});await after('Override ended','admin','plans')};
 
 /* admin: review a vendor application from real stored details */
 MODALS.kycview=(m,head)=>{
