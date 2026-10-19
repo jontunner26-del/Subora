@@ -1,6 +1,6 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
-<title>Subora Marketplace</title>
-<meta name="description" content="Subora is a marketplace for shared subscriptions, online courses, software seats and digital goods. Every payment is held in escrow until you confirm delivery.">
+<!doctype html><html lang="en-NG"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<title>Subora Marketplace: shared subscriptions with escrow</title>
+<meta name="description" content="Subora marketplace for shared subscriptions, courses, software seats and digital goods in Nigeria. Every payment is held in escrow until you confirm.">
 <link rel="canonical" href="https://www.subora.com.ng/">
 <meta name="theme-color" content="#d1fe17">
 <meta property="og:type" content="website">
@@ -18,6 +18,10 @@
 <meta name="twitter:title" content="Subora: buy and share digital access, safely">
 <meta name="twitter:description" content="A marketplace for shared subscriptions, online courses, software seats and digital goods. Escrow on every order.">
 <meta name="twitter:image" content="https://www.subora.com.ng/og-image.png">
+<!--SEO-HEAD-START-->
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://www.subora.com.ng/#organization","name":"Subora","url":"https://www.subora.com.ng/","logo":"https://www.subora.com.ng/logo.png","description":"Subora is a Nigerian marketplace for shared subscriptions, online courses, software seats and digital goods, with escrow on every order.","areaServed":"NG"},{"@type":"WebSite","@id":"https://www.subora.com.ng/#website","url":"https://www.subora.com.ng/","name":"Subora","publisher":{"@id":"https://www.subora.com.ng/#organization"},"inLanguage":"en-NG"},{"@type":"WebPage","@id":"https://www.subora.com.ng/#page","url":"https://www.subora.com.ng/","name":"Subora Marketplace: shared subscriptions with escrow","description":"Subora marketplace for shared subscriptions, courses, software seats and digital goods in Nigeria. Every payment is held in escrow until you confirm.","inLanguage":"en-NG","isPartOf":{"@id":"https://www.subora.com.ng/#website"},"about":{"@id":"https://www.subora.com.ng/#organization"}}]}</script>
+<!--SEO-HEAD-END-->
 </head><body>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap">
@@ -88,6 +92,8 @@ a{color:var(--link)}
 .btn.sm:hover{box-shadow:0 3px 0 var(--e)}
 .btn.sm:active{transform:translateY(2px);box-shadow:0 0 0 var(--e)}
 .btn.full{width:100%}
+a.btn{text-decoration:none}
+a.btn:not(.pri):not(.dark):not(.bad):not(.good):not(.info):not(.warn){color:var(--fg)}
 .btn[disabled]{opacity:.5;cursor:not-allowed;box-shadow:none;transform:none}
 /* hero */
 .hero{background:var(--ink);color:var(--ink-fg);border-radius:22px;margin-top:20px;overflow:hidden;position:relative}
@@ -248,6 +254,8 @@ tbody tr:hover td:first-child{box-shadow:inset 3px 0 0 var(--link)}
 .links{display:flex;gap:2px}
 .links button{border:0;background:none;font-weight:700;padding:8px 10px;border-radius:10px}
 .links button:hover{background:var(--surface2)}
+.links a{font-weight:700;padding:8px 10px;border-radius:10px;color:var(--fg);text-decoration:none}
+.links a:hover{background:var(--surface2)}
 .hamb{display:none}
 .bnav{display:none}
 .qr{display:flex;gap:6px;flex-wrap:wrap;padding:8px 12px 0}
@@ -686,6 +694,8 @@ td .qrow{grid-template-columns:90px 44px;margin:0}
 .fcols>div{display:grid;gap:7px;align-content:start}
 .fcols button{border:0;background:none;padding:0;text-align:left;color:var(--muted);font:500 13.5px var(--fb)}
 .fcols button:hover{color:var(--fg);text-decoration:underline}
+.fcols a{color:var(--muted);font:500 13.5px var(--fb);text-decoration:none}
+.fcols a:hover{color:var(--fg);text-decoration:underline}
 .fbrand .logo{color:var(--fg)}
 .fbrand p{margin:6px 0;max-width:34ch}
 .foot .wrap.fbase{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--line);margin-top:26px;padding-top:16px}
@@ -1127,7 +1137,23 @@ body{margin:0}
 .pst td,.pst th{white-space:nowrap}.pst .cellb{border:0;background:none;font:inherit;font-weight:600;cursor:pointer;color:var(--fg);padding:4px 8px;border-radius:8px;border:1px dashed var(--line)}.pst .cellb:hover{background:var(--surface2)}
 </style>
 <div id="devbar"></div>
-<div id="stage" data-dev="web"><div id="frame"><div class="sbar" aria-hidden="true"><span>9:41</span><i></i><span>5G</span></div><div id="scroller"><div id="app" data-w="d"></div></div></div></div>
+<div id="stage" data-dev="web"><div id="frame"><div class="sbar" aria-hidden="true"></div><div id="scroller"><div id="app" data-w="d"><!--SEO-SHELL-START-->
+<div class="wrap land2" id="seo-shell"><nav aria-label="Main" style="display:flex;gap:14px;flex-wrap:wrap;padding:14px 0"><a href="/" style="font-weight:800">Subora</a><a href="/how-it-works">How it works</a><a href="/safety">Safety</a><a href="/faq">FAQ</a><a href="/about">About</a><a href="/contact">Contact</a><a href="/?go=login">Log in</a><a href="/?go=signup">Sign up</a></nav>
+<header class="lh"><h1>Subora marketplace: buy and share digital access, safely</h1><p class="lede">Subora is a marketplace for shared subscriptions, online courses, software seats and digital goods. This page explains how it works. When you are ready, create a free account to see what is available.</p><div class="lcta"><a class="btn pri lg" href="/?go=signup">Create free account</a> <a class="btn lg" href="/?go=login">Log in</a></div></header>
+<div class="larticle"><article class="lbody"><section><h2>What is Subora?</h2>
+<p>Many digital tools are priced for one person but can be shared safely between a few. Subora lets approved vendors sell those spare places, along with courses, templates and other digital goods, at a fraction of the usual price.</p>
+<p>You pay from a wallet you fund yourself. Your money is held by Subora until you confirm that what you bought works. Only then is the vendor paid. It is the safety of a shop, with the prices of a shared plan.</p></section><section><h2>What can I buy on Subora?</h2>
+<p>Listings fall into a few simple groups. Prices are shown in Nigerian naira (₦).</p>
+<ul><li><b>AI assistants.</b> A private place on plans for chat, writing and image tools.</li><li><b>Streaming and music.</b> One screen or one seat on a family or premium plan.</li><li><b>Design and software.</b> Team seats for tools used at work and school.</li><li><b>Courses and templates.</b> Recorded lessons, project files, templates and content packs.</li><li><b>Accounts and numbers.</b> Aged social accounts and virtual numbers, with extra checks on every seller.</li></ul></section><section><h2>How does buying on Subora work?</h2>
+<ol class="steps"><li><b>Create a free account.</b> Sign up with your email and phone number, and confirm with a one-time code.</li><li><b>Fund your wallet.</b> Add money by card, bank transfer or USSD. It is credited when the payment is confirmed.</li><li><b>Pick a listing and read the vendor’s terms.</b> Each vendor states what you get and the rules of use. You accept them before you pay.</li><li><b>Pay into escrow.</b> Your money is held, not sent. Your access appears on your subscription card.</li><li><b>Confirm it works.</b> The vendor is paid once you confirm, or after 48 hours with no problem reported.</li></ol></section><section><h2>How does Subora keep my money safe?</h2>
+<p>Safety is built into every order, not added afterwards.</p>
+<ul><li><b>Escrow.</b> Vendors never hold your money while you are checking access.</li><li><b>Refunds.</b> If access breaks, report it from the card. A refund can be full or for the days you did not use.</li><li><b>Disputes with a record.</b> If you and a vendor disagree, Subora decides using the full chat and payment record, and writes down the reason.</li><li><b>Permanent history.</b> Chats, payments and disputes cannot be edited or deleted by anyone, so every problem can be traced.</li></ul>
+<p><a href="/safety">Read the full safety guide</a></p></section><section><h2>How do I get my login or code?</h2>
+<p>Many listings deliver automatically. A sign-in code or an access link arrives on your card within seconds, with no need to wait for the vendor. If you need a person, you can chat with the vendor before and after you buy. If they are away, you can send an urgent nudge by SMS and email, and Subora support steps in if there is still no reply.</p></section><section><h2>Who sells on Subora?</h2>
+<p>Vendors are few and approved by hand. They give their identity documents and bank details before they can sell, and every listing is reviewed before it goes live. Sellers are easy to tell apart by their tick: a blue tick marks a verified vendor who passed our identity checks, and a gold tick marks a listing sold directly by Subora.</p></section><section><h2>What does Subora cost?</h2>
+<p>Creating an account and buying are free. You pay only the price on the listing, from your wallet. Vendors pay a 10% fee on each sale and a small flat fee on each withdrawal, which keeps the marketplace running and funds the checks above.</p></section><section><h2>Questions</h2><div class="faq"><details><summary>I</summary><p>s</p></details><details><summary>Y</summary><p>e</p></details></div><p><a href="/faq">See all questions</a></p></section></article></div>
+<footer class="lsmall" style="padding:24px 0"><a href="/about">About</a> · <a href="/contact">Contact</a> · <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> · <a href="/refunds">Refunds</a></footer></div>
+<!--SEO-SHELL-END--></div></div></div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="https://js.paystack.co/v1/inline.js"></script>
 <script>
@@ -1296,7 +1322,7 @@ function header(){
  <header class="hdr"><div class="wrap">
  ${S.auth?`<button class="hamb chip" data-act="menu" aria-label="Open menu">${I('list')}</button>`:''}
  <button class="logo" data-act="nav" data-view="home" aria-label="Subora home"><i class="lg"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#0e1f10"/><rect x=".75" y=".75" width="30.5" height="30.5" rx="8.4" fill="none" stroke="#d1fe17" stroke-opacity=".35" stroke-width="1.5"/><path d="M21.6 8.4A5.4 5.4 0 1 0 16 16.2" fill="none" stroke="#d1fe17" stroke-width="3.8" stroke-linecap="round"/><path d="M16 16.2A5.4 5.4 0 1 1 10.4 23.6" fill="none" stroke="#ffffff" stroke-width="3.8" stroke-linecap="round"/><circle cx="23.4" cy="6.6" r="1.7" fill="#d1fe17"/></svg></i>Subora</button>
- ${S.auth?`<nav class="links" aria-label="Main"><button data-act="nav" data-view="home">Home</button><button data-act="nav" data-view="store">Marketplace</button></nav>`:(S.view==='home'?`<nav class="links" aria-label="On this page"><button data-act="hjump2" data-id="buy">How it works</button><button data-act="hjump2" data-id="safe">Safety</button><button data-act="hjump2" data-id="faq">FAQ</button></nav>`:`<nav class="links" aria-label="Main"><button data-act="nav" data-view="home">Back to home</button></nav>`)}
+ ${S.auth?`<nav class="links" aria-label="Main"><button data-act="nav" data-view="home">Home</button><button data-act="nav" data-view="store">Marketplace</button></nav>`:(S.view==='home'?`<nav class="links" aria-label="Main"><a href="/how-it-works">How it works</a><a href="/safety">Safety</a><a href="/faq">FAQ</a><a href="/about">About</a></nav>`:`<nav class="links" aria-label="Main"><button data-act="nav" data-view="home">Back to home</button></nav>`)}
  ${(!S.auth||inBody)?'<span class="hspace"></span>':''}${inBody?'':`<label class="search" ${!S.auth?'hidden':''}>${I('search',17)}<input id="q" placeholder="Search ChatGPT, courses, templates, vendors" value="${esc(S.q)}" aria-label="Search listings"></label>`}
  <div class="hacts"><button class="chip tgl" data-act="theme" aria-label="${isDark()?'Switch to light mode':'Switch to dark mode'}" title="${isDark()?'Light mode':'Dark mode'}"><span class="knob">${I(isDark()?'moon':'sun',14)}</span></button><button class="chip" data-act="region" aria-label="Region and currency" hidden><b class="cc">${REG.c}</b>${REG.cur}</button>${acts}</div></div>
  ${onStore&&!inBody?`<div class="wrap"><nav class="cats" aria-label="Categories">${CATS.map(c=>`<button class="${S.cat===c?'on':''}" data-act="cat" data-id="${c}">${catL(c)}</button>`).join('')}</nav></div>`:''}
@@ -1337,7 +1363,7 @@ function landing(){
  const faq=[['Is it safe to pay?','Yes. Every payment is held in escrow. You confirm that your login, code or link works before the vendor is paid. If something breaks, you can report it and get a full or prorated refund.'],['How do I get my login or code?','On your subscription card, usually within seconds. For many listings, sign-in codes and links are delivered automatically, so you never wait for the vendor.'],['Who sells on Subora?','A small number of vendors approved by hand after identity checks. Subora also sells its own official listings.'],['What does it cost?','Buying is free. You only pay the listing price from your wallet. Vendors pay a 10% fee on each sale.'],['What if the vendor does not reply?','Tap Nudge vendor and they are alerted by SMS and email. If they still do not reply, Subora support steps in.'],['Can I delete my chats or payment history?','No. Chats, payments and disputes are kept as permanent records so that any problem can be traced and settled fairly.']];
  const toc=[['what','What is Subora'],['find','What you can find'],['buy','How buying works'],['safe','How your money stays safe'],['access','How you get access'],['sellers','Who sells here'],['cost','What it costs'],['faq','Questions']];
  return `<div class="wrap land2">
- <header class="lh"><span class="pill gold">${I('shield',12)} Escrow on every order</span><h1>Buy and share digital access, <em>safely</em></h1><p class="lede">Subora is a marketplace for shared subscriptions, online courses, software seats and digital goods. This page explains how it works. When you are ready, create a free account to see what is available.</p>
+ <header class="lh"><span class="pill gold">${I('shield',12)} Escrow on every order</span><h1>Subora marketplace: buy and share digital access, <em>safely</em></h1><p class="lede">Subora is a marketplace for shared subscriptions, online courses, software seats and digital goods. This page explains how it works. When you are ready, create a free account to see what is available.</p>
   <div class="lcta"><button class="btn pri lg" data-act="start">Create free account</button><button class="btn lg" data-act="nav" data-view="login">Log in</button></div></header>
  <section class="lstrip" aria-label="Services people share on Subora"><span class="lcap">Popular on Subora</span>${row(['ChatGPT','Claude','Netflix','Spotify','Canva','YouTube','Microsoft 365','Notion'])}</section>
  <div class="larticle">
@@ -2387,8 +2413,8 @@ function helpView(){
 }
 const footHTML=()=>`<footer class="foot"><div class="wrap fcols"><div class="fbrand"><span class="logo"><i class="lg"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#0e1f10"/><rect x=".75" y=".75" width="30.5" height="30.5" rx="8.4" fill="none" stroke="#d1fe17" stroke-opacity=".35" stroke-width="1.5"/><path d="M21.6 8.4A5.4 5.4 0 1 0 16 16.2" fill="none" stroke="#d1fe17" stroke-width="3.8" stroke-linecap="round"/><path d="M16 16.2A5.4 5.4 0 1 1 10.4 23.6" fill="none" stroke="#ffffff" stroke-width="3.8" stroke-linecap="round"/><circle cx="23.4" cy="6.6" r="1.7" fill="#d1fe17"/></svg></i>Subora</span><p>Shared subscriptions, courses, software and digital products, with escrow on every order.</p><span class="xs">${esc(SUBORA_CONFIG.COMPANY_LINE||'')}</span></div>
  ${S.auth?'':'<div class="fhide"></div>'}<div ${S.auth?'':'hidden'}><h5>Marketplace</h5><button data-act="nav" data-view="store">Browse all</button><button data-act="cat" data-id="Subscriptions">Subscriptions</button><button data-act="cat" data-id="Courses">Courses</button><button data-act="cat" data-id="Social">Accounts and numbers</button><button class="quiet" data-act="sellnow">Become a vendor</button></div>
- <div><h5>Help</h5><button data-act="help">Help Centre</button><button data-act="support">Chat with support</button><button data-act="a11y">Display and accessibility</button></div>
- <div><h5>Legal</h5><button data-act="terms">Terms and Conditions</button><button data-act="privacy">Privacy Policy</button><button data-act="refundpol">Refund policy</button><button data-act="cookieset">Cookie settings</button></div></div>
+ <div><h5>Help</h5><button data-act="help">Help Centre</button><button data-act="support">Chat with support</button><a href="/how-it-works">How it works</a><a href="/safety">Safety</a><a href="/faq">FAQ</a><a href="/contact">Contact</a><button data-act="a11y">Display and accessibility</button></div>
+ <div><h5>Legal</h5><a href="/about">About Subora</a><a href="/terms">Terms and Conditions</a><a href="/privacy">Privacy Policy</a><a href="/refunds">Refund policy</a><button data-act="cookieset">Cookie settings</button></div></div>
  <div class="wrap fbase"><span>© 2026 Subora.</span><span>Prices are shown in Nigerian naira (₦)</span></div></footer>`;
 const cookieHTML=()=>S.cookie?'':`<div class="cookie" role="region" aria-label="Cookies"><p><b>Cookies on Subora.</b> Essential cookies keep you logged in and your cart safe. Optional ones help us see how the site is used. <button class="linkbtn" data-act="privacy">Privacy Policy</button></p><div class="acts"><button class="btn sm" data-act="cookie" data-id="essential">Essential only</button><button class="btn sm pri" data-act="cookie" data-id="all">Accept all</button></div></div>`;
 const TOUR=[['Fund your wallet once','Add money by card, transfer or USSD, then pay for anything in seconds.'],['Pick a listing, read the terms','Every listing shows the plan, what’s included, the vendor’s rules and a quality record.'],['Pay into escrow, confirm when it works','The vendor is paid only after you confirm, or after 48 hours with no problem.']];
@@ -2457,7 +2483,7 @@ function render(){
  const V={home:()=>S.auth?home():landing(),store:market,product,buyer,vendor,admin,casepage:casePage,vprofile,help:helpView,login:()=>gateBar()+authView('login'),signup:()=>{S.sRole='buyer';return gateBar()+authView('signup')},vapply:()=>{S.sRole='vendor';return S.suStep===2?authView('signup'):vregView()}};
  const view=(V[S.view]||home)();
  $('#devbar').innerHTML=devbarHTML();
- $('#stage').dataset.dev=S.dev;
+ $('#stage').dataset.dev=S.dev;const sbar=$('.sbar');if(sbar&&!sbar.firstChild)sbar.innerHTML='<span>9:41</span><i></i><span>5G</span>';
  const app=$('#app');app.dataset.text=S.ui.text;app.dataset.lite=S.ui.lite?'1':'0';app.dataset.focus=S.ui.focus?'1':'0';
  app.innerHTML='<a class="skip" href="#main">Skip to content</a>'+header()+`<main id="main" tabindex="-1">${S.auth&&S.view==='product'?topStrip():''}${view}</main>`+footHTML()+bnavHTML()+fabHTML()+cookieHTML()+tourHTML()+modal();
  fit();
@@ -3780,8 +3806,12 @@ async function boot(){
   const q=new URLSearchParams(location.search);
   if(q.get('l')&&prod(q.get('l'))){S.pid=q.get('l');S.view='product'}
   else if(q.get('v')&&VENDORS[q.get('v')]){S.vid=q.get('v');S.view='vprofile'}
+  else if(!S.auth&&q.get('go')==='login'){S.view='login'}
+  else if(!S.auth&&q.get('go')==='signup'){S.view='signup'}
+  else if(!S.auth&&q.get('go')==='sell'){S.sRole='vendor';S.suStep=1;S.view='vapply'}
   else if(S.auth){const d=dest();S.view=d[0]==='store'?'home':d[0];S.sub=d[1]}
   render();
+  try{if(q.get('go'))history.replaceState(null,'',location.pathname)}catch(e){}
 }
 
 MODALS.sellers=(m,head)=>{const ids=sellersList();return {c:head('Active sellers')+`<p class="muted sm" style="margin:0">Ranked by completed sales. Tap a seller to open their store.</p><div class="mlist">${ids.length?ids.map(id=>{const v=VENDORS[id];
