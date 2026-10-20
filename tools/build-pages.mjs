@@ -62,12 +62,12 @@ const CTA_SIGNUP = '/signup', CTA_LOGIN = '/login', CTA_SELL = '/sell';
 const B = {
   what: `<h2>What is Subora?</h2>
 <p>Many digital tools are priced for one person but can be shared safely between a few. Subora lets approved vendors sell those spare places, along with courses, templates and other digital goods, at a fraction of the usual price.</p>
-<p>You pay from a wallet you fund yourself. Your money is held by Subora until you confirm that what you bought works. Only then is the vendor paid. It is the safety of a shop, with the prices of a shared plan.</p>`,
+<p>You pay from a wallet you fund yourself. Your money is held by Subora until you confirm that what you bought works. Only then is the vendor paid. It is the safety of a shop, with the prices of a shared plan. Anyone can browse the marketplace, and you only need an account to buy.</p>`,
   find: `<h2>What can I buy on Subora?</h2>
 <p>Listings fall into a few simple groups. Prices are shown in Nigerian naira (₦).</p>
 <ul><li><b>AI assistants.</b> A private place on plans for chat, writing and image tools.</li><li><b>Streaming and music.</b> One screen or one seat on a family or premium plan.</li><li><b>Design and software.</b> Team seats for tools used at work and school.</li><li><b>Courses and templates.</b> Recorded lessons, project files, templates and content packs.</li><li><b>Accounts and numbers.</b> Aged social accounts and virtual numbers, with extra checks on every seller.</li></ul>`,
   steps: `<h2>How does buying on Subora work?</h2>
-<ol class="steps"><li><b>Create a free account.</b> Sign up with your email and phone number, and confirm with a one-time code.</li><li><b>Fund your wallet.</b> Add money by card, bank transfer or USSD. It is credited when the payment is confirmed.</li><li><b>Pick a listing and read the vendor’s terms.</b> Each vendor states what you get and the rules of use. You accept them before you pay.</li><li><b>Pay into escrow.</b> Your money is held, not sent. Your access appears on your subscription card.</li><li><b>Confirm it works.</b> The vendor is paid once you confirm, or after 48 hours with no problem reported.</li></ol>`,
+<ol class="steps"><li><b>Browse, then create a free account.</b> Anyone can look through listings and compare prices. When you are ready to buy, sign up with your email and phone number and confirm with a one-time code.</li><li><b>Fund your wallet.</b> Add money by card, bank transfer or USSD. It is credited when the payment is confirmed.</li><li><b>Pick a listing and read the vendor’s terms.</b> Each vendor states what you get and the rules of use. You accept them before you pay.</li><li><b>Pay into escrow.</b> Your money is held, not sent. Your access appears on your subscription card.</li><li><b>Confirm it works.</b> The vendor is paid once you confirm, or after 48 hours with no problem reported.</li></ol>`,
   safe: `<h2>How does Subora keep my money safe?</h2>
 <p>Safety is built into every order, not added afterwards.</p>
 <ul><li><b>Escrow.</b> Vendors never hold your money while you are checking access.</li><li><b>Refunds.</b> If access breaks, report it from the card. A refund can be full or for the days you did not use.</li><li><b>Disputes with a record.</b> If you and a vendor disagree, Subora decides using the full chat and payment record, and writes down the reason.</li><li><b>Permanent history.</b> Chats, payments and disputes cannot be edited or deleted by anyone, so every problem can be traced.</li></ul>
@@ -80,8 +80,8 @@ const B = {
 <p>Creating an account and buying are free. You pay only the price on the listing, from your wallet. Vendors pay a 10% fee on each sale and a small flat fee on each withdrawal, which keeps the marketplace running and funds the checks above.</p>`
 };
 const faqDetails = list => `<div class="faq">${list.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join('')}</div>`;
-const cta = (h = 'Ready to see what is inside?', p = 'Create a free account to browse listings, compare prices and chat with vendors.') =>
-  `<aside class="cta"><div><h2>${h}</h2><p>${p}</p></div><div class="row"><a class="btn dark" href="${CTA_SIGNUP}">Create free account</a><a class="btn" href="${CTA_LOGIN}">Log in</a></div></aside>`;
+const cta = (h = 'Ready to see what is inside?', p = 'Browse listings and compare prices now. Create a free account when you are ready to buy or chat with vendors.') =>
+  `<aside class="cta"><div><h2>${h}</h2><p>${p}</p></div><div class="row"><a class="btn dark" href="/store">Browse the marketplace</a><a class="btn" href="${CTA_SIGNUP}">Create free account</a></div></aside>`;
 
 /* ---------- organisation data (only what you filled in) ---------- */
 const sameAs = Object.values(CFG.social || {}).filter(has);
@@ -163,7 +163,7 @@ ${cta()}`
 <p>Subora is a marketplace: we provide the place where buyers and vendors meet, and we do not own, supply or control what vendors list. Some services, such as streaming, AI and software providers, have their own rules about sharing accounts or reselling access, and some do not allow it. Each vendor is responsible for checking those rules before listing. A provider can also change or end access at any time, and the refund rules then apply. See section 9 of the <a href="/terms">Terms and Conditions</a>.</p>
 <h2>I am a brand or rights holder. How do I report a listing?</h2>
 <p>Send us a rights holder notice. We review notices within 24 hours and pause the listing while we check. See <a href="/contact">how to contact us</a>.</p>
-${cta('Shop with escrow on every order', 'Create a free account to browse listings, compare prices and chat with vendors.')}`
+${cta('Shop with escrow on every order', 'Browse listings and compare prices now. Create a free account when you are ready to buy or chat with vendors.')}`
   },
   {
     slug: 'faq', type: 'FAQPage', title: 'Subora FAQ: buying, wallet, refunds and security',
@@ -185,7 +185,7 @@ ${cta('Shop with escrow on every order', 'Create a free account to browse listin
 <h2>I am a brand or rights holder. How do I report a listing?</h2>
 <p>A service provider, brand or rights holder can ask us to remove a listing that breaks their rules or rights. We review notices within 24 hours and pause the listing while we check. ${emailLine ? `Email ${emailLine} with the brand name, the listing and what rule or right it breaks.` : 'Use the Rights holder notice form in the app with the brand name, the listing and what rule or right it breaks.'}</p>
 <div class="note"><p>Subora staff never ask for your password, your codes or payment outside the app.</p></div>
-${cta('New to Subora?', 'Create a free account to browse listings, compare prices and chat with vendors.')}`
+${cta('New to Subora?', 'Browse listings and compare prices now. Create a free account when you are ready to buy or chat with vendors.')}`
   },
   {
     slug: 'terms', type: 'WebPage', title: 'Terms and Conditions',
@@ -214,9 +214,9 @@ ${cta('New to Subora?', 'Create a free account to browse listings, compare price
 ];
 
 /* ---------- page rendering ---------- */
-const NAV = [['/how-it-works', 'How it works'], ['/safety', 'Safety'], ['/faq', 'FAQ'], ['/about', 'About'], ['/contact', 'Contact']];
+const NAV = [['/store', 'Marketplace'], ['/how-it-works', 'How it works'], ['/safety', 'Safety'], ['/faq', 'FAQ'], ['/about', 'About'], ['/contact', 'Contact']];
 const header = cur => `<a class="skip" href="#main">Skip to content</a><header class="site-hdr"><div class="wrap"><a class="logo" href="/" aria-label="Subora home">${MARK}<span>Subora</span></a><nav aria-label="Main">${NAV.map(([h, l]) => `<a href="${h}"${cur === h ? ' aria-current="page"' : ''}>${l}</a>`).join('')}</nav><div class="acts"><a class="btn sm" href="${CTA_LOGIN}">Log in</a><a class="btn sm pri" href="${CTA_SIGNUP}">Sign up</a></div></div></header>`;
-const footer = () => `<footer class="site-ftr"><div class="wrap"><div class="fgrid"><div><a class="logo" href="/" aria-label="Subora home">${MARK}<span>Subora</span></a><p>Shared subscriptions, courses, software and digital products, with escrow on every order.</p>${has(CFG.business_name) ? `<p>${esc(CFG.business_name)}</p>` : ''}</div><div><h2>Learn</h2><ul><li><a href="/how-it-works">How it works</a></li><li><a href="/safety">Safety</a></li><li><a href="/faq">FAQ</a></li><li><a href="/about">About</a></li></ul></div><div><h2>Support</h2><ul><li><a href="/contact">Contact</a></li><li><a href="${CTA_SIGNUP}">Create an account</a></li><li><a href="${CTA_SELL}">Sell on Subora</a></li></ul></div><div><h2>Legal</h2><ul><li><a href="/terms">Terms and Conditions</a></li><li><a href="/privacy">Privacy Policy</a></li><li><a href="/refunds">Refund policy</a></li></ul></div></div><div class="fbase"><span>© 2026 Subora.</span><span>Prices are shown in Nigerian naira (₦)</span></div></div></footer>`;
+const footer = () => `<footer class="site-ftr"><div class="wrap"><div class="fgrid"><div><a class="logo" href="/" aria-label="Subora home">${MARK}<span>Subora</span></a><p>Shared subscriptions, courses, software and digital products, with escrow on every order.</p>${has(CFG.business_name) ? `<p>${esc(CFG.business_name)}</p>` : ''}</div><div><h2>Learn</h2><ul><li><a href="/store">Marketplace</a></li><li><a href="/how-it-works">How it works</a></li><li><a href="/safety">Safety</a></li><li><a href="/faq">FAQ</a></li><li><a href="/about">About</a></li></ul></div><div><h2>Support</h2><ul><li><a href="/contact">Contact</a></li><li><a href="${CTA_SIGNUP}">Create an account</a></li><li><a href="${CTA_SELL}">Sell on Subora</a></li></ul></div><div><h2>Legal</h2><ul><li><a href="/terms">Terms and Conditions</a></li><li><a href="/privacy">Privacy Policy</a></li><li><a href="/refunds">Refund policy</a></li></ul></div></div><div class="fbase"><span>© 2026 Subora.</span><span>Prices are shown in Nigerian naira (₦)</span></div></div></footer>`;
 
 function render(p) {
   const url = `${SITE}/${p.slug}`;
@@ -273,7 +273,7 @@ idx = idx.replace(/<title>[^<]*<\/title>/, `<title>${HOME_TITLE}</title>`)
   .replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${HOME_DESC}">`);
 const headBlock = `<!--SEO-HEAD-START-->
 <link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
-${ld(ORG, WEBSITE, { '@type': 'WebPage', '@id': SITE + '/#page', url: SITE + '/', name: HOME_TITLE, description: HOME_DESC, inLanguage: 'en-NG', isPartOf: { '@id': SITE + '/#website' }, about: { '@id': SITE + '/#organization' } })}
+${ld(ORG, WEBSITE)}
 <!--SEO-HEAD-END-->`;
 if (idx.includes('<!--SEO-HEAD-START-->')) idx = idx.replace(/<!--SEO-HEAD-START-->[\s\S]*?<!--SEO-HEAD-END-->/, headBlock);
 else idx = idx.replace('</head>', headBlock + '\n</head>');
@@ -281,7 +281,7 @@ else idx = idx.replace('</head>', headBlock + '\n</head>');
 const shellNav = NAV.map(([h, l]) => `<a href="${h}">${l}</a>`).join('');
 const shell = `<!--SEO-SHELL-START-->
 <div class="wrap land2" id="seo-shell"><nav aria-label="Main" style="display:flex;gap:14px;flex-wrap:wrap;padding:14px 0"><a href="/" style="font-weight:800">Subora</a>${shellNav}<a href="${CTA_LOGIN}">Log in</a><a href="${CTA_SIGNUP}">Sign up</a></nav>
-<header class="lh"><h1>Subora marketplace: buy and share digital access, safely</h1><p class="lede">Subora is a marketplace for shared subscriptions, online courses, software seats and digital goods. This page explains how it works. When you are ready, create a free account to see what is available.</p><div class="lcta"><a class="btn pri lg" href="${CTA_SIGNUP}">Create free account</a> <a class="btn lg" href="${CTA_LOGIN}">Log in</a></div></header>
+<header class="lh"><h1>Subora marketplace: buy and share digital access, safely</h1><p class="lede">Subora is a marketplace for shared subscriptions, online courses, software seats and digital goods. This page explains how it works. Browse the marketplace without an account, and create a free account when you are ready to buy.</p><div class="lcta"><a class="btn pri lg" href="/store">Browse the marketplace</a> <a class="btn lg" href="${CTA_SIGNUP}">Create free account</a> <a class="btn lg" href="${CTA_LOGIN}">Log in</a></div></header>
 <div class="larticle"><article class="lbody">${[B.what, B.find, B.steps, B.safe, B.access, B.sellers, B.cost].map(s => `<section>${s}</section>`).join('')}<section><h2>Questions</h2>${faqDetails(FAQ_BASICS)}<p><a href="/faq">See all questions</a></p></section></article></div>
 <footer class="lsmall" style="padding:24px 0"><a href="/about">About</a> · <a href="/contact">Contact</a> · <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> · <a href="/refunds">Refunds</a></footer></div>
 <!--SEO-SHELL-END-->`;
@@ -291,7 +291,7 @@ else throw new Error('Could not find the empty #app container in index.html');
 fs.writeFileSync(INDEX, idx);
 
 /* ---------- sitemap.xml, robots.txt, 404.html ---------- */
-const urls = [SITE + '/', ...pages.map(p => `${SITE}/${p.slug}`)];
+const urls = [SITE + '/', SITE + '/store', ...pages.map(p => `${SITE}/${p.slug}`)];
 fs.writeFileSync(path.join(ROOT, 'sitemap.xml'),
   `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(u => `  <url><loc>${u}</loc><lastmod>${CFG.updated}</lastmod></url>`).join('\n')}\n</urlset>\n`);
 fs.writeFileSync(path.join(ROOT, 'robots.txt'),
