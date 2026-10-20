@@ -290,5 +290,30 @@ else if (idx.includes('<div id="app" data-w="d"></div>')) idx = idx.replace('<di
 else throw new Error('Could not find the empty #app container in index.html');
 fs.writeFileSync(INDEX, idx);
 
+/* ---------- sitemap.xml, robots.txt, 404.html ---------- */
+const urls = [SITE + '/', ...pages.map(p => `${SITE}/${p.slug}`)];
+fs.writeFileSync(path.join(ROOT, 'sitemap.xml'),
+  `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(u => `  <url><loc>${u}</loc><lastmod>${CFG.updated}</lastmod></url>`).join('\n')}\n</urlset>\n`);
+fs.writeFileSync(path.join(ROOT, 'robots.txt'),
+  `# Subora: public pages are open to search engines and AI crawlers.\nUser-agent: *\nAllow: /\nDisallow: /account/\nDisallow: /vendor/\nDisallow: /admin/\nDisallow: /case/\n\nSitemap: ${SITE}/sitemap.xml\n`);
+fs.writeFileSync(path.join(ROOT, '404.html'), `<!doctype html>
+<html lang="en-NG"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Page not found | Subora</title>
+<meta name="description" content="This page does not exist on Subora. Try the links below.">
+<meta name="robots" content="noindex,follow">
+<meta name="theme-color" content="#d1fe17">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Manrope:wght@800&display=swap">
+<link rel="stylesheet" href="/assets/site.css">
+</head><body>
+${header('')}
+<main id="main" class="page"><div class="wrap"><div class="page-in"><h1>Page not found</h1><p class="lede">That address does not exist on Subora. It may have moved, or the link may have a typo.</p>
+<h2>Where would you like to go?</h2>
+<ul><li><a href="/">Subora home</a></li><li><a href="/how-it-works">How Subora works</a></li><li><a href="/safety">Buying safely on Subora</a></li><li><a href="/faq">Frequently asked questions</a></li><li><a href="/contact">Contact Subora</a></li></ul>
+<p><a class="btn pri" href="/">Back to home</a></p></div></div></main>
+${footer()}
+</body></html>
+`);
+
 console.log('Pages written:'); report.forEach(r => console.log(`  /${r.slug}  ${r.words} words, title ${r.title} chars`));
 if (warn.length) { console.log('\nStill to fill in or check:'); warn.forEach(w => console.log('  - ' + w)); }

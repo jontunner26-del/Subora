@@ -1,0 +1,9 @@
+# Subora: public pages are open to search engines and AI crawlers.
+User-agent: *
+Allow: /
+Disallow: /account/
+Disallow: /vendor/
+Disallow: /admin/
+Disallow: /case/
+
+Sitemap: https://www.subora.com.ng/sitemap.xml
