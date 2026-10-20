@@ -301,6 +301,7 @@ fs.writeFileSync(path.join(ROOT, '404.html'), `<!doctype html>
 <title>Page not found | Subora</title>
 <meta name="description" content="This page does not exist on Subora. Try the links below.">
 <meta name="robots" content="noindex,follow">
+<script>(function(){var p=location.pathname;if(/^[/](store|login|signup|sell|help|account|vendor|admin|case|listing|seller)([/]|$)/.test(p)){try{sessionStorage.setItem('subora_r',p+location.search+location.hash)}catch(e){}document.documentElement.style.visibility='hidden';location.replace('/')}})();</script>
 <meta name="theme-color" content="#d1fe17">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Manrope:wght@800&display=swap">

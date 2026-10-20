@@ -3802,6 +3802,7 @@ setInterval(async()=>{
 sb.auth.onAuthStateChange((ev)=>{if(ev==='PASSWORD_RECOVERY'){hydrate().then(()=>{S.modal={t:'newpw'};render()})}});
 async function boot(){
   S.loading=false;
+  try{const r=sessionStorage.getItem('subora_r');if(r){sessionStorage.removeItem('subora_r');history.replaceState(null,'',r)}}catch(e){}
   try{await hydrate()}catch(e){console.error(e);toast('Could not reach Subora. Check your connection and refresh.')}
   const q=new URLSearchParams(location.search);
   if(q.get('l')&&prod(q.get('l'))){S.pid=q.get('l');S.view='product'}

@@ -4,63 +4,63 @@
   "rewrites": [
     {
       "source": "/store",
-      "destination": "/index.html"
+      "destination": "/"
     },
     {
       "source": "/login",
-      "destination": "/index.html"
+      "destination": "/"
     },
     {
       "source": "/signup",
-      "destination": "/index.html"
+      "destination": "/"
     },
     {
       "source": "/sell",
-      "destination": "/index.html"
+      "destination": "/"
     },
     {
       "source": "/help",
-      "destination": "/index.html"
+      "destination": "/"
     },
     {
       "source": "/account",
-      "destination": "/index.html"
+      "destination": "/"
     },
     {
       "source": "/account/:path*",
-      "destination": "/index.html"
+      "destination": "/"
     },
     {
       "source": "/vendor",
-      "destination": "/index.html"
+      "destination": "/"
     },
     {
       "source": "/vendor/:path*",
-      "destination": "/index.html"
+      "destination": "/"
     },
     {
       "source": "/admin",
-      "destination": "/index.html"
+      "destination": "/"
     },
     {
       "source": "/admin/:path*",
-      "destination": "/index.html"
+      "destination": "/"
     },
     {
       "source": "/case",
-      "destination": "/index.html"
+      "destination": "/"
     },
     {
       "source": "/case/:path*",
-      "destination": "/index.html"
+      "destination": "/"
     },
     {
       "source": "/listing/:id",
-      "destination": "/index.html"
+      "destination": "/"
     },
     {
       "source": "/seller/:id",
-      "destination": "/index.html"
+      "destination": "/"
     }
   ]
 }
