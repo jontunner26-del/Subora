@@ -1,4 +1,8 @@
 {
   "cleanUrls": true,
-  "trailingSlash": false
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/(login|signup|sell|store|help|account|vendor|admin|case)", "destination": "/index.html" },
+    { "source": "/(account|vendor|admin|case|listing|seller)/:path*", "destination": "/index.html" }
+  ]
 }

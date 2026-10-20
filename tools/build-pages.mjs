@@ -58,7 +58,7 @@ if (fs.existsSync(path.join(ROOT, 'logo.png'))) LOGO = '/logo.png';
 else warn.push('logo.png is missing (Google prefers a PNG). Schema uses logo.svg instead.');
 
 /* ---------- shared content blocks (the landing page copy, reused on every page) ---------- */
-const CTA_SIGNUP = '/?go=signup', CTA_LOGIN = '/?go=login', CTA_SELL = '/?go=sell';
+const CTA_SIGNUP = '/signup', CTA_LOGIN = '/login', CTA_SELL = '/sell';
 const B = {
   what: `<h2>What is Subora?</h2>
 <p>Many digital tools are priced for one person but can be shared safely between a few. Subora lets approved vendors sell those spare places, along with courses, templates and other digital goods, at a fraction of the usual price.</p>

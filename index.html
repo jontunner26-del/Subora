@@ -1138,8 +1138,8 @@ body{margin:0}
 </style>
 <div id="devbar"></div>
 <div id="stage" data-dev="web"><div id="frame"><div class="sbar" aria-hidden="true"></div><div id="scroller"><div id="app" data-w="d"><!--SEO-SHELL-START-->
-<div class="wrap land2" id="seo-shell"><nav aria-label="Main" style="display:flex;gap:14px;flex-wrap:wrap;padding:14px 0"><a href="/" style="font-weight:800">Subora</a><a href="/how-it-works">How it works</a><a href="/safety">Safety</a><a href="/faq">FAQ</a><a href="/about">About</a><a href="/contact">Contact</a><a href="/?go=login">Log in</a><a href="/?go=signup">Sign up</a></nav>
-<header class="lh"><h1>Subora marketplace: buy and share digital access, safely</h1><p class="lede">Subora is a marketplace for shared subscriptions, online courses, software seats and digital goods. This page explains how it works. When you are ready, create a free account to see what is available.</p><div class="lcta"><a class="btn pri lg" href="/?go=signup">Create free account</a> <a class="btn lg" href="/?go=login">Log in</a></div></header>
+<div class="wrap land2" id="seo-shell"><nav aria-label="Main" style="display:flex;gap:14px;flex-wrap:wrap;padding:14px 0"><a href="/" style="font-weight:800">Subora</a><a href="/how-it-works">How it works</a><a href="/safety">Safety</a><a href="/faq">FAQ</a><a href="/about">About</a><a href="/contact">Contact</a><a href="/login">Log in</a><a href="/signup">Sign up</a></nav>
+<header class="lh"><h1>Subora marketplace: buy and share digital access, safely</h1><p class="lede">Subora is a marketplace for shared subscriptions, online courses, software seats and digital goods. This page explains how it works. When you are ready, create a free account to see what is available.</p><div class="lcta"><a class="btn pri lg" href="/signup">Create free account</a> <a class="btn lg" href="/login">Log in</a></div></header>
 <div class="larticle"><article class="lbody"><section><h2>What is Subora?</h2>
 <p>Many digital tools are priced for one person but can be shared safely between a few. Subora lets approved vendors sell those spare places, along with courses, templates and other digital goods, at a fraction of the usual price.</p>
 <p>You pay from a wallet you fund yourself. Your money is held by Subora until you confirm that what you bought works. Only then is the vendor paid. It is the safety of a shop, with the prices of a shared plan.</p></section><section><h2>What can I buy on Subora?</h2>
@@ -2344,7 +2344,7 @@ function promosView(){
   <div style="margin-top:12px"><button class="btn pri" data-act="bundlenew">Submit bundle for review</button></div></div>
  <div class="panel"><h3>Loyal buyer discount</h3><p class="muted sm" style="margin:0 0 12px">Buyers who have bought from you before see this discount on every listing, and on the “Buy again” button when their plan ends. It keeps your regulars coming back to you.</p>
   <div class="opts">${[0,3,5,10].map(n=>`<button type="button" class="${(S.loyal.v1||0)===n?'on':''}" data-act="loyal" data-id="${n}">${n?n+'% off':'Off'}</button>`).join('')}</div></div>
- <div class="panel"><h3>Your store link</h3><div class="cred"><div class="mono">${esc(location.host+location.pathname)}?v=${MYV}</div><button class="btn sm pri" data-act="share" data-kind="store" data-id="${MYV}">${I('share',14)}Share</button></div></div>`;
+ <div class="panel"><h3>Your store link</h3><div class="cred"><div class="mono">${esc(location.host)}/seller/${MYV}</div><button class="btn sm pri" data-act="share" data-kind="store" data-id="${MYV}">${I('share',14)}Share</button></div></div>`;
 }
 function checklistHTML(){const v=id=>(($('#'+id)||{}).value||'').trim();const lines=id=>v(id).split(/\n/).filter(x=>x.trim()).length;
  const items=[['Title',v('f_title').length>=6],['Service and plan',v('f_svc').length>1&&v('f_plan').length>0],['Price',+v('f_price')>=100],['Description of 30+ characters',v('f_desc').length>=30],['At least 2 features',lines('f_feat')>=2],['At least 2 terms',lines('f_terms')>=2]];
@@ -2489,6 +2489,7 @@ function render(){
  fit();
  try{saInit()}catch(e){}
  const m=$('#msgs');if(m)m.scrollTop=m.scrollHeight;
+ try{RT.sync()}catch(e){}
 }
 let tt;
 const jump=()=>{window.scrollTo(0,0);const sc=$('#scroller');if(sc)sc.scrollTop=0;const m=$('main');if(m){m.classList.remove('in');void m.offsetWidth;m.classList.add('in')}};
@@ -2986,7 +2987,7 @@ document.addEventListener('click',e=>{
  switch(a){
  case 'wish':{if(!S.auth){gate();break}const p=prod(id);const i=S.wish.findIndex(w=>w.pid===id);if(i>-1){S.wish.splice(i,1);toast('Removed from saved')}else{S.wish.push({pid:id,at:fp(p)});toast('Saved. We’ll tell you if the price drops.')}render()}break;
  case 'tier':{const ag=$('#agree');const ck=ag&&ag.checked;S.cm[id]=+el.dataset.m;render();const g=$('#agree');if(g)g.checked=ck}break;
- case 'share':{const k=el.dataset.kind;let m;if(k==='listing'){const p=prod(id);m={title:'Share this listing',url:location.origin+location.pathname+'?l='+id,text:p.title+' on Subora, from '+N(fp(p))}}else if(k==='store'){const v=VENDORS[id];m={title:'Share '+v.name,url:location.origin+location.pathname+'?v='+id,text:'Shop '+v.name+' on Subora. Every order is protected by escrow.'}}else{m={title:'Invite friends',url:'subora.example/r/TUNDE24',text:'Join me on Subora and get '+N(500)+' off your first order:'}}S.modal=Object.assign({t:'share'},m);paintModal()}break;
+ case 'share':{const k=el.dataset.kind;let m;if(k==='listing'){const p=prod(id);m={title:'Share this listing',url:location.origin+'/listing/'+encodeURIComponent(id),text:p.title+' on Subora, from '+N(fp(p))}}else if(k==='store'){const v=VENDORS[id];m={title:'Share '+v.name,url:location.origin+'/seller/'+encodeURIComponent(id),text:'Shop '+v.name+' on Subora. Every order is protected by escrow.'}}else{m={title:'Invite friends',url:'subora.example/r/TUNDE24',text:'Join me on Subora and get '+N(500)+' off your first order:'}}S.modal=Object.assign({t:'share'},m);paintModal()}break;
  case 'report':{if(!S.auth){gate();break}const k=el.dataset.kind;let label='';if(k==='listing')label=prod(id).title;else if(k==='vendor')label=VENDORS[id].name;else{const [tid,ix]=id.split('|');const t=S.threads.find(x=>x.id===tid);const m=t&&t.msgs[+ix];label=m?'“'+(m.flag?mask(m.t):m.t||'Attachment')+'”':'Chat with '+(S.role==='vendor'?t.buyer:VENDORS[t.v].name)}S.modal={t:'report',kind:k,id,label};paintModal()}break;
  case 'repgo':{const m=S.modal;const r=(document.querySelector('input[name="rep"]:checked')||{}).value||'Other';const d=(($('#rep_t')||{}).value||'').trim();const by=S.role==='vendor'?VENDORS[MYV].name:S.profile.name;S.reports.unshift({id:'R-'+(209+S.reports.length),kind:m.kind==='listing'?'Listing':m.kind==='vendor'?'Vendor':'Message',target:m.label.replace(/[“”]/g,''),by,reason:r+(d?': '+d:''),when:'Now',status:'open'});notify('admin',{ic:'flag',t:'New report: '+m.kind,d:m.label,go:['admin','reports']});S.modal=null;paintModal();toast('Report sent. Subora reviews it within 24 hours.')}break;
  case 'notifs':S.modal={t:'notifs'};paintModal();break;
@@ -3809,9 +3810,10 @@ async function boot(){
   else if(!S.auth&&q.get('go')==='login'){S.view='login'}
   else if(!S.auth&&q.get('go')==='signup'){S.view='signup'}
   else if(!S.auth&&q.get('go')==='sell'){S.sRole='vendor';S.suStep=1;S.view='vapply'}
+  else if(location.pathname!=='/'&&RT.from(location.pathname,location.search)){}
   else if(S.auth){const d=dest();S.view=d[0]==='store'?'home':d[0];S.sub=d[1]}
+  RT.on=true;RT.first=true;
   render();
-  try{if(q.get('go'))history.replaceState(null,'',location.pathname)}catch(e){}
 }
 
 MODALS.sellers=(m,head)=>{const ids=sellersList();return {c:head('Active sellers')+`<p class="muted sm" style="margin:0">Ranked by completed sales. Tap a seller to open their store.</p><div class="mlist">${ids.length?ids.map(id=>{const v=VENDORS[id];
@@ -3900,6 +3902,60 @@ MODALS.kycview=(m,head)=>{
   <div class="mlist">${['The selfie matches the ID photo','The ID is valid and not expired','The bank account name matches the ID name','The address matches the proof of address','The person is 18 or older'].map(c=>`<label class="mi"><input type="checkbox" class="kyc_ck"> <span>${c}</span></label>`).join('')}</div>
   <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn pri" data-act="kycok" data-id="${m.id}">Approve vendor</button><button class="btn bad" data-act="kycreject" data-id="${m.id}">Reject</button></div><p class="hint" style="margin:0">Documents are only visible to staff. Every decision is written to the audit log.</p>`};
 };
+
+/* ---------- real URLs (History API): every screen has a path, the back button works ---------- */
+const RT={on:false,first:false,site:'https://www.subora.com.ng',base:document.title,
+ subs:new Set(['ads','analytics','assets','audit','automation','disputes','history','kyc','launch','listings','messages','new','orders','overview','people','plan','plans','profile','promos','quality','refer','refunds','reports','review','saved','settings','subs','verify','wallet']),
+ priv:{buyer:'account',vendor:'vendor',admin:'admin'},
+ titles:{login:'Log in',signup:'Create your account',vapply:'Apply to sell',store:'Marketplace',help:'Help Centre',buyer:'My account',vendor:'Vendor console',admin:'Admin',casepage:'Case'},
+ e:x=>encodeURIComponent(String(x)),
+ path(){
+  const v=S.view,e=RT.e;
+  if(v==='home')return '/';
+  if(v==='login'||v==='signup')return '/'+v;
+  if(v==='vapply')return '/sell';
+  if(v==='help')return '/help';
+  if(v==='store'){const a=[];if(S.cat&&S.cat!=='All')a.push('c='+e(S.cat));if(S.q)a.push('q='+e(S.q));return '/store'+(a.length?'?'+a.join('&'):'')}
+  if(v==='product'&&S.pid)return '/listing/'+e(S.pid);
+  if(v==='vprofile'&&S.vid)return '/seller/'+e(S.vid);
+  if(v==='casepage')return '/case'+(S.cid?'/'+e(S.cid):'');
+  if(RT.priv[v])return '/'+RT.priv[v]+(S.sub&&RT.subs.has(S.sub)?'/'+S.sub:'');
+  return '/';
+ },
+ from(p,search){
+  const q=new URLSearchParams(search||''),seg=p.replace(/^\/+|\/+$/g,'').split('/').map(x=>{try{return decodeURIComponent(x)}catch(e){return x}}),a=seg[0]||'';
+  S.modal=null;
+  if(a==='')S.view='home';
+  else if(a==='login'||a==='signup')S.view=a;
+  else if(a==='sell'){S.sRole='vendor';S.suStep=1;S.view='vapply'}
+  else if(a==='help')S.view='help';
+  else if(a==='store'){S.view='store';S.cat=q.get('c')||'All';S.q=q.get('q')||''}
+  else if(a==='listing'&&seg[1]&&prod(seg[1])){S.pid=seg[1];S.view='product'}
+  else if(a==='seller'&&seg[1]&&VENDORS[seg[1]]){S.vid=seg[1];S.view='vprofile'}
+  else if(a==='case'){S.view='casepage';if(seg[1])S.cid=seg[1]}
+  else if(a==='account'||a==='vendor'||a==='admin'){
+   const v=a==='account'?'buyer':a;
+   if(S.auth&&S.role!==v){const d=dest();S.view=d[0]==='store'?'home':d[0];S.sub=d[1];return true}
+   S.view=v;S.sub=RT.subs.has(seg[1])?seg[1]:(v==='vendor'?'overview':v==='admin'?'review':'subs')
+  }
+  else return false;
+  return true;
+ },
+ head(p){
+  let t=RT.titles[S.view];
+  try{if(S.view==='product'&&S.pid)t=prod(S.pid).title;if(S.view==='vprofile'&&S.vid)t=VENDORS[S.vid].name+' store'}catch(e){}
+  document.title=S.view==='home'?RT.base:(t||'Subora')+' | Subora';
+  let m=document.querySelector('meta[name=robots]');if(!m){m=document.createElement('meta');m.name='robots';document.head.appendChild(m)}
+  m.content=S.view==='home'?'index,follow,max-image-preview:large':'noindex,follow';
+  const c=document.querySelector('link[rel=canonical]');if(c)c.href=RT.site+(p==='/'?'/':p);
+ },
+ sync(){
+  if(!RT.on)return;
+  const want=RT.path(),here=location.pathname+location.search;
+  if(want!==here){const same=want.split('?')[0]===location.pathname;try{history[RT.first||same?'replaceState':'pushState'](null,'',want+(RT.first?location.hash:''))}catch(e){}}
+  RT.first=false;RT.head(want.split('?')[0]);
+ }};
+window.addEventListener('popstate',()=>{if(!RT.on)return;if(RT.from(location.pathname,location.search)){render();jump()}});
 
 /* ===== END LIVE LAYER ===== */
 render();
