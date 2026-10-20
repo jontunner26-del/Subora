@@ -2,7 +2,65 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/(login|signup|sell|store|help|account|vendor|admin|case)", "destination": "/index.html" },
-    { "source": "/(account|vendor|admin|case|listing|seller)/:path*", "destination": "/index.html" }
+    {
+      "source": "/store",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/login",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/signup",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/sell",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/help",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/account",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/account/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/vendor",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/vendor/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/admin",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/admin/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/case",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/case/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/listing/:id",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/seller/:id",
+      "destination": "/index.html"
+    }
   ]
 }
