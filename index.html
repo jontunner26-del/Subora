@@ -1433,6 +1433,8 @@ let PLANS={};
 const PORDER=['free','starter','growth','elite'];
 const fmtL=ts=>{try{return new Date(ts).toLocaleString('en-GB',{timeZone:'Africa/Lagos',day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}catch(e){return ''}};
 const fmtLD=ts=>{try{return new Date(ts).toLocaleDateString('en-GB',{timeZone:'Africa/Lagos',day:'numeric',month:'short',year:'numeric'})}catch(e){return ''}};
+const fmtLDay=ts=>{try{return new Date(ts).toLocaleDateString('en-GB',{timeZone:'Africa/Lagos',weekday:'short',day:'numeric',month:'short'})}catch(e){return ''}};
+const WDAY={1:'Mon',2:'Tue',3:'Wed',4:'Thu',5:'Fri',6:'Sat',7:'Sun'};
 const plim=v=>v==null?'Unlimited':v;
 const planLabel=k=>(PLANS[k]&&PLANS[k].label)||k;
 const bdg=(v,s=16)=>bdg0(v,s)+(!v.official&&v.planBadge?`<span class="ptag p-${esc(v.plan)}">${esc(v.planBadge)}</span>`:'');
@@ -1479,8 +1481,8 @@ function planView(){
 }
 
 /* ---------- Admin: vendor plans console ---------- */
-const PF=[['price','Price per month (₦)','num'],['listing_limit','Live listings at once','num',1],['slots_per_product','Slots per product','num',1],['copies_per_product','Copies of the same product','num',1],['weekend_listing','Create listings on weekends','bool'],['homepage_ranking','Appears in homepage ranking','bool'],['active_sellers_ring','Active Sellers ring','bool'],['badge','Plan badge text','text',1],['featured_per_month','Featured listings a month','num',1],['discount_codes','Discount codes at once','num',1],['status_posts_per_day','Status posts a day (used in a later phase)','num',1],['alerts_whatsapp','WhatsApp order alerts (used in a later phase)','bool'],['store_link','Store link','sel',['standard','custom']],['analytics','Sales analytics','sel',['totals','listing','listing_buyers','full']],['support','Support','sel',['normal','priority','priority_fastest']],['fee_rate','Fee on each sale (%)','pct',1],['levy_waived','Marketing levy waived','bool']];
-const pfv=(f,v)=>{const k=f[2];if(k==='bool')return v?'Yes':'No';if(f[0]==='price'&&v==null)return 'Not applicable';if(v==null)return k==='text'?'None':k==='pct'?'Platform default':'Unlimited';if(f[0]==='price')return N(+v);if(k==='pct')return (Math.round(v*1000)/10)+'%';return String(v)};
+const PF=[['price','Price per month (₦)','num'],['listing_limit','Live listings at once','num',1],['slots_per_product','Slots per product','num',1],['copies_per_product','Copies of the same product','num',1],['weekend_listing','Create listings on weekends','bool'],['homepage_ranking','Appears in homepage ranking','bool'],['active_sellers_ring','Active Sellers ring','bool'],['badge','Plan badge text','text',1],['featured_per_month','Featured listings a month','num',1],['discount_codes','Discount codes at once','num',1],['status_posts_per_day','Status posts a day (used in a later phase)','num',1],['payout_days','Payout days a week (after the 24h hold)','days'],['alerts_whatsapp','WhatsApp order alerts (used in a later phase)','bool'],['store_link','Store link','sel',['standard','custom']],['analytics','Sales analytics','sel',['totals','listing','listing_buyers','full']],['support','Support','sel',['normal','priority','priority_fastest']],['fee_rate','Fee on each sale (%)','pct',1],['levy_waived','Marketing levy waived','bool']];
+const pfv=(f,v)=>{const k=f[2];if(k==='days')return v==null?'Not applicable':(!v.length||v.length===7)?'Every day':v.map(d=>WDAY[d]).join(', ');if(k==='bool')return v?'Yes':'No';if(f[0]==='price'&&v==null)return 'Not applicable';if(v==null)return k==='text'?'None':k==='pct'?'Platform default':'Unlimited';if(f[0]==='price')return N(+v);if(k==='pct')return (Math.round(v*1000)/10)+'%';return String(v)};
 const RULEN={limit:'limit',fair_use:'fair-use cap',slots:'slots',duplicate:'duplicate',weekend:'weekend'};
 const KINDN={listing_cap:'Listing cap',weekend_access:'Weekend access',trial:'Free trial',plan:'Plan by hand'};
 async function apLoad(){const A=S.ap;try{A.ov=ok(await sb.rpc('admin_plan_overview'));A.us=ok(await sb.rpc('admin_plan_usage',{p_plan:A.fp||null,p_filter:A.ff||null}));A.ovr=ok(await sb.rpc('admin_plan_overrides_list'));A.loaded=true;A.err=''}catch(e){A.err=cleanErr(e)}A.loading=false;render()}
@@ -1809,7 +1811,7 @@ function vendor(){
  } else if(S.sub==='wallet'){
   body=`<div class="kpis"><div class="kpi hi"><span>Available</span><b>${N(S.vw.avail)}</b></div><div class="kpi"><span>In escrow</span><b>${N(S.vw.pend)}</b></div><div class="kpi"><span>Commission</span><b>10% per sale</b></div></div>
   <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap"><button class="btn pri" data-act="withdraw">Withdraw to bank</button><button class="btn" data-act="fund">${I('plus',16)} Add funds for ads</button></div>
-  ${feeStatement()}${payoutPanel()}${levyPanel()}
+  ${feeStatement()}${payoutSchedule()}${payoutPanel()}${levyPanel()}
   <div class="two"><div><h3 style="font-size:17px;margin-bottom:8px">Transactions</h3>${lockNote('Permanent ledger. Entries can’t be edited or deleted.')}<div style="height:8px"></div><div class="tw"><table><tbody>${S.vw.tx.map((t,i,ar)=>`<tr><td class="mono xs muted">VW-${1000+ar.length-i}</td><td>${t.d}</td><td>${esc(t.l)}</td><td class="num" style="color:${t.a>0?'var(--good)':'inherit'}">${t.a>0?'+':'-'}${N(Math.abs(t.a))}</td></tr>`).join('')}</tbody></table></div></div>
   <div><h3 style="font-size:17px;margin-bottom:8px">Withdrawals</h3><div class="tw"><table><tbody>${S.wd.map(w=>`<tr><td>${w.date}</td><td>${esc(w.bank)}</td><td>${pill(w.status)}</td><td class="num">${N(w.amt)}</td></tr>`).join('')}</tbody></table></div><p class="hint">Payouts go through the payment processor to your verified bank account. Minimum ₦2,000, flat ₦100 fee.</p></div></div>`;
  } else if(S.sub==='ads'){
@@ -1908,7 +1910,7 @@ function admin(){
  else if(S.sub==='launch')body=launchView();
  else if(S.sub==='people')body=peopleView();
  else if(S.sub==='audit')body=auditView();
- else body=w.length?`<div class="tw"><table><thead><tr><th>Vendor</th><th>Bank</th><th class="num">Amount</th><th></th></tr></thead><tbody>${w.map(x=>`<tr><td>${esc(VENDORS[MYV].name)}</td><td>${esc(x.bank)}</td><td class="num">${N(x.amt)}</td><td><div class="acts"><button class="btn sm pri" data-act="adpay" data-id="${x.id}">Send payout</button></div></td></tr>`).join('')}</tbody></table></div>`:`<div class="panel empty">No payouts waiting.</div>`;
+ else body=w.length?`<div class="tw"><table><thead><tr><th>Vendor</th><th>Bank</th><th class="num">Amount</th><th>Payable from</th><th></th></tr></thead><tbody>${[...w].sort((a,b)=>String(a.due||'')<String(b.due||'')?-1:1).map(x=>{const early=!!(x.due&&new Date(x.due).getTime()>Date.now());return `<tr><td>${esc(x.vname||'Vendor')}${x.planReq?` <span class="xs muted">${esc(planLabel(x.planReq))}</span>`:''}</td><td>${esc(x.bank)}</td><td class="num">${N(x.amt)}</td><td>${x.due?esc(fmtLDay(x.due)):'Now'} ${early?'<span class="pill warn">Not due</span>':'<span class="pill good">Due</span>'}</td><td><div class="acts"><button class="btn sm ${early?'':'pri'}" data-act="adpay" data-id="${x.id}">${early?'Pay early…':'Send payout'}</button></div></td></tr>`}).join('')}</tbody></table></div>`:`<div class="panel empty">No payouts waiting.</div>`;
  return `<div class="wrap console">${railHTML('Admin')}<div><div class="ph"><h2>${ttl[S.sub]}</h2></div>${body}</div></div>`;
 }
 
@@ -1973,7 +1975,7 @@ function modal(){
   
   <button class="btn pri full" data-act="fundgo">Continue to secure payment</button><p class="hint" style="margin:0">You pay securely through Paystack. Your wallet is credited as soon as the payment is confirmed.</p>`;
  } else if(m.t==='withdraw'){
-  cls='c';c=head('Withdraw to bank')+`<div class="kpi"><span>Available</span><b>${N(S.vw.avail)}</b></div><div class="fld"><label for="wbank">Bank account</label><select id="wbank">${S.banks.map(b=>`<option>${esc(b)}</option>`).join('')}</select></div><div class="fld"><label for="wamt">Amount (₦)</label><input id="wamt" type="number" min="2000" value="20000"><span class="hint">Minimum ₦2,000. Flat ${N(WFEE)} fee on each withdrawal, taken from your balance.</span></div>${S.sec.twofa?`<div class="note">${I('lock')}<span>You’ll confirm with a code sent to ${esc(maskPhone())}. Payouts only go to accounts in your verified name.</span></div>`:''}<button class="btn pri full" data-act="withdrawgo">Request withdrawal</button><p class="hint" style="margin:0">The monthly marketing levy of ${N(S.levy.amount)} is taken on ${S.levy.next}. Keep enough balance for it.</p>`;
+  cls='c';c=head('Withdraw to bank')+`<div class="kpi"><span>Available</span><b>${N(S.vw.avail)}</b></div><div class="fld"><label for="wbank">Bank account</label><select id="wbank">${S.banks.map(b=>`<option>${esc(b)}</option>`).join('')}</select></div><div class="fld"><label for="wamt">Amount (₦)</label><input id="wamt" type="number" min="2000" value="20000"><span class="hint">Minimum ₦2,000. Flat ${N(WFEE)} fee on each withdrawal, taken from your balance.</span></div>${S.sec.twofa?`<div class="note">${I('lock')}<span>You’ll confirm with a code sent to ${esc(maskPhone())}. Payouts only go to accounts in your verified name.</span></div>`:''}${S.payout?`<p class="hint">On your ${esc(planLabel(S.payout.plan))} plan this would be payable from <b>${esc(fmtLDay(S.payout.next_if_requested_now))}</b>.</p>`:''}<button class="btn pri full" data-act="withdrawgo">Request withdrawal</button><p class="hint" style="margin:0">The monthly marketing levy of ${N(S.levy.amount)} is taken on ${S.levy.next}. Keep enough balance for it.</p>`;
  } else if(m.t==='refund'){
   cls='c';c=head('Report a problem')+`<p class="muted" style="margin:0">Tell the vendor what went wrong. They respond first. If you disagree, Subora support decides, using the full chat and payment record.</p><div class="fld"><label for="rr">Reason</label><select id="rr"><option>Access does not work</option><option>Seat was already taken</option><option>Not as described</option><option>Other</option></select></div><div class="fld"><label for="rn">Details</label><textarea id="rn" placeholder="What happened?"></textarea></div><button class="btn pri full" data-act="refgo" data-id="${m.id}">Send to vendor</button>`;
  } else if(m.t==='reveal__'&&(()=>{const o=S.orders.find(x=>x.id===m.id);return o&&prod(o.pid)&&prod(o.pid).x&&prod(o.pid).x.course})()){
@@ -2324,6 +2326,10 @@ const PTIERS=[['New','First 10 sales','Paid 3 days after the buyer confirms'],['
 function feeStatement(){const mine=S.orders.filter(o=>prod(o.pid)&&prod(o.pid).v===MYV&&o.status!=='refunded'&&o.status!=='cancelled');const gross=mine.reduce((a,o)=>a+(o.total||0),0);const fee=Math.round(gross*FEE);const wd=S.wd.length*WFEE;const lev=S.levy.amount;
  const rows=[['Sales (gross)',gross],['Subora fee ('+Math.round(FEE*100)+'%)',-fee],['Withdrawal fees',-wd],['Monthly marketing levy',-lev]];const net=gross-fee-wd-lev;
  return `<div class="panel" style="margin-bottom:16px"><div class="mh" style="margin-bottom:6px"><h3 style="margin:0">Fee statement, this month</h3><span class="pill">${mine.length} order${mine.length===1?'':'s'}</span></div><p class="muted sm" style="margin:0 0 10px">Keep this for your own records and tax filing. Subora keeps its own copy of every fee.</p><div class="tw"><table><tbody>${rows.map(r=>`<tr><td>${r[0]}</td><td class="num">${r[1]<0?'−':''}${N(Math.abs(r[1]))}</td></tr>`).join('')}<tr><td class="t">Net earnings</td><td class="num t">${N(net)}</td></tr></tbody></table></div></div>`}
+function payoutSchedule(){
+ const P=S.payout;if(!P)return '';
+ const days=P.days||[],dn=P.daily?'Every day':days.map(d=>WDAY[d]).join(', '),q=P.queued||[];
+ return `<div class="panel" style="margin-bottom:16px"><div class="mh" style="margin-bottom:10px"><h3 style="margin:0">Withdrawal schedule</h3><span class="pill good">${esc(planLabel(P.plan))}</span></div><dl class="kv"><dt>Payout days</dt><dd>${esc(dn)}</dd><dt>Hold after you ask</dt><dd>${P.hold_hours} hours</dd><dt>If you withdraw now</dt><dd>Payable from ${esc(fmtLDay(P.next_if_requested_now))}</dd></dl>${q.length?`<div class="tw" style="margin-top:10px"><table><thead><tr><th class="num">Waiting</th><th>Payable from</th></tr></thead><tbody>${q.map(x=>`<tr><td class="num">${N(+x.amount)}</td><td>${x.due_at?esc(fmtLDay(x.due_at)):'Soon'} ${x.is_due?'<span class="pill good">Due</span>':''}</td></tr>`).join('')}</tbody></table></div>`:''}<p class="muted sm" style="margin:10px 0 0">A withdrawal is always accepted and paid on the next payout day after the hold.${P.daily?'':' Higher plans get more payout days.'}</p></div>`}
 function payoutPanel(){const t=VENDORS[MYV].trust;const cur=t>=97?3:t>=90?2:1;return `<div class="panel" style="margin-bottom:16px"><div class="mh" style="margin-bottom:10px"><h3 style="margin:0">Payout speed</h3><span class="pill good">${PTIERS[cur][0]} · ${t}% trust</span></div><div class="ptiers">${PTIERS.map((x,i)=>`<div class="${i===cur?'on':''} ${i<cur?'done':''}"><b>${x[0]}</b><span>${x[1]}</span><small>${x[2]}</small></div>`).join('')}</div><p class="muted sm" style="margin:12px 0 0">${cur<3?`Reach 97% trust to be paid right away. You’re ${97-t} point${97-t>1?'s':''} away. Fewer disputes and faster delivery raise your score.`:'You’re on the fastest payout speed.'} Payouts only go to bank accounts in your verified name.</p></div>`}
 function promosView(){
  const mine=S.coupons.filter(c=>c.v===MYV);const lp=myP().filter(p=>p.status==='live');const fl=S.flash.filter(f=>prod(f.pid).v===MYV&&f.end>Date.now());
@@ -3225,7 +3231,7 @@ async function hydrate(){
   S.banks=banks.map(b=>b.bank_name+' •••• '+b.last4);S.bankIds=banks.map(b=>b.id);
 
   /* vendor specifics */
-  S.ads=[];S.wd=[];S.pool={};S.plan=null;S.planPays=[];S.pins=[];
+  S.ads=[];S.wd=[];S.pool={};S.plan=null;S.payout=null;S.planPays=[];S.pins=[];
   try{PLANS={};ok(await sb.from('plan_settings').select('*')).forEach(x=>PLANS[x.plan]=x)}catch(e){PLANS={}}
   if(isV){
     const [vr,wds,ads,pool,kyc,sec]=await Promise.all([
@@ -3238,12 +3244,13 @@ async function hydrate(){
     ]);
     LIVE.vendorRow=vr;
     try{S.plan=ok(await sb.rpc('my_plan'));S.planPays=ok(await sb.from('plan_payments').select('*').eq('vendor_id',uid).order('created_at',{ascending:false}).limit(12));S.pins=ok(await sb.from('featured_pins').select('*').eq('vendor_id',uid).gt('ends_at',new Date().toISOString()))}catch(e){S.plan=null}
+    try{S.payout=ok(await sb.rpc('my_payout_schedule'))}catch(e){S.payout=null}
     const me=VENDORS[uid]||(VENDORS[uid]=mapVendor({id:uid,store_name:vr.store_name,username:vr.username,bio:vr.bio,offers:vr.offers,official:vr.official,verified:vr.kyc_status==='verified',rating:vr.rating,sales_count:vr.sales_count,trust:vr.trust,created_at:vr.created_at,suspended:vr.suspended,bond:vr.bond},null,[]));
     me.name=vr.store_name;me.user=vr.username||'';me.bio=vr.bio||'';me.offers=vr.offers||[];me.verified=vr.kyc_status==='verified';me.suspended=vr.suspended;
     const lastKyc=kyc.find(k=>k.kind==='standard'),lastAsset=kyc.find(k=>k.kind==='asset');
     S.kyc={status:vr.kyc_status,submitted:lastKyc?fmtD(lastKyc.submitted_at):'',name:lastKyc&&lastKyc.full_name,reason:lastKyc&&lastKyc.reject_reason||'',last4:lastKyc&&lastKyc.details&&lastKyc.details.idLast4,idType:lastKyc&&lastKyc.details&&lastKyc.details.idType||'ID',at:lastKyc&&lastKyc.reviewed_at?fmtD(lastKyc.reviewed_at):''};
     S.akyc=vr.asset_status;
-    S.wd=wds.map(w=>({id:w.id,amt:+w.amount,bank:w.bank_label||'Bank account',date:fmtD(w.created_at),status:w.status}));
+    S.wd=wds.map(w=>({id:w.id,amt:+w.amount,bank:w.bank_label||'Bank account',date:fmtD(w.created_at),status:w.status,due:w.due_at||null,planReq:w.plan_at_request||null}));
     S.ads=ads.map(a=>({id:a.id,pid:a.product_id,place:a.placement,daily:+a.daily,days:a.days,start:fmtD(a.starts_at),imp:a.impressions,clk:a.clicks,status:(a.status==='active'&&new Date(a.starts_at).getTime()+a.days*864e5<Date.now())?'ended':a.status}));
     pool.forEach(x=>{const e=S.pool[x.product_id]=S.pool[x.product_id]||{free:0,used:0};x.used_by_order?e.used++:e.free++});
     S.secretSet={};sec.forEach(x=>S.secretSet[x.product_id]=1);
@@ -3264,7 +3271,7 @@ async function hydrate(){
     S.adminProf=profs;
     profs.forEach(p=>S.adminNames[p.id]=p.full_name||p.username||p.id.slice(0,6));
     const nm=id=>S.adminNames[id]||nameOf(id)||'User';
-    S.wd=allWd.map(w=>({id:w.id,amt:+w.amount,bank:w.bank_label||'Bank account',date:fmtD(w.created_at),status:w.status,vname:nameOf(w.vendor_id)||nm(w.vendor_id)}));
+    S.wd=allWd.map(w=>({id:w.id,amt:+w.amount,bank:w.bank_label||'Bank account',date:fmtD(w.created_at),status:w.status,due:w.due_at||null,planReq:w.plan_at_request||null,vname:nameOf(w.vendor_id)||nm(w.vendor_id)}));
     S.kycq=kycs.map(k=>({id:k.id,name:nameOf(k.vendor_id)||nm(k.vendor_id),type:k.kind==='asset'?'Asset seller: video selfie, address, deposit':'Subscriptions and software',submitted:fmtD(k.submitted_at),status:k.status,kind:k.kind,vendor:k.vendor_id,details:k.details||{},paths:k.doc_paths||[],legal:k.full_name}));
     S.reports=reps.map(r=>{const sup=r.reason==='Support request',app=r.reason==='Suspension appeal';return {id:r.id,kind:sup?'Support':app?'Appeal':r.kind==='vendor'?'Vendor':'Listing',target:sup||app?nm(r.reporter_id):r.kind==='vendor'?(nameOf(r.target_id)||'Vendor'):(pt[r.target_id]||'Listing'),tid:r.target_id,by:nm(r.reporter_id),reason:sup?(r.details||''):r.reason+(r.details?': '+r.details:''),when:fmtT(r.created_at),status:r.status}});
     S.audit=aud.map(a=>({t:fmtL(a.created_at),who:a.actor_label||'System',a:a.action,x:a.detail||'',v:a.vendor_id?(nameOf(a.vendor_id)||''):'',pl:a.plan_at_time||'',b:a.before_value||'',af:a.after_value||'',rs:a.reason||''}));
@@ -3525,7 +3532,7 @@ H.withdrawgo=async()=>{
   if(!bid){toast('Add a payout account first');return}
   if(v<S.minWd){toast('Minimum withdrawal is '+N(S.minWd));return}
   if(v+WFEE>S.vw.avail){toast('Amount plus the '+N(WFEE)+' fee is more than your balance');return}
-  await rpc('request_withdrawal',{p_amount:v,p_bank:bid});await after('Withdrawal requested. Payout is processing.');
+  await rpc('request_withdrawal',{p_amount:v,p_bank:bid});await after();toast(S.payout&&S.payout.next_if_requested_now?'Withdrawal requested. Payable from '+fmtLDay(S.payout.next_if_requested_now)+'.':'Withdrawal requested. Payout is processing.');
 };
 
 /* ================= vendor: listings ================= */
@@ -3740,7 +3747,9 @@ H.kycok=async(el,id)=>{
   await rpc('admin_review_kyc',{p_submission:id,p_approve:true});S.modal=null;await after('Vendor verified','admin','kyc');
 };
 H.kycfile=async(el,id)=>{const url=ok(await sb.storage.from('kyc').createSignedUrl(id,300)).signedUrl;window.open(url,'_blank','noopener')};
-H.adpay=async(el,id)=>{await rpc('admin_pay_withdrawal',{p_id:id});await after('Marked as paid')};
+H.adpay=async(el,id)=>{const x=S.wd.find(w=>w.id===id);if(x&&x.due&&new Date(x.due).getTime()>Date.now()){S.modal={t:'adearly',id};paintModal();return}await rpc('admin_pay_withdrawal',{p_id:id});await after('Marked as paid')};
+MODALS.adearly=(m,head)=>{const x=S.wd.find(w=>w.id===m.id)||{};return {cls:'c',c:head('Pay early')+`<p class="muted sm">This payout from ${esc(x.vname||'the vendor')} (${N(x.amt||0)}) is not payable until <b>${esc(x.due?fmtL(x.due):'')}</b>. Paying early is written to the audit log with your reason.</p><div class="fld"><label for="ape_reason">Reason (required, 5+ characters)</label><input id="ape_reason" placeholder="Why is this being paid early?"></div><button class="btn pri full" data-act="ap_payearly" data-id="${m.id}">Pay now</button>`}};
+H.ap_payearly=async(el,id)=>{const reason=gv('ape_reason');if(reason.length<5){toast('Add a reason first (5+ characters)');return}await rpc('admin_pay_withdrawal',{p_id:id,p_reason:reason});await after('Paid early and logged')};
 H.repres=async(el,id)=>{await rpc('admin_resolve_report',{p_report:id,p_status:'actioned'});await after('Report closed')};
 H.repdis=async(el,id)=>{await rpc('admin_resolve_report',{p_report:id,p_status:'dismissed'});await after('Report dismissed')};
 H.flagdis=async(el,id)=>{await rpc('admin_resolve_flag',{p_message:+id,p_status:'dismissed'});await after('Flag dismissed')};
@@ -3852,6 +3861,7 @@ MODALS.apedit=(m,head)=>{
  if(f[2]==='bool')inp=`<select id="ae_val"><option value="1" ${v?'selected':''}>Yes</option><option value="0" ${!v?'selected':''}>No</option></select>`;
  else if(f[2]==='sel')inp=`<select id="ae_val">${f[3].map(o=>`<option ${o===v?'selected':''}>${o}</option>`).join('')}</select>`;
  else if(f[2]==='text'){inp=`<input id="ae_val" value="${esc(v||'')}">`;nul=1}
+ else if(f[2]==='days')inp=`<div style="display:flex;gap:12px;flex-wrap:wrap">${[1,2,3,4,5,6,7].map(d=>`<label style="display:flex;gap:5px;align-items:center"><input type="checkbox" class="ae_day" value="${d}" ${(v||[]).includes(d)?'checked':''}> ${WDAY[d]}</label>`).join('')}</div>`;
  else{inp=`<input id="ae_val" type="number" min="0" step="any" value="${v==null?'':(f[2]==='pct'?Math.round(v*1000)/10:v)}">`;nul=f[3]}
  return {cls:'c',c:head(planLabel(pl)+': '+f[1])+`<div class="fld"><label for="ae_val">New value</label>${inp}</div>${nul?`<label style="display:flex;gap:8px;align-items:center;margin:0 0 10px"><input type="checkbox" id="ae_null" ${v==null?'checked':''}> ${f[2]==='text'?'No badge':f[2]==='pct'?'Use the platform fee':'Unlimited'}</label>`:''}<div class="fld"><label for="ae_reason">Reason (required)</label><input id="ae_reason" placeholder="Why are you changing this?"></div><button class="btn pri full" data-act="ap_save" data-id="${m.id}">Save change</button>`};
 };
@@ -3862,6 +3872,7 @@ H.ap_save=async(el,id)=>{
  if(f[2]==='bool')val=$('#ae_val').value==='1';
  else if(f[2]==='sel')val=$('#ae_val').value;
  else if(f[2]==='text')val=nul?null:($('#ae_val').value.trim()||null);
+ else if(f[2]==='days'){val=[...document.querySelectorAll('.ae_day:checked')].map(e=>+e.value);if(!val.length){toast('Pick at least one payout day');return}}
  else if(nul)val=null;
  else{const n=parseFloat($('#ae_val').value);if(!(n>=0)){toast('Enter a number');return}val=f[2]==='pct'?Math.round(n*10)/1000:n}
  ok(await sb.rpc('admin_set_plan_setting',{p_plan:pl,p_field:key,p_value:val,p_reason:reason}));
