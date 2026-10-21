@@ -1824,12 +1824,11 @@ function vendor(){
  } else if(S.sub==='promos'){
   body=promosView();
  } else if(S.sub==='analytics'){
-  const d=PER[S.per];
+  const d=PER[S.per];const A0=S.an=S.an||{};if(A0.days!==S.per&&!A0.loading&&!A0.err){A0.loading=true;setTimeout(anLoad,0)}
   body=`<div class="tabs" role="tablist">${[7,30,90].map(n=>`<button class="${S.per===n?'on':''}" data-act="per" data-id="${n}">${n} days</button>`).join('')}</div>
   <div class="kpis"><div class="kpi hi"><span>Revenue</span><b>${N(d.rev)}</b></div><div class="kpi"><span>Orders</span><b>${d.ord}</b></div><div class="kpi"><span>Average order</span><b>${N(d.ord?d.rev/d.ord:0)}</b></div><div class="kpi"><span>Slot fill rate</span><b>${d.fill}</b></div><div class="kpi"><span>Refund rate</span><b>${d.ref}</b></div></div>
   <div class="panel"><h3>Orders over time</h3>${barsHTML(d.lab,d.val)}</div>
-  <div class="sec"><h2 style="font-size:20px">Best sellers</h2></div>
-  <div class="tw"><table><thead><tr><th>Listing</th><th class="num">Sold</th><th class="num">Price</th><th class="num">Revenue</th></tr></thead><tbody>${[...myP()].filter(p=>p.sold>0).sort((a,b)=>b.sold*b.price-a.sold*a.price).map(p=>`<tr><td class="t">${esc(p.title)}</td><td class="num">${p.sold}</td><td class="num">${N(p.price)}</td><td class="num">${N(p.sold*p.price)}</td></tr>`).join('')}</tbody></table></div>`;
+  ${anTiers()}`;
  } else {
   body=`<div class="panel"><h3>Store</h3><div class="form"><div class="fld"><label for="s1">Store name</label><input id="s1" value="${esc(VENDORS[MYV].name)}"></div><div class="fld"><label for="s5">Identity verification</label><input id="s5" value="${S.kyc.status==='verified'?'Verified (BVN and ID)':'Not verified yet'}" disabled></div><div class="fld w"><label for="s3">Store bio</label><textarea id="s3">${esc(VENDORS[MYV].bio)}</textarea></div></div><p class="hint" style="margin:10px 0 0">Buyers reach you through Subora chat only. Phone numbers and outside payment details are hidden in chat so everyone stays covered by escrow.</p><div style="margin-top:14px"><button class="btn pri" data-act="saveset">Save settings</button></div></div>
   <div class="panel"><div class="mh" style="margin-bottom:8px"><h3 style="margin:0">Payout accounts</h3><button class="btn sm" data-act="bank">${I('plus',14)} Add account</button></div>${S.banks.map((b,i)=>`<div class="line"><span>${I('wallet',16)}<b>${esc(b)}</b></span>${i===0?'<span class="pill good">Default</span>':'<span class="pill">Name verified</span>'}</div>`).join('')}<p class="hint" style="margin:8px 0 0">Accounts must be in your verified name (${esc(kycName())}). Adding one needs a security code, and it can receive payouts after 24 hours.</p></div>
@@ -2326,6 +2325,22 @@ const PTIERS=[['New','First 10 sales','Paid 3 days after the buyer confirms'],['
 function feeStatement(){const mine=S.orders.filter(o=>prod(o.pid)&&prod(o.pid).v===MYV&&o.status!=='refunded'&&o.status!=='cancelled');const gross=mine.reduce((a,o)=>a+(o.total||0),0);const fee=Math.round(gross*FEE);const wd=S.wd.length*WFEE;const lev=S.levy.amount;
  const rows=[['Sales (gross)',gross],['Subora fee ('+Math.round(FEE*100)+'%)',-fee],['Withdrawal fees',-wd],['Monthly marketing levy',-lev]];const net=gross-fee-wd-lev;
  return `<div class="panel" style="margin-bottom:16px"><div class="mh" style="margin-bottom:6px"><h3 style="margin:0">Fee statement, this month</h3><span class="pill">${mine.length} order${mine.length===1?'':'s'}</span></div><p class="muted sm" style="margin:0 0 10px">Keep this for your own records and tax filing. Subora keeps its own copy of every fee.</p><div class="tw"><table><tbody>${rows.map(r=>`<tr><td>${r[0]}</td><td class="num">${r[1]<0?'−':''}${N(Math.abs(r[1]))}</td></tr>`).join('')}<tr><td class="t">Net earnings</td><td class="num t">${N(net)}</td></tr></tbody></table></div></div>`}
+const AN_RANK={totals:0,listing:1,listing_buyers:2,full:3},AN_NAME={totals:'Totals',listing:'Per listing',listing_buyers:'Per listing + buyers',full:'Full + export'};
+const anPlanFor=r=>Object.values(PLANS).filter(p=>p.plan!=='admin'&&(AN_RANK[p.analytics]||0)>=r).sort((a,b)=>a.sort-b.sort)[0];
+const anLock=(r,what)=>{const p=anPlanFor(r);return `<div class="panel" style="text-align:center;display:grid;gap:10px;justify-items:center;padding:26px 20px;margin-top:14px"><span class="pill warn">${I('lock',12)} ${p?esc(p.label)+' plan':'Upgrade'}</span><h3 style="font-size:19px;margin:0">${what}</h3><button class="btn pri" data-act="plan_open">See plans</button></div>`};
+async function anLoad(){const A=S.an=S.an||{};A.loading=true;const days=S.per;try{A.data=ok(await sb.rpc('vendor_analytics',{p_days:days}));A.days=days;A.err=''}catch(e){A.err=cleanErr(e)}A.loading=false;render()}
+function anTiers(){
+ const A=S.an||{},D=A.data;
+ if(A.err)return `<div class="panel" style="margin-top:14px"><h3>Could not load detailed analytics</h3><p class="muted sm">${esc(A.err)}</p><p class="muted sm">If this mentions a missing function, run 005b_plan_analytics.sql in Supabase first.</p><button class="btn" data-act="an_reload">Try again</button></div>`;
+ if(!D||A.days!==S.per)return `<div class="panel empty" style="margin-top:14px">Loading…</div>`;
+ const r=AN_RANK[D.tier]||0,L=D.listings||[],B=D.buyers||[],Y=D.daily||[];let h='';
+ if(r<1)h+=anLock(1,'See sales for each listing');
+ else h+=`<div class="sec"><h2 style="font-size:20px">Sales by listing</h2><span class="pill good">${esc(AN_NAME[D.tier]||D.tier)}</span></div>${L.length?`<div class="tw"><table><thead><tr><th>Listing</th><th class="num">Orders</th><th class="num">Units</th><th class="num">Revenue</th><th class="num">Refunded</th>${r>=2?'<th class="num">Buyers</th>':''}</tr></thead><tbody>${L.map(x=>`<tr><td class="t">${esc(x.title)}</td><td class="num">${x.orders}</td><td class="num">${x.units}</td><td class="num">${N(+x.revenue)}</td><td class="num">${x.refunded}</td>${r>=2?`<td class="num">${x.buyers==null?'':x.buyers}</td>`:''}</tr>`).join('')}</tbody></table></div>`:'<div class="panel empty">No sales in this period.</div>'}`;
+ if(r===1)h+=anLock(2,'See who buys each listing');
+ if(r>=2)h+=`<div class="sec"><h2 style="font-size:20px">Buyers</h2></div>${B.length?`<div class="tw"><table><thead><tr><th>Buyer</th><th class="num">Orders</th><th class="num">Spent</th><th>Last order</th></tr></thead><tbody>${B.map(x=>`<tr><td class="t">@${esc(x.username)}</td><td class="num">${x.orders}</td><td class="num">${N(+x.spent)}</td><td>${esc(fmtLD(x.last_order))}</td></tr>`).join('')}</tbody></table></div>`:'<div class="panel empty">No buyers in this period.</div>'}`;
+ if(r===2)h+=anLock(3,'Full daily breakdown and CSV export');
+ if(r>=3)h+=`<div class="sec"><h2 style="font-size:20px">By day</h2><button class="btn sm" data-act="an_export">Export CSV</button></div>${Y.length?`<div class="tw"><table><thead><tr><th>Day</th><th class="num">Orders</th><th class="num">Revenue</th><th class="num">Fees</th><th class="num">Refunded</th></tr></thead><tbody>${Y.map(x=>`<tr><td class="mono xs">${esc(x.day)}</td><td class="num">${x.orders}</td><td class="num">${N(+x.revenue)}</td><td class="num">${N(+x.fees)}</td><td class="num">${x.refunded}</td></tr>`).join('')}</tbody></table></div>`:'<div class="panel empty">No sales in this period.</div>'}`;
+ return h}
 function payoutSchedule(){
  const P=S.payout;if(!P)return '';
  const days=P.days||[],dn=P.daily?'Every day':days.map(d=>WDAY[d]).join(', '),q=P.queued||[];
@@ -3231,7 +3246,7 @@ async function hydrate(){
   S.banks=banks.map(b=>b.bank_name+' •••• '+b.last4);S.bankIds=banks.map(b=>b.id);
 
   /* vendor specifics */
-  S.ads=[];S.wd=[];S.pool={};S.plan=null;S.payout=null;S.planPays=[];S.pins=[];
+  S.ads=[];S.wd=[];S.pool={};S.plan=null;S.payout=null;S.an=null;S.planPays=[];S.pins=[];
   try{PLANS={};ok(await sb.from('plan_settings').select('*')).forEach(x=>PLANS[x.plan]=x)}catch(e){PLANS={}}
   if(isV){
     const [vr,wds,ads,pool,kyc,sec]=await Promise.all([
@@ -3840,6 +3855,16 @@ MODALS.planconfirm=(m,head)=>{
  return {cls:'c',c:head(t)+`<p style="margin:0 0 14px">${b}</p><button class="btn pri full" data-act="plan_do" data-id="${m.id}">Confirm</button>`};
 };
 H.plan_open=async()=>{S.modal=null;S.view='vendor';S.sub='plan';render();jump()};
+H.per=async(el,id)=>{S.per=+id;if(S.an)S.an.err='';render()};
+H.an_reload=async()=>{if(S.an)S.an.err='';render()};
+H.an_export=async()=>{
+ const D=S.an&&S.an.data;if(!D||(AN_RANK[D.tier]||0)<3){toast('CSV export is on the Elite plan');return}
+ const cell=v=>{if(typeof v==='number')return String(v);let t=String(v==null?'':v);if(/^[=+\-@\t\r]/.test(t))t="'"+t;return '"'+t.replace(/"/g,'""')+'"'};
+ const rows=[['Sales by listing, last '+D.days+' days'],['Listing','Orders','Units','Revenue (net)','Refunded','Buyers'],...(D.listings||[]).map(x=>[x.title,x.orders,x.units,x.revenue,x.refunded,x.buyers]),[],['Buyers'],['Buyer','Orders','Spent','Last order'],...(D.buyers||[]).map(x=>[x.username,x.orders,x.spent,x.last_order?fmtLD(x.last_order):'']),[],['By day'],['Day','Orders','Revenue (net)','Fees','Refunded'],...(D.daily||[]).map(x=>[x.day,x.orders,x.revenue,x.fees,x.refunded])];
+ const csv='\ufeff'+rows.map(r=>r.map(cell).join(',')).join('\r\n');
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='subora-analytics-'+D.days+'d-'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);toast('CSV downloaded');
+};
+
 H.plan_pick=async(el,id)=>{S.modal={t:'planconfirm',id};paintModal()};
 H.plan_do=async(el,id)=>{
  const r=ok(await sb.rpc('change_plan',{p_plan:id}));
