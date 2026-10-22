@@ -1836,7 +1836,7 @@ function vendor(){
  } else {
   body=`<div class="panel"><h3>Store</h3><div class="form"><div class="fld"><label for="s1">Store name</label><input id="s1" value="${esc(VENDORS[MYV].name)}"></div><div class="fld"><label for="s5">Identity verification</label><input id="s5" value="${S.kyc.status==='verified'?'Verified (BVN and ID)':'Not verified yet'}" disabled></div><div class="fld w"><label for="s3">Store bio</label><textarea id="s3">${esc(VENDORS[MYV].bio)}</textarea></div></div><p class="hint" style="margin:10px 0 0">Buyers reach you through Subora chat only. Phone numbers and outside payment details are hidden in chat so everyone stays covered by escrow.</p><div style="margin-top:14px"><button class="btn pri" data-act="saveset">Save settings</button></div></div>
   <div class="panel"><div class="mh" style="margin-bottom:8px"><h3 style="margin:0">Payout accounts</h3><button class="btn sm" data-act="bank">${I('plus',14)} Add account</button></div>${S.banks.map((b,i)=>`<div class="line"><span>${I('wallet',16)}<b>${esc(b)}</b></span>${i===0?'<span class="pill good">Default</span>':'<span class="pill">Name verified</span>'}</div>`).join('')}<p class="hint" style="margin:8px 0 0">Accounts must be in your verified name (${esc(kycName())}). Adding one needs a security code, and it can receive payouts after 24 hours.</p></div>
-  ${securityPanel()}${prefsPanel()}`;
+  ${securityPanel()}${prefsPanel()}${alertsPanel()}`;
  }
  return `<div class="wrap console">${railHTML('Vendor console')}<div><div class="ph"><h2>${titles[S.sub]}</h2><span class="pill good">${I('shield',13)} Verified vendor</span></div>${body}</div></div>`;
 }
@@ -2377,6 +2377,17 @@ function statusPanel(){
  const form=full?`<p class="hint" style="margin:10px 0 0">You have used all ${lim} status post${lim===1?'':'s'} for today. Higher plans allow more. <button class="linkbtn" data-act="plan_open">See plans</button></p>`
   :`<div class="fld" style="margin-top:10px"><label for="st_body">What is new in your store?</label><textarea id="st_body" maxlength="280" rows="3" placeholder="A restock, an offer, a new listing. Up to 280 characters."></textarea></div><div class="fld"><label for="st_list">Link a listing <span class="muted">optional</span></label><select id="st_list"><option value="">No listing</option>${lp.map(x=>`<option value="${x.id}">${esc(x.title)}</option>`).join('')}</select></div><button class="btn pri" data-act="st_post">Post status</button>`;
  return `<div class="panel"><h3>Status posts</h3><p class="hint" style="margin:0">Shown to buyers when they tap your photo in Active Sellers. Each post stays up for 24 hours. ${esc(quota)}</p>${form}${posts.length?`<div style="margin-top:14px;display:grid;gap:8px">${posts.map(x=>`<div class="panel" style="margin:0;padding:12px"><p style="margin:0;white-space:pre-wrap">${esc(x.body)}</p><div class="xs muted" style="margin-top:6px">${esc(rel(x.created_at))} · ends in ${stLeft(x.expires_at)}</div><div class="acts" style="margin-top:8px"><button class="btn sm" data-act="st_del" data-id="${x.id}">Delete</button></div></div>`).join('')}</div>`:''}</div>`}
+function alertsPanel(){
+ const A=S.alerts;if(!A)return '';
+ const wa=!!A.whatsapp_allowed,num=A.whatsapp_number||'';
+ const row=(id,title,sub,on,off)=>`<label class="line" style="gap:12px;align-items:flex-start;cursor:${off?'default':'pointer'}"><span><b>${title}</b>${sub?`<div class="xs muted">${sub}</div>`:''}</span><input type="checkbox" id="${id}" ${on?'checked':''} ${off?'disabled':''} style="margin-top:4px"></label>`;
+ return `<div class="panel"><h3>Alerts</h3><p class="muted sm" style="margin:0 0 10px">Choose how Subora tells you when something happens in your store. In-app notifications are always on.</p>
+ ${row('al_email','Email',A.account_email?'Sent to '+esc(A.account_email):'No email on your account yet',A.email,false)}
+ ${row('al_wa','WhatsApp'+(wa?'':' <span class="pill warn">Starter plan and up</span>'),wa?'Sent to the number below':(A.whatsapp?'Paused: your current plan does not include WhatsApp alerts. Your number is saved.':'Get order alerts on WhatsApp.'),A.whatsapp&&wa,!wa)}
+ <div class="fld" style="margin-top:8px"><label for="al_num">WhatsApp number</label><input id="al_num" value="${esc(num)}" placeholder="+2348012345678" inputmode="tel" autocomplete="tel" ${wa?'':'disabled'}><span class="hint">With country code. A Nigerian number like 0801 234 5678 also works.${wa?'':' <button class="linkbtn" data-act="plan_open">See plans</button>'}</span></div>
+ <h4 style="margin:14px 0 4px;font-size:15px">Tell me about</h4>
+ ${row('al_orders','New orders','',A.orders,false)}${row('al_refunds','Refunds and disputes','',A.refunds,false)}${row('al_plan','Plan and billing','Renewal reminders, failed payments and plan changes',A.plan,false)}
+ <div style="margin-top:14px"><button class="btn pri" data-act="al_save">Save alert settings</button></div></div>`}
 function storeLinkPanel(){
  const v=VENDORS[MYV]||{},sl=v.slug||'',can=!!(S.plan&&S.plan.limits&&S.plan.limits.store_link==='custom'),host=esc(location.host);
  const link=sl?host+'/s/'+esc(sl):host+'/seller/'+MYV;
@@ -3268,7 +3279,7 @@ async function hydrate(){
   S.banks=banks.map(b=>b.bank_name+' •••• '+b.last4);S.bankIds=banks.map(b=>b.id);
 
   /* vendor specifics */
-  S.ads=[];S.wd=[];S.pool={};S.plan=null;S.payout=null;S.an=null;S.stInfo=null;S.planPays=[];S.pins=[];
+  S.ads=[];S.wd=[];S.pool={};S.plan=null;S.payout=null;S.an=null;S.stInfo=null;S.alerts=null;S.planPays=[];S.pins=[];
   try{PLANS={};ok(await sb.from('plan_settings').select('*')).forEach(x=>PLANS[x.plan]=x)}catch(e){PLANS={}}
   if(isV){
     const [vr,wds,ads,pool,kyc,sec]=await Promise.all([
@@ -3283,6 +3294,7 @@ async function hydrate(){
     try{S.plan=ok(await sb.rpc('my_plan'));S.planPays=ok(await sb.from('plan_payments').select('*').eq('vendor_id',uid).order('created_at',{ascending:false}).limit(12));S.pins=ok(await sb.from('featured_pins').select('*').eq('vendor_id',uid).gt('ends_at',new Date().toISOString()))}catch(e){S.plan=null}
     try{S.payout=ok(await sb.rpc('my_payout_schedule'))}catch(e){S.payout=null}
     try{S.stInfo=ok(await sb.rpc('my_status_info'))}catch(e){S.stInfo=null}
+    try{S.alerts=ok(await sb.rpc('my_alert_prefs'))}catch(e){S.alerts=null}
     const me=VENDORS[uid]||(VENDORS[uid]=mapVendor({id:uid,store_name:vr.store_name,username:vr.username,bio:vr.bio,offers:vr.offers,official:vr.official,verified:vr.kyc_status==='verified',rating:vr.rating,sales_count:vr.sales_count,trust:vr.trust,created_at:vr.created_at,suspended:vr.suspended,bond:vr.bond},null,[]));
     me.name=vr.store_name;me.user=vr.username||'';me.bio=vr.bio||'';me.offers=vr.offers||[];me.verified=vr.kyc_status==='verified';me.suspended=vr.suspended;
     const lastKyc=kyc.find(k=>k.kind==='standard'),lastAsset=kyc.find(k=>k.kind==='asset');
@@ -3881,6 +3893,11 @@ H.plan_open=async()=>{S.modal=null;S.view='vendor';S.sub='plan';render();jump()}
 H.sl_save=async()=>{const v=(($('#sl_in')||{}).value||'').trim();if(!v){toast('Type a name for your link, or use Remove');return}
  try{const r=ok(await sb.rpc('set_store_slug',{p_slug:v}));await after('Your short link is now /s/'+r)}catch(e){toast(cleanErr(e))}};
 H.sl_remove=async()=>{try{ok(await sb.rpc('set_store_slug',{p_slug:''}));await after('Short link removed')}catch(e){toast(cleanErr(e))}};
+H.al_save=async()=>{const g=id=>document.getElementById(id);
+ const p={email:g('al_email').checked,orders:g('al_orders').checked,refunds:g('al_refunds').checked,plan:g('al_plan').checked};
+ const w=g('al_wa'),n=g('al_num');if(w&&!w.disabled){p.whatsapp=w.checked;if(n)p.whatsapp_number=n.value}
+ try{S.alerts=ok(await sb.rpc('set_alert_prefs',{p}));toast('Alert settings saved');render()}
+ catch(e){const m=cleanErr(e);if(/Starter plan/i.test(m))planPrompt(m,'alerts_whatsapp');else toast(m)}};
 MODALS.vstat=(m,head)=>{
  const v=VENDORS[m.id];if(!v)return {c:head('Status')+'<p>Seller not found.</p>'};
  const L=((S.stat||{})[m.id]||[]).filter(x=>new Date(x.expires_at)>Date.now()),adm=S.auth&&S.role==='admin';
