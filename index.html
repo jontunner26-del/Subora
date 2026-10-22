@@ -1084,6 +1084,7 @@ body{margin:0}
 .sa-c{box-sizing:border-box;flex:0 0 98px;display:flex;flex-direction:column;align-items:center;gap:5px;border:0;background:none;padding:2px 2px 4px;text-align:center;color:var(--fg);scroll-snap-align:start;cursor:pointer;min-width:0;border-radius:16px}
 .sa-ring{width:58px;height:58px;flex:none;border-radius:50%;padding:3px;display:grid;place-items:center;background:transparent;transition:transform .16s}
 .sa-ring.on{background:linear-gradient(135deg,var(--sa2),var(--sa))}
+.sa-ring{position:relative}.sa-dot{position:absolute;right:1px;top:1px;width:13px;height:13px;border-radius:50%;background:var(--sa);border:2px solid var(--bg)}
 .sa-c:hover .sa-ring,.sa-row:hover .sa-ring{transform:scale(1.05)}
 .sa-av{width:100%;height:100%;border-radius:50%;border:3px solid var(--bg);background:var(--surface2);display:grid;place-items:center;overflow:hidden;font:800 15px var(--fd);color:var(--fg);text-transform:uppercase;line-height:1}
 .sa-ring:not(.on) .sa-av{border-color:var(--line);border-width:1.5px}
@@ -1533,9 +1534,10 @@ const sellerStat=v=>{
  return r&&s?`${r} ${s}`:(r||s||'New seller');
 };
 const sellerAv=v=>v.avatar?`<img src="${esc(v.avatar)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:v.official?subMark():`<b>${esc(init(v.name))}</b>`;
-const sellerRing=v=>`<span class="sa-ring ${v.ring?'on':''}"><span class="sa-av">${sellerAv(v)}</span></span>`;
+const hasSt=id=>((S.stat||{})[id]||[]).some(p=>new Date(p.expires_at)>Date.now());
+const sellerRing=(v,dot)=>`<span class="sa-ring ${v.ring?'on':''}"><span class="sa-av">${sellerAv(v)}</span>${dot?'<i class="sa-dot" title="New status"></i>':''}</span>`;
 const sellerCell=id=>{const v=VENDORS[id];
- return `<button class="sa-c" data-act="vprof" data-id="${esc(id)}" title="${esc(v.name)}" aria-label="Open ${esc(v.name)} store. ${esc(sellerStat(v).replace(/<[^>]+>/g,'').replace('★','stars'))}">${sellerRing(v)}<span class="sa-n">${esc(v.name)}</span><span class="sa-s">${sellerStat(v)}</span></button>`};
+ return `<button class="sa-c" data-act="${hasSt(id)?'vstat':'vprof'}" data-id="${esc(id)}" title="${esc(v.name)}" aria-label="${hasSt(id)?'See status from':'Open'} ${esc(v.name)}${hasSt(id)?'':' store'}. ${esc(sellerStat(v).replace(/<[^>]+>/g,'').replace('★','stars'))}">${sellerRing(v,hasSt(id))}<span class="sa-n">${esc(v.name)}</span><span class="sa-s">${sellerStat(v)}</span></button>`};
 function sellersStrip(){
  const ids=sellersList();
  if(!ids.length)return '';
@@ -2365,8 +2367,16 @@ function promosView(){
   <div style="margin-top:12px"><button class="btn pri" data-act="bundlenew">Submit bundle for review</button></div></div>
  <div class="panel"><h3>Loyal buyer discount</h3><p class="muted sm" style="margin:0 0 12px">Buyers who have bought from you before see this discount on every listing, and on the “Buy again” button when their plan ends. It keeps your regulars coming back to you.</p>
   <div class="opts">${[0,3,5,10].map(n=>`<button type="button" class="${(S.loyal.v1||0)===n?'on':''}" data-act="loyal" data-id="${n}">${n?n+'% off':'Off'}</button>`).join('')}</div></div>
- ${storeLinkPanel()}`;
+ ${storeLinkPanel()}${statusPanel()}`;
 }
+const stLeft=ts=>{const m=Math.max(0,Math.round((new Date(ts)-Date.now())/6e4));return m<60?m+' min':Math.round(m/60)+' h'};
+function statusPanel(){
+ const K=S.stInfo;if(!K)return '';
+ const lim=K.limit,used=K.used||0,full=lim!=null&&used>=lim,lp=myP().filter(p=>p.status==='live'),posts=K.posts||[];
+ const quota=lim==null?'Unlimited posts on your plan.':`${used} of ${lim} used today. The count resets at midnight, Lagos time.`;
+ const form=full?`<p class="hint" style="margin:10px 0 0">You have used all ${lim} status post${lim===1?'':'s'} for today. Higher plans allow more. <button class="linkbtn" data-act="plan_open">See plans</button></p>`
+  :`<div class="fld" style="margin-top:10px"><label for="st_body">What is new in your store?</label><textarea id="st_body" maxlength="280" rows="3" placeholder="A restock, an offer, a new listing. Up to 280 characters."></textarea></div><div class="fld"><label for="st_list">Link a listing <span class="muted">optional</span></label><select id="st_list"><option value="">No listing</option>${lp.map(x=>`<option value="${x.id}">${esc(x.title)}</option>`).join('')}</select></div><button class="btn pri" data-act="st_post">Post status</button>`;
+ return `<div class="panel"><h3>Status posts</h3><p class="hint" style="margin:0">Shown to buyers when they tap your photo in Active Sellers. Each post stays up for 24 hours. ${esc(quota)}</p>${form}${posts.length?`<div style="margin-top:14px;display:grid;gap:8px">${posts.map(x=>`<div class="panel" style="margin:0;padding:12px"><p style="margin:0;white-space:pre-wrap">${esc(x.body)}</p><div class="xs muted" style="margin-top:6px">${esc(rel(x.created_at))} · ends in ${stLeft(x.expires_at)}</div><div class="acts" style="margin-top:8px"><button class="btn sm" data-act="st_del" data-id="${x.id}">Delete</button></div></div>`).join('')}</div>`:''}</div>`}
 function storeLinkPanel(){
  const v=VENDORS[MYV]||{},sl=v.slug||'',can=!!(S.plan&&S.plan.limits&&S.plan.limits.store_link==='custom'),host=esc(location.host);
  const link=sl?host+'/s/'+esc(sl):host+'/seller/'+MYV;
@@ -3169,13 +3179,14 @@ function resetLocal(){
 async function hydrate(){
   const sess=(await sb.auth.getSession()).data.session;
   const tol=p=>sess?p:p.catch(e=>{console.warn('public read failed',e);return[]});
-  const [prods,vend,flash,revs,sets,cpns]=await Promise.all([
+  const [prods,vend,flash,revs,sets,cpns,stat]=await Promise.all([
     tol(sb.from('products').select('*').order('created_at',{ascending:false}).limit(1000).then(ok)),
     tol(sb.from('public_vendors').select('*').then(ok)),
     tol(sb.from('flash_sales').select('*').then(ok)),
     tol(sb.from('reviews').select('*').order('created_at',{ascending:false}).limit(600).then(ok)),
     tol(sb.from('platform_settings').select('*').then(ok)),
-    sess?sb.from('coupons').select('*').then(ok):Promise.resolve([])
+    sess?sb.from('coupons').select('*').then(ok):Promise.resolve([]),
+    sb.from('active_status_posts').select('*').order('created_at',{ascending:false}).then(ok).catch(()=>[])
   ]);
   /* platform settings */
   const st={};sets.forEach(x=>st[x.key]=x.value);
@@ -3187,6 +3198,7 @@ async function hydrate(){
   S.minWd=num('withdraw_min',2000);
   /* catalogue */
   S.products=prods.map(mapProduct);
+  S.stat={};(stat||[]).forEach(r=>{(S.stat[r.vendor_id]=S.stat[r.vendor_id]||[]).push(r)});
   const bySeller={};revs.forEach(r=>{(bySeller[r.vendor_id]=bySeller[r.vendor_id]||[]).push(r)});
   Object.keys(VENDORS).forEach(k=>{if(k!=='__none__')delete VENDORS[k]});
   Object.keys(VFEED).forEach(k=>delete VFEED[k]);
@@ -3256,7 +3268,7 @@ async function hydrate(){
   S.banks=banks.map(b=>b.bank_name+' •••• '+b.last4);S.bankIds=banks.map(b=>b.id);
 
   /* vendor specifics */
-  S.ads=[];S.wd=[];S.pool={};S.plan=null;S.payout=null;S.an=null;S.planPays=[];S.pins=[];
+  S.ads=[];S.wd=[];S.pool={};S.plan=null;S.payout=null;S.an=null;S.stInfo=null;S.planPays=[];S.pins=[];
   try{PLANS={};ok(await sb.from('plan_settings').select('*')).forEach(x=>PLANS[x.plan]=x)}catch(e){PLANS={}}
   if(isV){
     const [vr,wds,ads,pool,kyc,sec]=await Promise.all([
@@ -3270,6 +3282,7 @@ async function hydrate(){
     LIVE.vendorRow=vr;
     try{S.plan=ok(await sb.rpc('my_plan'));S.planPays=ok(await sb.from('plan_payments').select('*').eq('vendor_id',uid).order('created_at',{ascending:false}).limit(12));S.pins=ok(await sb.from('featured_pins').select('*').eq('vendor_id',uid).gt('ends_at',new Date().toISOString()))}catch(e){S.plan=null}
     try{S.payout=ok(await sb.rpc('my_payout_schedule'))}catch(e){S.payout=null}
+    try{S.stInfo=ok(await sb.rpc('my_status_info'))}catch(e){S.stInfo=null}
     const me=VENDORS[uid]||(VENDORS[uid]=mapVendor({id:uid,store_name:vr.store_name,username:vr.username,bio:vr.bio,offers:vr.offers,official:vr.official,verified:vr.kyc_status==='verified',rating:vr.rating,sales_count:vr.sales_count,trust:vr.trust,created_at:vr.created_at,suspended:vr.suspended,bond:vr.bond},null,[]));
     me.name=vr.store_name;me.user=vr.username||'';me.bio=vr.bio||'';me.offers=vr.offers||[];me.verified=vr.kyc_status==='verified';me.suspended=vr.suspended;
     const lastKyc=kyc.find(k=>k.kind==='standard'),lastAsset=kyc.find(k=>k.kind==='asset');
@@ -3851,7 +3864,7 @@ async function boot(){
 }
 
 MODALS.sellers=(m,head)=>{const ids=sellersList();return {c:head('Active sellers')+`<p class="muted sm" style="margin:0">Ranked by completed sales. Tap a seller to open their store.</p><div class="mlist">${ids.length?ids.map(id=>{const v=VENDORS[id];
- return `<button class="sa-row" data-act="vprof" data-id="${esc(id)}" aria-label="Open ${esc(v.name)} store">${sellerRing(v)}<span class="sa-i"><span class="sa-nm"><span>${esc(v.name)}</span>${bdg(v,15)}</span><span class="sa-s">${sellerStat(v)}${v.trust>0?` · ${v.trust}% trust`:''}</span></span><span class="sa-go" aria-hidden="true">›</span></button>`}).join(''):'<p class="sa-empty">No sellers yet.</p>'}</div>`}};
+ return `<button class="sa-row" data-act="${hasSt(id)?'vstat':'vprof'}" data-id="${esc(id)}" aria-label="${hasSt(id)?'See status from '+esc(v.name):'Open '+esc(v.name)+' store'}">${sellerRing(v,hasSt(id))}<span class="sa-i"><span class="sa-nm"><span>${esc(v.name)}</span>${bdg(v,15)}</span><span class="sa-s">${sellerStat(v)}${v.trust>0?` · ${v.trust}% trust`:''}</span></span><span class="sa-go" aria-hidden="true">›</span></button>`}).join(''):'<p class="sa-empty">No sellers yet.</p>'}</div>`}};
 
 /* ---------- Vendor plans: modals and actions ---------- */
 MODALS.upg=(m,head)=>({cls:'c',c:head('Upgrade your plan')+`<p style="margin:0 0 14px">${esc(m.msg)}</p><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn pri" data-act="plan_open">See plans</button><button class="btn" data-act="close">Not now</button></div>`});
@@ -3868,6 +3881,18 @@ H.plan_open=async()=>{S.modal=null;S.view='vendor';S.sub='plan';render();jump()}
 H.sl_save=async()=>{const v=(($('#sl_in')||{}).value||'').trim();if(!v){toast('Type a name for your link, or use Remove');return}
  try{const r=ok(await sb.rpc('set_store_slug',{p_slug:v}));await after('Your short link is now /s/'+r)}catch(e){toast(cleanErr(e))}};
 H.sl_remove=async()=>{try{ok(await sb.rpc('set_store_slug',{p_slug:''}));await after('Short link removed')}catch(e){toast(cleanErr(e))}};
+MODALS.vstat=(m,head)=>{
+ const v=VENDORS[m.id];if(!v)return {c:head('Status')+'<p>Seller not found.</p>'};
+ const L=((S.stat||{})[m.id]||[]).filter(x=>new Date(x.expires_at)>Date.now()),adm=S.auth&&S.role==='admin';
+ return {c:head('Status')+`<div style="display:flex;gap:12px;align-items:center">${sellerRing(v)}<div><b>${esc(v.name)}</b><div class="muted sm">${sellerStat(v)}</div></div></div>${L.length?L.map(x=>{const pr=x.listing_id?prod(x.listing_id):null;return `<div class="panel" style="margin:10px 0 0"><p style="margin:0;white-space:pre-wrap">${esc(x.body)}</p><div class="xs muted" style="margin-top:6px">${esc(rel(x.created_at))} · ends in ${stLeft(x.expires_at)}</div><div class="acts" style="margin-top:8px">${pr&&pr.status==='live'?`<button class="btn sm pri" data-act="open" data-id="${pr.id}">View listing</button>`:''}${adm?`<button class="btn sm" data-act="st_remove" data-id="${x.id}">Remove…</button>`:''}</div></div>`}).join(''):'<p class="muted" style="margin:12px 0 0">No status right now.</p>'}<div style="margin-top:14px"><button class="btn full" data-act="vprof" data-id="${esc(m.id)}">View store</button></div>`}};
+MODALS.stremove=(m,head)=>({cls:'c',c:head('Remove status post')+`<p class="muted sm">The post is hidden from buyers straight away. Your reason is written to the audit log.</p><div class="fld"><label for="st_reason">Reason (required, 5+ characters)</label><input id="st_reason" placeholder="Why is this being removed?"></div><button class="btn pri full" data-act="st_remove_go" data-id="${m.id}">Remove post</button>`});
+H.vstat=async(el,id)=>{S.modal={t:'vstat',id};paintModal()};
+H.st_post=async()=>{const b=(($('#st_body')||{}).value||'').trim(),l=(($('#st_list')||{}).value||'')||null;if(!b){toast('Write your status first');return}
+ try{ok(await sb.rpc('post_status',{p_body:b,p_listing:l}));await after('Status posted. It stays up for 24 hours.')}catch(e){const m=cleanErr(e);if(/plan allows/i.test(m))planPrompt(m,'status_posts');else toast(m)}};
+H.st_del=async(el,id)=>{try{ok(await sb.rpc('delete_my_status',{p_id:id}));await after('Status deleted')}catch(e){toast(cleanErr(e))}};
+H.st_remove=async(el,id)=>{S.modal={t:'stremove',id};paintModal()};
+H.st_remove_go=async(el,id)=>{const r=gv('st_reason');if(r.length<5){toast('Add a reason (5+ characters)');return}
+ try{ok(await sb.rpc('admin_remove_status',{p_id:id,p_reason:r}));S.modal=null;await after('Status removed and logged')}catch(e){toast(cleanErr(e))}};
 H.per=async(el,id)=>{S.per=+id;if(S.an)S.an.err='';render()};
 H.an_reload=async()=>{if(S.an)S.an.err='';render()};
 H.an_export=async()=>{
