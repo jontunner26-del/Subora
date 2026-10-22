@@ -61,6 +61,10 @@
     {
       "source": "/seller/:id",
       "destination": "/"
+    },
+    {
+      "source": "/s/:slug",
+      "destination": "/"
     }
   ]
 }

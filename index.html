@@ -2365,8 +2365,16 @@ function promosView(){
   <div style="margin-top:12px"><button class="btn pri" data-act="bundlenew">Submit bundle for review</button></div></div>
  <div class="panel"><h3>Loyal buyer discount</h3><p class="muted sm" style="margin:0 0 12px">Buyers who have bought from you before see this discount on every listing, and on the “Buy again” button when their plan ends. It keeps your regulars coming back to you.</p>
   <div class="opts">${[0,3,5,10].map(n=>`<button type="button" class="${(S.loyal.v1||0)===n?'on':''}" data-act="loyal" data-id="${n}">${n?n+'% off':'Off'}</button>`).join('')}</div></div>
- <div class="panel"><h3>Your store link</h3><div class="cred"><div class="mono">${esc(location.host)}/seller/${MYV}</div><button class="btn sm pri" data-act="share" data-kind="store" data-id="${MYV}">${I('share',14)}Share</button></div></div>`;
+ ${storeLinkPanel()}`;
 }
+function storeLinkPanel(){
+ const v=VENDORS[MYV]||{},sl=v.slug||'',can=!!(S.plan&&S.plan.limits&&S.plan.limits.store_link==='custom'),host=esc(location.host);
+ const link=sl?host+'/s/'+esc(sl):host+'/seller/'+MYV;
+ let more='';
+ if(can)more=`<div class="fld" style="margin-top:12px"><label for="sl_in">Short link name</label><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="muted">${host}/s/</span><input id="sl_in" value="${esc(sl)}" placeholder="your-store" maxlength="30" autocomplete="off" style="flex:1;min-width:140px"><button class="btn sm pri" data-act="sl_save">Save</button>${sl?'<button class="btn sm" data-act="sl_remove">Remove</button>':''}</div><span class="hint">3 to 30 characters: lowercase letters, numbers and hyphens.${sl?' If you change it, the old short link stops working.':''} Your standard link always works too.</span></div>`;
+ else if(sl)more=`<p class="hint" style="margin:10px 0 0">Your short link keeps working. Changing it needs the Growth plan or higher. <button class="linkbtn" data-act="sl_remove">Remove it</button></p>`;
+ else more=`<p class="hint" style="margin:10px 0 0">Get a short custom link such as ${host}/s/your-store on the Growth plan. <button class="linkbtn" data-act="plan_open">See plans</button></p>`;
+ return `<div class="panel"><h3>Your store link</h3><div class="cred"><div class="mono">${link}</div><button class="btn sm pri" data-act="share" data-kind="store" data-id="${MYV}">${I('share',14)}Share</button></div>${more}</div>`}
 function checklistHTML(){const v=id=>(($('#'+id)||{}).value||'').trim();const lines=id=>v(id).split(/\n/).filter(x=>x.trim()).length;
  const items=[['Title',v('f_title').length>=6],['Service and plan',v('f_svc').length>1&&v('f_plan').length>0],['Price',+v('f_price')>=100],['Description of 30+ characters',v('f_desc').length>=30],['At least 2 features',lines('f_feat')>=2],['At least 2 terms',lines('f_terms')>=2]];
  if(typeof nlType==='function'&&$('#f_type')&&nlType()==='Courses'){items.push(['Link to your course (https://)',urlOk(v('c_link'))],['You made it or have permission to resell it',!!($('#c_own')&&$('#c_own').checked)]);if(v('c_prev'))items.push(['Preview link looks right',urlOk(v('c_prev'))])}
@@ -3008,7 +3016,7 @@ document.addEventListener('click',e=>{
  switch(a){
  case 'wish':{if(!S.auth){gate();break}const p=prod(id);const i=S.wish.findIndex(w=>w.pid===id);if(i>-1){S.wish.splice(i,1);toast('Removed from saved')}else{S.wish.push({pid:id,at:fp(p)});toast('Saved. We’ll tell you if the price drops.')}render()}break;
  case 'tier':{const ag=$('#agree');const ck=ag&&ag.checked;S.cm[id]=+el.dataset.m;render();const g=$('#agree');if(g)g.checked=ck}break;
- case 'share':{const k=el.dataset.kind;let m;if(k==='listing'){const p=prod(id);m={title:'Share this listing',url:location.origin+'/listing/'+encodeURIComponent(id),text:p.title+' on Subora, from '+N(fp(p))}}else if(k==='store'){const v=VENDORS[id];m={title:'Share '+v.name,url:location.origin+'/seller/'+encodeURIComponent(id),text:'Shop '+v.name+' on Subora. Every order is protected by escrow.'}}else{m={title:'Invite friends',url:'subora.example/r/TUNDE24',text:'Join me on Subora and get '+N(500)+' off your first order:'}}S.modal=Object.assign({t:'share'},m);paintModal()}break;
+ case 'share':{const k=el.dataset.kind;let m;if(k==='listing'){const p=prod(id);m={title:'Share this listing',url:location.origin+'/listing/'+encodeURIComponent(id),text:p.title+' on Subora, from '+N(fp(p))}}else if(k==='store'){const v=VENDORS[id];m={title:'Share '+v.name,url:location.origin+(v.slug?'/s/'+encodeURIComponent(v.slug):'/seller/'+encodeURIComponent(id)),text:'Shop '+v.name+' on Subora. Every order is protected by escrow.'}}else{m={title:'Invite friends',url:'subora.example/r/TUNDE24',text:'Join me on Subora and get '+N(500)+' off your first order:'}}S.modal=Object.assign({t:'share'},m);paintModal()}break;
  case 'report':{if(!S.auth){gate();break}const k=el.dataset.kind;let label='';if(k==='listing')label=prod(id).title;else if(k==='vendor')label=VENDORS[id].name;else{const [tid,ix]=id.split('|');const t=S.threads.find(x=>x.id===tid);const m=t&&t.msgs[+ix];label=m?'“'+(m.flag?mask(m.t):m.t||'Attachment')+'”':'Chat with '+(S.role==='vendor'?t.buyer:VENDORS[t.v].name)}S.modal={t:'report',kind:k,id,label};paintModal()}break;
  case 'repgo':{const m=S.modal;const r=(document.querySelector('input[name="rep"]:checked')||{}).value||'Other';const d=(($('#rep_t')||{}).value||'').trim();const by=S.role==='vendor'?VENDORS[MYV].name:S.profile.name;S.reports.unshift({id:'R-'+(209+S.reports.length),kind:m.kind==='listing'?'Listing':m.kind==='vendor'?'Vendor':'Message',target:m.label.replace(/[“”]/g,''),by,reason:r+(d?': '+d:''),when:'Now',status:'open'});notify('admin',{ic:'flag',t:'New report: '+m.kind,d:m.label,go:['admin','reports']});S.modal=null;paintModal();toast('Report sent. Subora reviews it within 24 hours.')}break;
  case 'notifs':S.modal={t:'notifs'};paintModal();break;
@@ -3143,7 +3151,7 @@ function mapVendor(r,fb,rows){
   return {official:!!r.official,verified:!!r.verified,name:r.store_name,user:r.username||'',rating:+r.rating||0,sales:r.sales_count||0,
     trust:r.trust==null?0:r.trust,since:fmtM(r.created_at),bio:r.bio||'',offers:r.offers||[],dist,
     stats:[r.on_time_pct==null?null:+r.on_time_pct,r.no_dispute_pct==null?null:+r.no_dispute_pct,r.good_rating_pct==null?null:+r.good_rating_pct],
-    resp:'',suspended:!!r.suspended,asset:!!r.asset_verified,bond:+r.bond||0,avatar:r.avatar_url||r.logo_url||'',plan:r.plan||'free',planBadge:r.plan_badge||'',ring:!!r.plan_ring,ranked:!!r.plan_ranked};
+    resp:'',suspended:!!r.suspended,asset:!!r.asset_verified,bond:+r.bond||0,avatar:r.avatar_url||r.logo_url||'',plan:r.plan||'free',planBadge:r.plan_badge||'',ring:!!r.plan_ring,ranked:!!r.plan_ranked,slug:r.store_slug||''};
 }
 const mapNote=n=>({id:n.id,ic:n.icon||'bell',t:n.title,d:n.body||'',w:rel(n.created_at),r:!!n.read,go:n.link_view?[n.link_view,n.link_sub||'']:null});
 
@@ -3857,6 +3865,9 @@ MODALS.planconfirm=(m,head)=>{
  return {cls:'c',c:head(t)+`<p style="margin:0 0 14px">${b}</p><button class="btn pri full" data-act="plan_do" data-id="${m.id}">Confirm</button>`};
 };
 H.plan_open=async()=>{S.modal=null;S.view='vendor';S.sub='plan';render();jump()};
+H.sl_save=async()=>{const v=(($('#sl_in')||{}).value||'').trim();if(!v){toast('Type a name for your link, or use Remove');return}
+ try{const r=ok(await sb.rpc('set_store_slug',{p_slug:v}));await after('Your short link is now /s/'+r)}catch(e){toast(cleanErr(e))}};
+H.sl_remove=async()=>{try{ok(await sb.rpc('set_store_slug',{p_slug:''}));await after('Short link removed')}catch(e){toast(cleanErr(e))}};
 H.per=async(el,id)=>{S.per=+id;if(S.an)S.an.err='';render()};
 H.an_reload=async()=>{if(S.an)S.an.err='';render()};
 H.an_export=async()=>{
@@ -3958,7 +3969,7 @@ const RT={on:false,first:false,site:'https://www.subora.com.ng',base:document.ti
   if(v==='help')return '/help';
   if(v==='store'){const a=[];if(S.cat&&S.cat!=='All')a.push('c='+e(S.cat));if(S.q)a.push('q='+e(S.q));return '/store'+(a.length?'?'+a.join('&'):'')}
   if(v==='product'&&S.pid)return '/listing/'+e(S.pid);
-  if(v==='vprofile'&&S.vid)return '/seller/'+e(S.vid);
+  if(v==='vprofile'&&S.vid){const sl=VENDORS[S.vid]&&VENDORS[S.vid].slug;return sl?'/s/'+e(sl):'/seller/'+e(S.vid)}
   if(v==='casepage')return '/case'+(S.cid?'/'+e(S.cid):'');
   if(RT.priv[v])return '/'+RT.priv[v]+(S.sub&&RT.subs.has(S.sub)?'/'+S.sub:'');
   return '/';
@@ -3973,6 +3984,7 @@ const RT={on:false,first:false,site:'https://www.subora.com.ng',base:document.ti
   else if(a==='store'){S.view='store';S.cat=q.get('c')||'All';S.q=q.get('q')||''}
   else if(a==='listing'&&seg[1]&&prod(seg[1])){S.pid=seg[1];S.view='product'}
   else if(a==='seller'&&seg[1]&&VENDORS[seg[1]]){S.vid=seg[1];S.view='vprofile'}
+  else if(a==='s'&&seg[1]){const want=String(seg[1]).toLowerCase(),id=Object.keys(VENDORS).find(k=>VENDORS[k].slug&&VENDORS[k].slug.toLowerCase()===want);if(!id)return false;S.vid=id;S.view='vprofile'}
   else if(a==='case'){S.view='casepage';if(seg[1])S.cid=seg[1]}
   else if(a==='account'||a==='vendor'||a==='admin'){
    const v=a==='account'?'buyer':a;
@@ -4002,7 +4014,7 @@ const RT={on:false,first:false,site:'https://www.subora.com.ng',base:document.ti
   if(want!==here){const same=want.split('?')[0]===location.pathname;try{history[RT.first||same?'replaceState':'pushState'](null,'',want+(RT.first?location.hash:''))}catch(e){}}
   RT.first=false;RT.head(want.split('?')[0]);
  }};
-document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[href^="/"]');if(!a||e.defaultPrevented||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||e.button||a.target)return;const u=new URL(a.href,location.origin);if(!/^\/(store|login|signup|sell)$|^\/(listing|seller)\//.test(u.pathname))return;e.preventDefault();if(RT.from(u.pathname,u.search)){render();jump()}else location.href=a.href});
+document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[href^="/"]');if(!a||e.defaultPrevented||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||e.button||a.target)return;const u=new URL(a.href,location.origin);if(!/^\/(store|login|signup|sell)$|^\/(listing|seller|s)\//.test(u.pathname))return;e.preventDefault();if(RT.from(u.pathname,u.search)){render();jump()}else location.href=a.href});
 window.addEventListener('popstate',()=>{if(!RT.on)return;if(RT.from(location.pathname,location.search)){render();jump()}});
 
 /* ===== END LIVE LAYER ===== */
