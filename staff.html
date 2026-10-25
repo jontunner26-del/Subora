@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Subora staff</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'unsafe-inline'; img-src data:; connect-src https://znywpatsqmmxkbqtybrr.supabase.co; base-uri 'none'; form-action 'none'">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<style>
+:root{--bg:#0f1f14;--card:#16291b;--line:#27402d;--ink:#eef5ea;--mute:#9db3a1;--lime:#c6f23b;--bad:#ff8a80;--warn:#ffd166}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+main{max-width:460px;margin:0 auto;padding:36px 18px 60px}
+main.wide{max-width:960px}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:22px}
+.brand i{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:9px;background:var(--lime);color:#0f1f14;font:800 19px/1 system-ui;font-style:normal}
+.brand b{font-size:19px}.brand span{color:var(--mute);font-size:13px;margin-left:4px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px}
+h1{font-size:20px;margin:0 0 6px}p{margin:8px 0}
+.mute{color:var(--mute);font-size:14px}
+label{display:block;font-size:14px;margin:14px 0 6px;color:var(--mute)}
+input{width:100%;padding:12px 13px;border-radius:10px;border:1px solid var(--line);background:#0c1810;color:var(--ink);font:inherit}
+input:focus{outline:2px solid var(--lime);outline-offset:1px}
+input.code{font:600 26px/1.2 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.35em;text-align:center}
+button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--ink);padding:11px 16px}
+button.pri{background:var(--lime);color:#0f1f14;border-color:var(--lime);font-weight:700;width:100%;margin-top:18px}
+button:disabled{opacity:.55;cursor:wait}
+.err{margin-top:14px;padding:10px 12px;border-radius:10px;background:#3a1b1a;color:var(--bad);font-size:14px}
+.note{margin-top:14px;padding:10px 12px;border-radius:10px;background:#2c2a14;color:var(--warn);font-size:14px}
+.qr{display:block;margin:14px auto;background:#fff;padding:8px;border-radius:10px;width:200px;height:200px}
+.key{display:block;word-break:break-all;font:14px ui-monospace,Menlo,Consolas,monospace;background:#0c1810;border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-top:6px}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.bar .who{font-weight:700}.bar .tm{color:var(--mute);font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--mute);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+.tag{display:inline-block;padding:2px 8px;border-radius:99px;font-size:12px;background:#1d3a24;color:var(--lime)}
+.tag.amber{background:#3b3212;color:var(--warn)}
+.tw{overflow-x:auto}
+.empty{padding:26px 0;text-align:center;color:var(--mute)}
+</style>
+</head>
+<body>
+<main id="app" aria-live="polite"><div class="card"><p class="mute">Loading…</p></div></main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+/* CORE START — all sign-in logic lives here so it can be tested without a browser */
+function createStaffApp(deps){
+  var sb=deps.sb;
+  var IDLE_MS=deps.idleMs||30*60*1000, MAX_MS=deps.maxMs||8*3600*1000, BEAT_MS=deps.beatMs||4*60*1000;
+  var S={step:'loading',busy:false,error:'',notice:'',enroll:null,factorId:null,name:'',queue:[],queueErr:'',idleLeft:IDLE_MS,maxLeft:MAX_MS,newDevice:false};
+  var lastActivity=deps.now(), lastBeat=deps.now(), started=deps.now(), timer=null;
+
+  function snap(){return Object.assign({},S,{queue:S.queue.slice()})}
+  function emit(){deps.onChange(snap())}
+  function go(step){S.step=step;S.busy=false;S.error='';emit()}
+  function busy(v){S.busy=v;emit()}
+  function stopTimer(){if(timer){deps.clearInterval(timer);timer=null}}
+  async function rpc(name,args){var r=await sb.rpc(name,args||{});if(r.error)throw r.error;return r.data}
+
+  function deviceId(){
+    var id=deps.storage.getItem('subora_staff_device');
+    if(!id||id.length<16){id=deps.randomId();deps.storage.setItem('subora_staff_device',id)}
+    return id;
+  }
+  async function hardSignOut(){
+    stopTimer();
+    try{await sb.auth.signOut()}catch(e){}
+    S.queue=[];S.enroll=null;S.factorId=null;
+  }
+  async function signOut(reason){
+    try{await rpc('staff_end_session')}catch(e){}
+    await hardSignOut();
+    S.notice={idle:'You were signed out after 30 minutes without activity.',max:'Your 8-hour session ended. Sign in again.',ended:'Your session ended. Sign in again.',elsewhere:'You were signed out because this account signed in somewhere else, or the session ended.'}[reason]||'You are signed out.';
+    go('signin');
+  }
+  async function locked(){await hardSignOut();go('locked')}
+
+  async function mfaStep(){
+    var f=await sb.auth.mfa.listFactors();
+    if(f.error)throw f.error;
+    var verified=(f.data&&f.data.totp)||[];
+    if(verified.length){S.factorId=verified[0].id;go('mfa_verify');return}
+    var all=(f.data&&f.data.all)||[];
+    for(var i=0;i<all.length;i++){
+      if(all[i].factor_type==='totp'&&all[i].status!=='verified'){await sb.auth.mfa.unenroll({factorId:all[i].id})}
+    }
+    var e=await sb.auth.mfa.enroll({factorType:'totp',friendlyName:'Subora staff'});
+    if(e.error)throw e.error;
+    S.factorId=e.data.id;S.enroll={qr:e.data.totp.qr_code,secret:e.data.totp.secret};
+    go('mfa_enroll');
+  }
+
+  async function register(){
+    var r=await rpc('staff_register_session',{p_device_id:deviceId()});
+    return r||{ok:false,error:'no_answer'};
+  }
+  async function enterDashboard(){
+    try{
+      var q=await sb.from('staff_sessions').select('created_at').is('ended_at',null).order('created_at',{ascending:false}).limit(1);
+      started=(q&&q.data&&q.data[0])?new Date(q.data[0].created_at).getTime():deps.now();
+    }catch(e){started=deps.now()}
+    lastActivity=deps.now();lastBeat=deps.now();
+    S.notice='';
+    go('dashboard');
+    stopTimer();
+    timer=deps.setInterval(tick,1000);
+    await loadQueue();
+  }
+  async function registerAndEnter(){
+    var r;
+    try{r=await register()}catch(e){await hardSignOut();S.notice='';go('signin');S.error='Could not start your session. Check your connection and try again.';emit();return}
+    if(r.ok){S.newDevice=!!r.new_device;await enterDashboard();return}
+    if(r.error==='locked'){await locked();return}
+    await hardSignOut();go('signin');
+    S.error=r.error==='not_staff'?'This account is not set up as staff.':'Could not start your session. Sign in again.';emit();
+  }
+
+  async function resume(){
+    var acc=await rpc('my_access');
+    if(!acc||!acc.staff){await hardSignOut();go('signin');S.error='This account is not set up as staff.';emit();return}
+    S.name=acc.display_name||'';
+    if(acc.locked){await locked();return}
+    if(acc.session_ok){await enterDashboard();return}
+    if(acc.aal==='aal2'){await registerAndEnter();return}
+    await mfaStep();
+  }
+
+  async function init(){
+    try{
+      var s=await sb.auth.getSession();
+      if(!s||!s.data||!s.data.session){go('signin');return}
+      await resume();
+    }catch(e){go('signin')}
+    try{
+      sb.auth.onAuthStateChange(function(ev){
+        if(ev==='SIGNED_OUT'&&S.step==='dashboard'){stopTimer();S.queue=[];S.notice='You were signed out because this account signed in somewhere else, or the session ended.';go('signin')}
+      });
+    }catch(e){}
+  }
+
+  async function signIn(email,password){
+    S.error='';S.notice='';
+    email=String(email||'').trim();
+    if(!email||!password){S.error='Enter your email and password.';emit();return}
+    busy(true);
+    var res,body;
+    try{
+      res=await deps.fetch(deps.loginUrl,{method:'POST',headers:{'Content-Type':'application/json','apikey':deps.anonKey,'Authorization':'Bearer '+deps.anonKey},body:JSON.stringify({email:email,password:password})});
+      try{body=await res.json()}catch(e){body={}}
+    }catch(e){S.error='Could not reach the server. Check your connection.';busy(false);return}
+    if(res.status===423||(body&&body.error==='account_locked')){await locked();return}
+    if(res.status===401){S.error='Email or password is not right.';busy(false);return}
+    if(res.status===403){S.error='This page cannot sign in from this address.';busy(false);return}
+    if(res.status===400){S.error='Enter your email and password.';busy(false);return}
+    if(!res.ok||!body||!body.ok||!body.access_token){S.error='Something went wrong. Try again in a moment.';busy(false);return}
+    try{
+      var st=await sb.auth.setSession({access_token:body.access_token,refresh_token:body.refresh_token});
+      if(st.error)throw st.error;
+      await resume();
+    }catch(e){await hardSignOut();go('signin');S.error='Could not finish signing in. Try again.';emit()}
+  }
+
+  async function wrongCode(){
+    var lk=false;
+    try{var r=await rpc('staff_mfa_failed');lk=!!(r&&r.locked)}catch(e){}
+    if(lk){await locked();return}
+    S.error='That code is not right. Wait for the next one and try again.';busy(false);
+  }
+
+  async function submitCode(code){
+    var c=String(code||'').replace(/\s/g,'');
+    if(!/^\d{6}$/.test(c)){S.error='Enter the 6-digit code from your authenticator app.';emit();return}
+    busy(true);S.error='';
+    var ch,v;
+    try{
+      ch=await sb.auth.mfa.challenge({factorId:S.factorId});
+      if(ch.error)throw ch.error;
+      v=await sb.auth.mfa.verify({factorId:S.factorId,challengeId:ch.data.id,code:c});
+    }catch(e){S.error='Could not reach the server. Check your connection.';busy(false);return}
+    if(v.error){
+      if(v.error.name==='AuthRetryableFetchError'){S.error='Could not reach the server. Check your connection.';busy(false);return}
+      await wrongCode();return;
+    }
+    await registerAndEnter();
+  }
+
+  async function loadQueue(){
+    try{
+      var r=await rpc('staff_support_queue');
+      if(r&&r.ok===false){
+        if(r.error==='access_denied'){await signOut('ended');return}
+        S.queueErr='Could not load the queue.';
+      }else{
+        S.queue=((r&&r.items)||[]).slice().sort(function(a,b){return String(a.since).localeCompare(String(b.since))});
+        S.queueErr='';
+      }
+    }catch(e){S.queueErr='Could not load the queue.'}
+    lastBeat=deps.now();
+    emit();
+  }
+
+  function tick(){
+    var now=deps.now();
+    S.idleLeft=IDLE_MS-(now-lastActivity);
+    S.maxLeft=MAX_MS-(now-started);
+    if(S.maxLeft<=0){signOut('max');return}
+    if(S.idleLeft<=0){signOut('idle');return}
+    // keep the server's idle clock moving while the person is actually working
+    if(now-lastBeat>=BEAT_MS&&lastActivity>lastBeat){lastBeat=now;loadQueue();return}
+    emit();
+  }
+  function activity(){lastActivity=deps.now()}
+
+  return {init:init,signIn:signIn,submitCode:submitCode,signOut:signOut,loadQueue:loadQueue,activity:activity,tick:tick,state:snap};
+}
+/* CORE END */
+
+/* ---- screen: draws the current state. No decisions are made here. ---- */
+(function(){
+  if(typeof window==='undefined'||!window.supabase||window.__SUBORA_TEST__)return;
+  var URL='https://znywpatsqmmxkbqtybrr.supabase.co';
+  var ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpueXdwYXRzcW1teGticXR5YnJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwNzAxODEsImV4cCI6MjEwNzY0NjE4MX0.F3XtaNmuOXFsC8r6UjfbtnZdxoz0HDUDtieY6bSyqqc';
+  var sb=window.supabase.createClient(URL,ANON,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false,storageKey:'subora-staff-auth',storage:window.sessionStorage}});
+  var app$=document.getElementById('app');
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  function rid(){var a=new Uint8Array(16);crypto.getRandomValues(a);return Array.prototype.map.call(a,function(b){return ('0'+b.toString(16)).slice(-2)}).join('')}
+  function mmss(ms){ms=Math.max(0,ms);var s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor((s%3600)/60);s=s%60;return (h?h+':':'')+('0'+m).slice(-2)+':'+('0'+s).slice(-2)}
+  function waited(since){var m=Math.max(0,Math.floor((Date.now()-new Date(since).getTime())/60000));return m<60?m+' min':Math.floor(m/60)+'h '+(m%60)+'m'}
+  var brand='<div class="brand"><i>S</i><b>Subora</b><span>Staff</span></div>';
+  var lastStep='',hold=null;
+
+  var app=createStaffApp({
+    sb:sb,fetch:function(u,o){return window.fetch(u,o)},storage:window.localStorage,randomId:rid,
+    now:function(){return Date.now()},setInterval:function(f,ms){return window.setInterval(f,ms)},clearInterval:function(t){window.clearInterval(t)},
+    loginUrl:URL+'/functions/v1/staff-login',anonKey:ANON,onChange:draw
+  });
+
+  function msgs(s){return (s.notice?'<div class="note" role="status">'+esc(s.notice)+'</div>':'')+(s.error?'<div class="err" role="alert">'+esc(s.error)+'</div>':'')}
+
+  function draw(s){
+    var main=app$;
+    main.className=s.step==='dashboard'?'wide':'';
+    // do not rebuild the form while someone is typing; only the dashboard timers refresh
+    if(s.step===lastStep&&s.step==='dashboard'){paintDash(s);return}
+    var keep=document.getElementById('f_email')?document.getElementById('f_email').value:'';
+    lastStep=s.step;
+    if(s.step==='loading'){main.innerHTML=brand+'<div class="card"><p class="mute">Loading…</p></div>';return}
+    if(s.step==='signin'){
+      main.innerHTML=brand+'<div class="card"><h1>Staff sign in</h1><p class="mute">Use your staff email and password. You will be asked for a code from your authenticator app next.</p>'
+        +'<form id="f_in" novalidate><label for="f_email">Email</label><input id="f_email" type="email" autocomplete="username" autocapitalize="none" spellcheck="false" value="'+esc(keep)+'">'
+        +'<label for="f_pw">Password</label><input id="f_pw" type="password" autocomplete="current-password">'
+        +'<button class="pri" type="submit"'+(s.busy?' disabled':'')+'>'+(s.busy?'Checking…':'Continue')+'</button></form>'+msgs(s)+'</div>';
+      document.getElementById('f_in').addEventListener('submit',function(e){e.preventDefault();app.signIn(document.getElementById('f_email').value,document.getElementById('f_pw').value)});
+      return;
+    }
+    if(s.step==='locked'){
+      main.innerHTML=brand+'<div class="card"><h1>Account locked</h1><p>This account is locked. Contact the Subora owner to unlock it.</p><p class="mute">The owner has already been alerted.</p></div>';
+      return;
+    }
+    if(s.step==='mfa_enroll'||s.step==='mfa_verify'){
+      var enrol=s.step==='mfa_enroll';
+      main.innerHTML=brand+'<div class="card"><h1>'+(enrol?'Set up your authenticator app':'Enter your code')+'</h1>'
+        +(enrol?'<p class="mute">Open an authenticator app (Google Authenticator, Microsoft Authenticator, Authy or similar), scan this code, then type the 6-digit code it shows.</p><img id="f_qr" class="qr" alt="QR code for your authenticator app" width="200" height="200"><p class="mute">Cannot scan? Enter this key by hand:</p><code class="key" id="f_key"></code>'
+               :'<p class="mute">Open your authenticator app and type the 6-digit code for Subora.</p>')
+        +'<form id="f_code" novalidate><label for="f_c">6-digit code</label><input id="f_c" class="code" inputmode="numeric" autocomplete="one-time-code" maxlength="7" autofocus>'
+        +'<button class="pri" type="submit"'+(s.busy?' disabled':'')+'>'+(s.busy?'Checking…':(enrol?'Confirm and sign in':'Sign in'))+'</button></form>'+msgs(s)+'</div>';
+      if(enrol&&s.enroll){document.getElementById('f_qr').src=s.enroll.qr;document.getElementById('f_key').textContent=s.enroll.secret}
+      document.getElementById('f_code').addEventListener('submit',function(e){e.preventDefault();app.submitCode(document.getElementById('f_c').value)});
+      return;
+    }
+    if(s.step==='dashboard'){
+      main.innerHTML=brand+'<div class="bar"><div><div class="who" id="d_who"></div><div class="tm" id="d_tm"></div></div><div><button id="d_refresh" type="button">Refresh</button> <button id="d_out" type="button">Sign out</button></div></div><div class="card" id="d_body"></div>';
+      document.getElementById('d_out').addEventListener('click',function(){app.signOut()});
+      document.getElementById('d_refresh').addEventListener('click',function(){app.loadQueue()});
+      paintDash(s);return;
+    }
+  }
+
+  function paintDash(s){
+    var who=document.getElementById('d_who'),tm=document.getElementById('d_tm'),body=document.getElementById('d_body');
+    if(!who||!tm||!body)return;
+    who.textContent=(s.name||'Staff')+' · Subora support';
+    tm.textContent='Signs out after '+mmss(s.idleLeft)+' of no activity · session ends in '+mmss(s.maxLeft);
+    var html='<h1>Support queue</h1><p class="mute">Oldest first. Items turn amber after 12 hours. Detailed screens for each item are coming next.</p>';
+    if(s.queueErr)html+='<div class="err" role="alert">'+esc(s.queueErr)+'</div>';
+    if(!s.queue.length&&!s.queueErr)html+='<div class="empty">Nothing waiting. Good work.</div>';
+    if(s.queue.length){
+      html+='<div class="tw"><table><thead><tr><th>Type</th><th>Order</th><th>Detail</th><th>Waiting</th></tr></thead><tbody>'+s.queue.map(function(i){
+        return '<tr><td>'+esc(i.label)+'</td><td>'+esc(i.order_no==null?'':'#'+i.order_no)+'</td><td>'+esc(i.reason||'')+'</td><td><span class="tag'+(i.amber?' amber':'')+'">'+esc(waited(i.since))+'</span></td></tr>';
+      }).join('')+'</tbody></table></div>';
+    }
+    if(body.getAttribute('data-html')!==html){body.innerHTML=html;body.setAttribute('data-html',html)}
+  }
+
+  var t=0;
+  ['mousemove','keydown','click','touchstart','scroll'].forEach(function(ev){window.addEventListener(ev,function(){var n=Date.now();if(n-t>1000){t=n;app.activity()}},{passive:true})});
+  app.init();
+})();
+</script>
+</body>
+</html>

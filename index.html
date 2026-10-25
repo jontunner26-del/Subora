@@ -1290,7 +1290,7 @@ function navItems(){
  }
  if(S.role==='admin'){
   const q=S.products.filter(p=>p.status==='pending').length,d=S.cases.filter(c=>c.status!=='resolved').length,w=S.wd.filter(x=>x.status==='queued').length,kq=kycQueue().length;
-  return [{v:'admin',s:'review',l:'Listing review',i:'list',b:q},{v:'admin',s:'kyc',l:'Verifications',i:'shield',b:kq},{v:'admin',s:'disputes',l:'Disputes',i:'undo',b:d},{v:'admin',s:'payouts',l:'Payouts',i:'wallet',b:w},{v:'admin',s:'reports',l:'Reports & flags',i:'flag',b:S.reports.filter(r=>r.status==='open').length+S.flags.filter(f=>f.status==='open').length},{v:'admin',s:'analytics',l:'Analytics',i:'chart'},{v:'admin',s:'plans',l:'Vendor plans',i:'gift'},{v:'admin',s:'settings',l:'Settings',i:'gear'},{v:'admin',s:'people',l:'Accounts',i:'user'},{v:'admin',s:'audit',l:'Audit log',i:'list'}];
+  return [{v:'admin',s:'review',l:'Listing review',i:'list',b:q},{v:'admin',s:'kyc',l:'Verifications',i:'shield',b:kq},{v:'admin',s:'disputes',l:'Disputes',i:'undo',b:d},{v:'admin',s:'payouts',l:'Payouts',i:'wallet',b:w},{v:'admin',s:'reports',l:'Reports & flags',i:'flag',b:S.reports.filter(r=>r.status==='open').length+S.flags.filter(f=>f.status==='open').length},{v:'admin',s:'analytics',l:'Analytics',i:'chart'},{v:'admin',s:'plans',l:'Vendor plans',i:'gift'},{v:'admin',s:'settings',l:'Settings',i:'gear'},{v:'admin',s:'people',l:'Accounts',i:'user'},{v:'admin',s:'audit',l:'Audit log',i:'list'},{v:'admin',s:'staff',l:'Staff access',i:'user'},{v:'admin',s:'security',l:'Security',i:'lock'}];
  }
  const ex=S.subs.filter(s=>s.left>0&&s.left<=5).length;
  return [{v:'buyer',s:'subs',l:'My subscriptions',i:'shield',b:ex},{v:'buyer',s:'orders',l:'Orders',i:'box'},{v:'buyer',s:'messages',l:'Messages',i:'chat'},{v:'buyer',s:'saved',l:'Saved',i:'heart'},{v:'buyer',s:'wallet',l:'Wallet',i:'wallet'},{v:'buyer',s:'disputes',l:'Disputes',i:'undo'},{v:'buyer',s:'profile',l:'My profile',i:'user'}];
@@ -1898,7 +1898,7 @@ function adminAnalytics(){
 }
 function admin(){
  const q=S.products.filter(p=>p.status==='pending'),dq=S.products.filter(p=>p.status==='deleting');const w=S.wd.filter(x=>x.status==='queued');const kq=kycQueue();
- const ttl={plans:'Vendor plans',review:'Listing review',kyc:'Vendor verification',disputes:'Disputes',payouts:'Payouts',assets:'Asset protection',reports:'Reports & flags',quality:'Quality & test buys',analytics:'Analytics',settings:'Platform settings',launch:'Launch checklist',people:'Accounts',audit:'Audit log'};
+ const ttl={plans:'Vendor plans',review:'Listing review',kyc:'Vendor verification',disputes:'Disputes',payouts:'Payouts',assets:'Asset protection',reports:'Reports & flags',quality:'Quality & test buys',analytics:'Analytics',settings:'Platform settings',launch:'Launch checklist',people:'Accounts',audit:'Audit log',staff:'Staff access',security:'Security'};
  if(!ttl[S.sub])S.sub='review';
  let body='';
  if(S.sub==='review')body=(q.length||dq.length)?`<div class="tw"><table><thead><tr><th>Listing</th><th>Request</th><th>Vendor</th><th class="num">Price</th><th></th></tr></thead><tbody>${q.map(p=>`<tr><td><span class="t">${esc(p.title)}</span><div class="xs muted">${p.cat} · ${esc(p.deliv)}</div></td><td><span class="pill warn">${p.edited?'Edit review':'New listing'}</span></td><td>${esc(VENDORS[p.v].name)}</td><td class="num">${N(p.price)}</td><td><div class="acts"><button class="btn sm pri" data-act="approve" data-id="${p.id}">Approve</button><button class="btn sm bad" data-act="reject" data-id="${p.id}">Reject</button></div></td></tr>`).join('')}${dq.map(p=>`<tr><td><span class="t">${esc(p.title)}</span><div class="xs muted">${p.cat} · ${S.orders.filter(o=>o.pid===p.id&&!['completed','refunded'].includes(o.status)).length} open orders</div></td><td><span class="pill ${p.kind==='archive'?'warn':'bad'}">${p.kind==='archive'?'Archive':'Deletion'}</span></td><td>${esc(VENDORS[p.v].name)}</td><td class="num">${N(p.price)}</td><td><div class="acts"><button class="btn sm pri" data-act="delok" data-id="${p.id}">${p.kind==='archive'?'Approve archive':'Approve deletion'}</button><button class="btn sm" data-act="deldeny" data-id="${p.id}">Decline</button></div></td></tr>`).join('')}</tbody></table></div>`:`<div class="panel empty">The review queue is clear.</div>`;
@@ -1912,6 +1912,8 @@ function admin(){
  else if(S.sub==='settings')body=settingsView();
  else if(S.sub==='launch')body=launchView();
  else if(S.sub==='people')body=peopleView();
+ else if(S.sub==='staff')body=staffAccessView();
+ else if(S.sub==='security')body=ownerSecView();
  else if(S.sub==='audit')body=auditView();
  else body=w.length?`<div class="tw"><table><thead><tr><th>Vendor</th><th>Bank</th><th class="num">Amount</th><th>Payable from</th><th></th></tr></thead><tbody>${[...w].sort((a,b)=>String(a.due||'')<String(b.due||'')?-1:1).map(x=>{const early=!!(x.due&&new Date(x.due).getTime()>Date.now());return `<tr><td>${esc(x.vname||'Vendor')}${x.planReq?` <span class="xs muted">${esc(planLabel(x.planReq))}</span>`:''}</td><td>${esc(x.bank)}</td><td class="num">${N(x.amt)}</td><td>${x.due?esc(fmtLDay(x.due)):'Now'} ${early?'<span class="pill warn">Not due</span>':'<span class="pill good">Due</span>'}</td><td><div class="acts"><button class="btn sm ${early?'':'pri'}" data-act="adpay" data-id="${x.id}">${early?'Pay early…':'Send payout'}</button></div></td></tr>`}).join('')}</tbody></table></div>`:`<div class="panel empty">No payouts waiting.</div>`;
  return `<div class="wrap console">${railHTML('Admin')}<div><div class="ph"><h2>${ttl[S.sub]}</h2></div>${body}</div></div>`;
@@ -2528,9 +2530,10 @@ function cartHTML(head){
 function fit(){const a=$('#app'),f=$('#frame');if(!a||!f)return;const w=f.clientWidth;a.dataset.w=(w&&w<860)?'m':'d'}
 function paintModal(){const app=$('#app');if(!app)return;const old=app.querySelector(':scope > .ov');if(old)old.remove();const h=modal();if(h)app.insertAdjacentHTML('beforeend',h)}
 function render(){
+ if(S.mfa&&S.mfa.pending)S.view='mfa';
  if(!S.auth&&GATED.includes(S.view)){S.after={view:S.view,cat:S.cat,q:S.q,pid:S.pid,vid:S.vid};S.view='login'}
  else if(!S.auth&&!S.after&&false){}
- const V={home:()=>S.auth?home():landing(),store:market,product,buyer,vendor,admin,casepage:casePage,vprofile,help:helpView,login:()=>gateBar()+authView('login'),signup:()=>{S.sRole='buyer';return gateBar()+authView('signup')},vapply:()=>{S.sRole='vendor';return S.suStep===2?authView('signup'):vregView()}};
+ const V={mfa:mfaView,home:()=>S.auth?home():landing(),store:market,product,buyer,vendor,admin,casepage:casePage,vprofile,help:helpView,login:()=>gateBar()+authView('login'),signup:()=>{S.sRole='buyer';return gateBar()+authView('signup')},vapply:()=>{S.sRole='vendor';return S.suStep===2?authView('signup'):vregView()}};
  const view=(V[S.view]||home)();
  $('#devbar').innerHTML=devbarHTML();
  $('#stage').dataset.dev=S.dev;const sbar=$('.sbar');if(sbar&&!sbar.firstChild)sbar.innerHTML='<span>9:41</span><i></i><span>5G</span>';
@@ -3400,7 +3403,8 @@ HF.login=async()=>{
   const email=gv('l_id'),pw=$('#l_pw').value||'';
   if(!emailOk(email)||pw.length<6){toast('Enter your email address and password');return}
   ok(await sb.auth.signInWithPassword({email,password:pw}));
-  await hydrate();const d=dest();S.view=d[0];S.sub=d[1];S.modal=null;
+  await hydrate();await mfaCheck();if(S.mfa&&S.mfa.pending){S.modal=null;render();jump();return}
+  const d=dest();S.view=d[0];S.sub=d[1];S.modal=null;
   if(S.role==='buyer')afterAuth();
   render();jump();toast('Welcome back, '+(S.profile.name||'').split(' ')[0]);
 };
@@ -3418,7 +3422,7 @@ HF.signup=async()=>{
   if(!r.data.session){S.view='login';render();toast('Account created. Check your email to confirm it, then log in.');return}
   await hydrate();S.view='store';afterAuth();render();jump();toast('Account created. Welcome to Subora.');
 };
-H.signout=async()=>{await sb.auth.signOut();resetLocal();S.view='home';S.modal=null;await hydrate();render();jump();toast('You are signed out')};
+H.signout=async()=>{S.mfa=null;await sb.auth.signOut();resetLocal();S.view='home';S.modal=null;await hydrate();render();jump();toast('You are signed out')};
 H.forgotgo=async()=>{const v=gv('fg');if(!emailOk(v)){toast('Enter your email address');return}
   ok(await sb.auth.resetPasswordForEmail(v,{redirectTo:location.origin+location.pathname}));S.modal=null;paintModal();toast('If that account exists, a reset link is on its way')};
 H.newpwgo=async()=>{const a=$('#np1').value||'',b=$('#np2').value||'';if(a.length<8||pwScore(a)<3){toast('Use 8+ characters with a number and a capital letter');return}if(a!==b){toast('The two passwords do not match');return}
@@ -3857,12 +3861,183 @@ setInterval(async()=>{
   }
 })();
 
+/* ---------- Owner 2FA prompt, Staff access and Security (Phase 6c) ---------- */
+async function mfaCheck(){
+ S.mfa=null;
+ if(!S.auth||S.role!=='admin')return;
+ try{
+  const a=ok(await sb.auth.mfa.getAuthenticatorAssuranceLevel());
+  if(a.currentLevel==='aal1'&&a.nextLevel==='aal2'){
+   const f=ok(await sb.auth.mfa.listFactors());
+   const t=(f.totp||[])[0];
+   if(t)S.mfa={pending:true,factorId:t.id,err:''};
+  }
+ }catch(e){console.error(e)}
+}
+function mfaView(){
+ const m=S.mfa||{};
+ return `<div class="wrap" style="max-width:440px;margin:36px auto"><div class="panel"><h3>Enter your authenticator code</h3><p class="muted sm">Open your authenticator app and type the 6-digit code for Subora.</p><div class="fld"><label for="mfa_code">6-digit code</label><input id="mfa_code" inputmode="numeric" autocomplete="one-time-code" maxlength="7" autofocus></div>${m.err?`<p class="hint bad" role="alert">${esc(m.err)}</p>`:''}<div class="acts"><button class="btn pri" data-act="mfa_go">Continue</button><button class="btn" data-act="mfa_cancel">Cancel and sign out</button></div></div></div>`;
+}
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target&&e.target.id==='mfa_code'){e.preventDefault();const b=document.querySelector('[data-act="mfa_go"]');if(b)b.click()}});
+H.mfa_go=async()=>{
+ const m=S.mfa;if(!m||!m.pending)return;
+ const code=gv('mfa_code').replace(/\s/g,'');
+ if(!/^\d{6}$/.test(code)){m.err='Enter the 6-digit code from your authenticator app.';render();return}
+ try{
+  const ch=ok(await sb.auth.mfa.challenge({factorId:m.factorId}));
+  ok(await sb.auth.mfa.verify({factorId:m.factorId,challengeId:ch.id,code}));
+ }catch(e){m.err='That code is not right. Wait for the next one and try again.';render();return}
+ S.mfa=null;await hydrate();const d=dest();S.view=d[0];S.sub=d[1];S.modal=null;render();jump();toast('Signed in');
+};
+H.mfa_cancel=async()=>{S.mfa=null;await H.signout()};
+
+const STF_ERR={access_denied:'Access denied. If owner 2FA is on, sign in with your authenticator code first.',no_such_user:'No account has that email. They must sign up on the normal site first.',already_staff:'That person is already staff.',owner_cannot_be_staff:'The owner account cannot be staff.',name_required:'Enter a display name.',reason_required:'Add a reason (5+ characters).',no_such_staff:'Staff account not found.',bad_value:'That value is not allowed.',verify_2fa_first:'Verify a 2FA code in this sign-in first.',unknown_limit:'Unknown setting.'};
+const stfMsg=r=>STF_ERR[r&&r.error]||(r&&r.error)||'Something went wrong';
+const stfWhen=t=>t?new Date(t).toLocaleString('en-NG',{dateStyle:'medium',timeStyle:'short'}):'Never';
+async function stfLoad(){
+ const A=S.stf;
+ try{const r=ok(await sb.rpc('admin_list_staff'));if(!r||r.ok===false)throw new Error(stfMsg(r));A.rows=r.staff||[];A.loaded=true;A.err=''}
+ catch(e){A.err=cleanErr(e)}
+ A.loading=false;render();
+}
+function staffAccessView(){
+ const A=S.stf=S.stf||{};
+ if(!A.loaded&&!A.err&&!A.loading){A.loading=true;setTimeout(stfLoad,0)}
+ const intro=`<div class="panel"><h3>Staff Admin accounts</h3><p class="muted sm" style="margin:0">Staff sign in at <b class="mono">/staff</b> with their own password and an authenticator app. They can review listings, answer disputes and moderate chats. They never see earnings, wallets, payouts, phone numbers or emails. Every action is written to the audit log under their name.</p></div>`;
+ if(A.err)return intro+`<div class="panel" style="margin-top:14px"><h3>Could not load staff</h3><p class="muted sm">${esc(A.err)}</p><button class="btn" data-act="stf_reload">Try again</button></div>`;
+ if(!A.loaded)return intro+'<div class="panel empty" style="margin-top:14px">Loading staff…</div>';
+ const rows=A.rows||[];
+ const pill=r=>r.locked?'<span class="pill bad">Locked</span>':!r.active?'<span class="pill warn">Disabled</span>':'<span class="pill good">Active</span>';
+ const acts=r=>{
+  const b=[];
+  if(r.locked)b.push(`<button class="btn sm" data-act="stf_unlock" data-id="${esc(r.user_id)}">Unlock</button>`);
+  if(r.active)b.push(`<button class="btn sm" data-act="stf_disable" data-id="${esc(r.user_id)}">Disable</button>`);
+  else b.push(`<button class="btn sm" data-act="stf_enable" data-id="${esc(r.user_id)}">Enable</button>`);
+  return b.join(' ');
+ };
+ const table=rows.length?`<div class="tw"><table><thead><tr><th>Name</th><th>Email</th><th>Status</th><th>Last sign-in</th><th class="num">Devices</th><th></th></tr></thead><tbody>${rows.map(r=>`<tr><td class="t"><b>${esc(r.display_name)}</b>${r.session_active?' <span class="pill info">Signed in now</span>':''}</td><td class="mono">${esc(r.email||'')}</td><td>${pill(r)}${r.disabled_reason?`<div class="muted xs">${esc(r.disabled_reason)}</div>`:''}${r.failed_attempts?`<div class="muted xs">${+r.failed_attempts} failed attempt${r.failed_attempts==1?'':'s'}</div>`:''}</td><td>${esc(stfWhen(r.last_login_at))}${r.last_country?` · ${esc(r.last_country)}`:''}</td><td class="num">${+r.devices||0}</td><td>${acts(r)}</td></tr>`).join('')}</tbody></table></div>`:`<div class="empty">No staff yet.</div>`;
+ const add=`<div class="panel" style="margin-top:14px"><h3>Add a staff member</h3><p class="muted sm" style="margin-top:0">They must first sign up on the normal site with their own email and a password only they know. Then enter that email here.</p><div class="form" style="margin:0;align-items:end"><div class="fld"><label for="stf_email">Their account email</label><input id="stf_email" type="email" autocomplete="off"></div><div class="fld"><label for="stf_name">Display name (shown only to you)</label><input id="stf_name" autocomplete="off"></div><button class="btn pri" data-act="stf_add">Add staff</button></div></div>`;
+ const kill=`<div class="panel" style="margin-top:14px;border-color:var(--bad)"><h3>Emergency stop</h3><p class="muted sm" style="margin-top:0">Disables every staff account and signs them out everywhere, at once. You can enable people again one by one.</p><button class="btn" style="border-color:var(--bad);color:var(--bad)" data-act="stf_all">Disable all staff and sign out everywhere</button></div>`;
+ return intro+`<div class="panel" style="margin-top:14px">${table}</div>`+add+kill;
+}
+MODALS.stf=(m,head)=>{
+ const T={unlock:['Unlock staff account','Only unlock when you are sure it is really them. Your reason is written to the audit log.',true],disable:['Disable staff account','They are signed out straight away and cannot sign in until you enable them again.',true],all:['Disable all staff','Every staff account is disabled and signed out everywhere.',false]}[m.kind]||['Staff','',true];
+ return {cls:'c',c:head(T[0])+`<p class="muted sm" style="margin:0 0 12px">${T[1]}</p><div class="fld"><label for="stf_reason">Reason${T[2]?' (required, 5+ characters)':' (optional)'}</label><input id="stf_reason" autocomplete="off"></div><button class="btn pri full" data-act="stf_go">Confirm</button>`};
+};
+H.stf_reload=async()=>{Object.assign(S.stf||(S.stf={}),{loaded:false,err:'',loading:false});render()};
+H.stf_unlock=async(el,id)=>{S.modal={t:'stf',kind:'unlock',id};paintModal()};
+H.stf_disable=async(el,id)=>{S.modal={t:'stf',kind:'disable',id};paintModal()};
+H.stf_all=async()=>{S.modal={t:'stf',kind:'all'};paintModal()};
+H.stf_go=async()=>{
+ const m=S.modal;if(!m||m.t!=='stf')return;
+ const reason=gv('stf_reason');
+ if(m.kind!=='all'&&reason.length<5){toast('Add a reason (5+ characters)');return}
+ let r,msg;
+ if(m.kind==='unlock'){r=ok(await sb.rpc('admin_unlock_staff',{p_user:m.id,p_reason:reason}));msg='Account unlocked'}
+ else if(m.kind==='disable'){r=ok(await sb.rpc('admin_set_staff_active',{p_user:m.id,p_active:false,p_reason:reason}));msg='Staff member disabled and signed out'}
+ else{r=ok(await sb.rpc('admin_disable_all_staff',{p_reason:reason||null}));msg='All staff disabled and signed out'}
+ if(!r||r.ok===false){toast(stfMsg(r));return}
+ Object.assign(S.stf||(S.stf={}),{loaded:false,loading:false,err:''});
+ await after(msg,'admin','staff');
+};
+H.stf_enable=async(el,id)=>{
+ const r=ok(await sb.rpc('admin_set_staff_active',{p_user:id,p_active:true,p_reason:null}));
+ if(!r||r.ok===false){toast(stfMsg(r));return}
+ Object.assign(S.stf||(S.stf={}),{loaded:false,loading:false,err:''});
+ await after('Staff member enabled. They sign in again with their code.','admin','staff');
+};
+H.stf_add=async()=>{
+ const email=gv('stf_email'),name=gv('stf_name');
+ if(!emailOk(email)||name.length<2){toast('Enter their account email and a display name');return}
+ const r=ok(await sb.rpc('admin_create_staff',{p_email:email,p_display_name:name}));
+ if(!r||r.ok===false){toast(stfMsg(r));return}
+ Object.assign(S.stf||(S.stf={}),{loaded:false,loading:false,err:''});
+ await after('Staff account added. They can now sign in at /staff.','admin','staff');
+};
+
+async function osLoad(){
+ const A=S.osec;
+ try{
+  const a=ok(await sb.auth.mfa.getAuthenticatorAssuranceLevel());
+  const f=ok(await sb.auth.mfa.listFactors());
+  A.cur=a.currentLevel;A.factors=f.totp||[];A.all=f.all||[];
+  const acc=ok(await sb.rpc('my_access'));A.enforced=!!(acc&&acc.mfa_enforced);
+  A.loaded=true;A.err='';
+ }catch(e){A.err=cleanErr(e)}
+ A.loading=false;render();
+}
+function ownerSecView(){
+ const A=S.osec=S.osec||{};
+ if(!A.loaded&&!A.err&&!A.loading){A.loading=true;setTimeout(osLoad,0)}
+ if(A.err)return `<div class="panel"><h3>Could not load security settings</h3><p class="muted sm">${esc(A.err)}</p><button class="btn" data-act="os_reload">Try again</button></div>`;
+ if(!A.loaded)return '<div class="panel empty">Loading…</div>';
+ const has=(A.factors||[]).length>0,ver=A.cur==='aal2';
+ let two;
+ if(A.enrolling){
+  two=`<p class="muted sm" style="margin-top:0">Open an authenticator app (Google Authenticator, Microsoft Authenticator, Authy or similar), scan this code, then type the 6-digit code it shows.</p><img alt="QR code for your authenticator app" width="200" height="200" style="display:block;margin:10px 0;background:#fff;padding:8px;border-radius:10px" src="${esc(A.enrolling.qr)}"><p class="muted sm" style="margin:0">Cannot scan? Enter this key by hand:</p><code class="mono" style="display:block;word-break:break-all;margin:6px 0 12px">${esc(A.enrolling.secret)}</code><div class="fld"><label for="os_code">6-digit code</label><input id="os_code" inputmode="numeric" autocomplete="one-time-code" maxlength="7"></div><div class="acts"><button class="btn pri" data-act="os_confirm">Confirm</button><button class="btn" data-act="os_cancel">Cancel</button></div>`;
+ }else if(!has){
+  two=`<p style="margin-top:0">Authenticator app: <span class="pill warn">Not set up</span></p><p class="muted sm">An authenticator app on your phone gives a 6-digit code that changes every 30 seconds. With it, a stolen password alone cannot open your owner account.</p><button class="btn pri" data-act="os_enrol">Set up authenticator app</button>`;
+ }else{
+  two=`<p style="margin-top:0">Authenticator app: <span class="pill good">Set up</span></p><p>This sign-in: ${ver?'<span class="pill good">Verified with a code</span>':'<span class="pill warn">Not verified yet</span>'}</p>`+(ver?'':`<div class="form" style="margin:0;align-items:end"><div class="fld"><label for="os_code2">6-digit code</label><input id="os_code2" inputmode="numeric" autocomplete="one-time-code" maxlength="7"></div><button class="btn pri" data-act="os_verify">Verify now</button></div>`);
+ }
+ let enf;
+ if(!has)enf=`<p class="muted sm" style="margin:0">Set up the authenticator app first.</p>`;
+ else if(A.enforced)enf=`<p style="margin-top:0">Require 2FA for the owner: <span class="pill good">On</span></p><p class="muted sm">Every owner sign-in needs your code. The server refuses owner actions from a sign-in that has not passed 2FA.</p><button class="btn" data-act="os_enf" data-id="0"${ver?'':' disabled'}>Turn off</button>`;
+ else enf=`<p style="margin-top:0">Require 2FA for the owner: <span class="pill warn">Off</span></p><p class="muted sm">Turn this on once your authenticator app works. It can only be switched on from a sign-in that already passed 2FA, so you cannot lock yourself out by accident.</p><button class="btn pri" data-act="os_enf" data-id="1"${ver?'':' disabled'}>Turn on</button>${ver?'':'<p class="muted xs">Verify a code above first.</p>'}`;
+ const rec=`<div class="panel" style="margin-top:14px"><h3>If you lose your phone</h3><p class="muted sm" style="margin:0">In the Supabase dashboard open Authentication, then Users, open your owner account and remove the authenticator factor. To switch the requirement off first, run this in the SQL editor: <code class="mono">update staff_limits set value = 0 where key = 'owner_mfa_enforced';</code></p></div>`;
+ return `<div class="panel"><h3>Owner two-factor sign-in</h3>${two}</div><div class="panel" style="margin-top:14px"><h3>Requirement</h3>${enf}</div>`+rec;
+}
+MODALS.osenf=(m,head)=>({cls:'c',c:head(m.on?'Require 2FA for the owner':'Stop requiring 2FA')+`<p class="muted sm" style="margin:0 0 14px">${m.on?'From now on, owner actions only work from a sign-in that passed your authenticator code. Make sure your phone app works and you know the recovery steps shown on this page.':'Owner actions will work after the password alone again. You will still be asked for your code when you sign in.'}</p><button class="btn pri full" data-act="os_enf_go">Confirm</button>`});
+H.os_reload=async()=>{Object.assign(S.osec||(S.osec={}),{loaded:false,err:'',loading:false});render()};
+H.os_enrol=async()=>{
+ const A=S.osec;
+ try{
+  for(const x of (A.all||[])){if(x.factor_type==='totp'&&x.status!=='verified')await sb.auth.mfa.unenroll({factorId:x.id})}
+  const e=ok(await sb.auth.mfa.enroll({factorType:'totp',friendlyName:'Subora owner'}));
+  A.enrolling={id:e.id,qr:e.totp.qr_code,secret:e.totp.secret};render();
+ }catch(e){toast(cleanErr(e))}
+};
+H.os_confirm=async()=>{
+ const A=S.osec,code=gv('os_code').replace(/\s/g,'');
+ if(!A.enrolling)return;
+ if(!/^\d{6}$/.test(code)){toast('Enter the 6-digit code from your app');return}
+ try{
+  const ch=ok(await sb.auth.mfa.challenge({factorId:A.enrolling.id}));
+  ok(await sb.auth.mfa.verify({factorId:A.enrolling.id,challengeId:ch.id,code}));
+ }catch(e){toast('That code is not right. Wait for the next one and try again.');return}
+ A.enrolling=null;Object.assign(A,{loaded:false,loading:false,err:''});
+ toast('Authenticator app set up. This sign-in is now verified.');render();
+};
+H.os_cancel=async()=>{
+ const A=S.osec;
+ if(A&&A.enrolling){try{await sb.auth.mfa.unenroll({factorId:A.enrolling.id})}catch(e){}A.enrolling=null;Object.assign(A,{loaded:false,loading:false,err:''});render()}
+};
+H.os_verify=async()=>{
+ const A=S.osec,f=(A.factors||[])[0],code=gv('os_code2').replace(/\s/g,'');
+ if(!f)return;
+ if(!/^\d{6}$/.test(code)){toast('Enter the 6-digit code from your app');return}
+ try{
+  const ch=ok(await sb.auth.mfa.challenge({factorId:f.id}));
+  ok(await sb.auth.mfa.verify({factorId:f.id,challengeId:ch.id,code}));
+ }catch(e){toast('That code is not right. Wait for the next one and try again.');return}
+ Object.assign(A,{loaded:false,loading:false,err:''});toast('Verified');render();
+};
+H.os_enf=async(el,id)=>{S.modal={t:'osenf',on:id==='1'};paintModal()};
+H.os_enf_go=async()=>{
+ const on=!!(S.modal&&S.modal.on);
+ const r=ok(await sb.rpc('admin_set_staff_limit',{p_key:'owner_mfa_enforced',p_value:on?1:0,p_reason:on?'Owner turned 2FA on':'Owner turned 2FA off'}));
+ if(!r||r.ok===false){toast(stfMsg(r));return}
+ Object.assign(S.osec||(S.osec={}),{loaded:false,loading:false,err:''});
+ await after(on?'2FA is now required whenever you sign in as owner.':'2FA is no longer required. You will still be asked for your code.','admin','security');
+};
+
 /* ================= boot ================= */
 sb.auth.onAuthStateChange((ev)=>{if(ev==='PASSWORD_RECOVERY'){hydrate().then(()=>{S.modal={t:'newpw'};render()})}});
 async function boot(){
   S.loading=false;
   try{const r=sessionStorage.getItem('subora_r');if(r){sessionStorage.removeItem('subora_r');history.replaceState(null,'',r)}}catch(e){}
   try{await hydrate()}catch(e){console.error(e);toast('Could not reach Subora. Check your connection and refresh.')}
+  try{await mfaCheck()}catch(e){console.error(e)}
   const q=new URLSearchParams(location.search);
   if(q.get('l')&&prod(q.get('l'))){S.pid=q.get('l');S.view='product'}
   else if(q.get('v')&&VENDORS[q.get('v')]){S.vid=q.get('v');S.view='vprofile'}
@@ -3996,7 +4171,7 @@ MODALS.kycview=(m,head)=>{
 
 /* ---------- real URLs (History API): every screen has a path, the back button works ---------- */
 const RT={on:false,first:false,site:'https://www.subora.com.ng',base:document.title,
- subs:new Set(['ads','analytics','assets','audit','automation','disputes','history','kyc','launch','listings','messages','new','orders','overview','people','plan','plans','profile','promos','quality','refer','refunds','reports','review','saved','settings','subs','verify','wallet']),
+ subs:new Set(['ads','analytics','assets','audit','automation','disputes','history','kyc','launch','listings','messages','new','orders','overview','people','plan','plans','profile','promos','quality','refer','refunds','reports','review','saved','security','settings','staff','subs','verify','wallet']),
  priv:{buyer:'account',vendor:'vendor',admin:'admin'},
  titles:{login:'Log in',signup:'Create your account',vapply:'Apply to sell',store:'Marketplace: shared subscriptions and courses',help:'Help Centre',buyer:'My account',vendor:'Vendor console',admin:'Admin',casepage:'Case'},
  pub:['home','store','product','vprofile'],baseDesc:(document.querySelector('meta[name=description]')||{}).content||'',
