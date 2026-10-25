@@ -1902,7 +1902,7 @@ function admin(){
  if(!ttl[S.sub])S.sub='review';
  let body='';
  if(S.sub==='review')body=(q.length||dq.length)?`<div class="tw"><table><thead><tr><th>Listing</th><th>Request</th><th>Vendor</th><th class="num">Price</th><th></th></tr></thead><tbody>${q.map(p=>`<tr><td><span class="t">${esc(p.title)}</span><div class="xs muted">${p.cat} · ${esc(p.deliv)}</div></td><td><span class="pill warn">${p.edited?'Edit review':'New listing'}</span></td><td>${esc(VENDORS[p.v].name)}</td><td class="num">${N(p.price)}</td><td><div class="acts"><button class="btn sm pri" data-act="approve" data-id="${p.id}">Approve</button><button class="btn sm bad" data-act="reject" data-id="${p.id}">Reject</button></div></td></tr>`).join('')}${dq.map(p=>`<tr><td><span class="t">${esc(p.title)}</span><div class="xs muted">${p.cat} · ${S.orders.filter(o=>o.pid===p.id&&!['completed','refunded'].includes(o.status)).length} open orders</div></td><td><span class="pill ${p.kind==='archive'?'warn':'bad'}">${p.kind==='archive'?'Archive':'Deletion'}</span></td><td>${esc(VENDORS[p.v].name)}</td><td class="num">${N(p.price)}</td><td><div class="acts"><button class="btn sm pri" data-act="delok" data-id="${p.id}">${p.kind==='archive'?'Approve archive':'Approve deletion'}</button><button class="btn sm" data-act="deldeny" data-id="${p.id}">Decline</button></div></td></tr>`).join('')}</tbody></table></div>`:`<div class="panel empty">The review queue is clear.</div>`;
- else if(S.sub==='kyc')body=kq.length?`<div class="tw"><table><thead><tr><th>Vendor</th><th>Sells</th><th>Submitted</th><th>Checks</th><th></th></tr></thead><tbody>${kq.map(k=>`<tr><td class="t">${esc(k.name)}</td><td>${esc(k.type)}</td><td>${esc(k.submitted)}</td><td class="xs">ID photo, selfie, BVN and bank name match</td><td><div class="acts"><button class="btn sm" data-act="kycview" data-id="${k.id}">Review documents</button><button class="btn sm pri" data-act="kycapprove" data-id="${k.id}">Approve</button><button class="btn sm bad" data-act="kycreject" data-id="${k.id}">Reject</button></div></td></tr>`).join('')}</tbody></table></div>`:`<div class="panel empty">No verifications waiting.</div>`;
+ else if(S.sub==='kyc')body=(kq.length?`<div class="tw"><table><thead><tr><th>Vendor</th><th>Sells</th><th>Submitted</th><th>Checks</th><th></th></tr></thead><tbody>${kq.map(k=>`<tr><td class="t">${esc(k.name)}</td><td>${esc(k.type)}</td><td>${esc(k.submitted)}</td><td class="xs">ID photo, selfie, BVN and bank name match</td><td><div class="acts"><button class="btn sm" data-act="kycview" data-id="${k.id}">Review documents</button><button class="btn sm pri" data-act="kycapprove" data-id="${k.id}">Approve</button><button class="btn sm bad" data-act="kycreject" data-id="${k.id}">Reject</button></div></td></tr>`).join('')}</tbody></table></div>`:`<div class="panel empty">No verifications waiting.</div>`)+pendApps();
  else if(S.sub==='disputes')body='<p class="muted sm" style="margin:0 0 10px">Open cases are sorted by the vendor’s plan: Fastest review (Elite), then Priority (Growth), then standard.</p>'+caseTable([...S.cases].sort((a,b)=>(a.status==='resolved')-(b.status==='resolved')||supRank(b.sl)-supRank(a.sl)),true);
  else if(S.sub==='assets')body=assetAdmin();
  else if(S.sub==='reports')body=reportsView();
@@ -2714,9 +2714,15 @@ const vrSave=()=>{document.querySelectorAll('[data-vr]').forEach(el=>{S.vr.d[el.
 const vrFile=(k,l,h)=>`<label class="vrf ${S.vr.files[k]?'has':''}"><input type="file" accept="image/*,.pdf" data-vrf="${k}"><span class="vrf-i">${I(S.vr.files[k]?'check':'plus',18)}</span><span><b>${l}</b><small>${S.vr.files[k]?esc(S.vr.files[k]):h}</small></span></label>`;
 function vregView(){
  const st=S.vr.step,d=S.vr.d,asset=(d.sells||[]).some(x=>ASSETC.includes(x));
+ const ex=S.auth&&S.role==='buyer';
+ if(ex){d.user=S.profile.user;d.email=S.profile.email;if(!d.name)d.name=S.profile.name;if(!d.phone)d.phone=S.profile.phone}
  const rail=`<ol class="vr-rail">${VR_STEPS.map((s,i)=>`<li class="${i+1<st?'dn':i+1===st?'on':''}"><button type="button" data-act="vrgo" data-id="${i+1}" ${i+1>st?'disabled':''}><span class="n">${i+1<st?I('check',14):i+1}</span><span>${s[0]}</span></button></li>`).join('')}</ol>`;
  let body='';
- if(st===1)body=`<h2>Your account</h2><p class="muted">This is how you sign in. Your username is public and appears on your store page.</p>
+ if(st===1&&ex)body=`<h2>Your account</h2><p class="muted">You’re applying from your Subora account, so there is no new password. Your store is added to this account.</p>
+  <div class="note">${I('user')}<span>Signed in as <b>${esc(d.email)}</b> (@${esc(d.user)})</span></div>
+  <div class="form"><div class="fld"><label for="vr_name">Full legal name</label><input id="vr_name" data-vr="name" value="${vrv('name')}" autocomplete="name" placeholder="As it appears on your ID"></div>
+  <div class="fld"><label for="vr_phone">Phone number</label><input id="vr_phone" type="tel" data-vr="phone" value="${vrv('phone')}" autocomplete="tel" placeholder="0803 000 0000"></div></div>`;
+ if(st===1&&!ex)body=`<h2>Your account</h2><p class="muted">This is how you sign in. Your username is public and appears on your store page.</p>
   <div class="form"><div class="fld"><label for="vr_name">Full legal name</label><input id="vr_name" data-vr="name" value="${vrv('name')}" autocomplete="name" placeholder="As it appears on your ID"></div>
   <div class="fld"><label for="vr_user">Username</label><div class="vr-user"><span>@</span><input id="vr_user" data-vr="user" value="${vrv('user')}" placeholder="topslots" autocomplete="off"><button type="button" class="btn sm" data-act="vruser">Check</button></div><span class="hint ${S.vr.userOk===true?'ok':S.vr.userOk===false?'bad':''}">${S.vr.userOk===true?'Available.':S.vr.userOk===false?'Taken or not allowed. Try another.':'3 to 20 letters, numbers or underscores.'}</span></div></div>
   <div class="form"><div class="fld"><label for="vr_email">Email</label><input id="vr_email" type="email" data-vr="email" value="${vrv('email')}" autocomplete="email" placeholder="you@example.com"></div>
@@ -2755,7 +2761,7 @@ function vregView(){
 }
 function vrValidate(){
  const d=S.vr.d,st=S.vr.step,t=m=>{toast(m);return false};
- if(st===1){if((d.name||'').split(/\s+/).length<2)return t('Enter your first and last name');if(!/^[a-z0-9_]{3,20}$/i.test(d.user||''))return t('Choose a username of 3 to 20 letters, numbers or underscores');if(S.vr.userOk===false)return t('That username is taken');if(!/^\S+@\S+\.\S+$/.test(d.email||''))return t('Enter a valid email address');if((d.phone||'').replace(/\D/g,'').length<10)return t('Enter a phone number with at least 10 digits');if((d.pw||'').length<8||pwScore(d.pw)<3)return t('Use a stronger password: 8+ characters, a number and a capital letter')}
+ if(st===1){if((d.name||'').split(/\s+/).length<2)return t('Enter your first and last name');if(S.auth&&S.role==='buyer'){if((d.phone||'').replace(/\D/g,'').length<10)return t('Enter a phone number with at least 10 digits');return true}if(!/^[a-z0-9_]{3,20}$/i.test(d.user||''))return t('Choose a username of 3 to 20 letters, numbers or underscores');if(S.vr.userOk===false)return t('That username is taken');if(!/^\S+@\S+\.\S+$/.test(d.email||''))return t('Enter a valid email address');if((d.phone||'').replace(/\D/g,'').length<10)return t('Enter a phone number with at least 10 digits');if((d.pw||'').length<8||pwScore(d.pw)<3)return t('Use a stronger password: 8+ characters, a number and a capital letter')}
  if(st===2){if((d.store||'').length<2)return t('Enter your store name');if(!(d.sells||[]).length)return t('Pick at least one thing you will sell');if((d.bio||'').length<10)return t('Add a short description of your store')}
  if(st===3){if(!d.dob)return t('Enter your date of birth');const age=(Date.now()-new Date(d.dob))/31557600000;if(!(age>=18))return t('Vendors must be 18 or older');if((d.idn||'').length<5)return t('Enter your ID number');if(!/^\d{11}$/.test(d.bvn||''))return t('BVN must be 11 digits');if((d.addr||'').length<8)return t('Enter your home address');if(!S.vr.files.idf||!S.vr.files.selfie)return t('Upload your ID and a selfie holding it')}
  if(st===4){if(!d.bank)return t('Choose your bank');if(!/^\d{10}$/.test(d.acct||''))return t('Account number must be 10 digits');}
@@ -3147,6 +3153,7 @@ const LIVE={uid:null,profile:null,vendorRow:null,chans:[],byUuid:{},ready:false,
 /* ---------- formatting ---------- */
 const fmtT=ts=>{try{return new Date(ts).toLocaleString('en-NG',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}catch(e){return ''}};
 const fmtD=ts=>{try{return new Date(ts).toLocaleDateString('en-NG',{month:'short',day:'numeric'})}catch(e){return ''}};
+function pendApps(){const pa=S.pendApps||[];if(!pa.length)return '';return `<h3 style="margin:22px 0 4px;font-size:15px">Started, not submitted (${pa.length})</h3><p class="muted sm" style="margin:0 0 10px">These vendors opened an account in the last 30 days but have no documents on file. Someone who has not confirmed their email cannot continue.</p><div class="tw"><table><thead><tr><th>Store</th><th>Contact</th><th>Email</th><th>Started</th></tr></thead><tbody>${pa.map(a=>`<tr><td class="t">${esc(a.store_name)}<div class="xs muted">@${esc(a.username||'')}</div></td><td class="xs">${esc(a.full_name||'')}<div>${esc(a.email||'')}</div></td><td><span class="pill ${a.email_confirmed?'good':'warn'}">${a.email_confirmed?'Confirmed':'Not confirmed'}</span></td><td class="xs">${esc(fmtD(a.created_at))}</td></tr>`).join('')}</tbody></table></div>`}
 const fmtM=ts=>{try{return new Date(ts).toLocaleDateString('en-NG',{month:'short',year:'numeric'})}catch(e){return ''}};
 const rel=ts=>{const m=Math.round((Date.now()-new Date(ts))/6e4);if(m<1)return 'Just now';if(m<60)return m+' min ago';const h=Math.round(m/60);if(h<24)return h+' h ago';return fmtD(ts)};
 const hrsLeft=ts=>Math.max(0,Math.round((new Date(ts)-Date.now())/36e5));
@@ -3326,6 +3333,7 @@ async function hydrate(){
     const nm=id=>S.adminNames[id]||nameOf(id)||'User';
     S.wd=allWd.map(w=>({id:w.id,amt:+w.amount,bank:w.bank_label||'Bank account',date:fmtD(w.created_at),status:w.status,due:w.due_at||null,planReq:w.plan_at_request||null,vname:nameOf(w.vendor_id)||nm(w.vendor_id)}));
     S.kycq=kycs.map(k=>({id:k.id,name:nameOf(k.vendor_id)||nm(k.vendor_id),type:k.kind==='asset'?'Asset seller: video selfie, address, deposit':'Subscriptions and software',submitted:fmtD(k.submitted_at),status:k.status,kind:k.kind,vendor:k.vendor_id,details:k.details||{},paths:k.doc_paths||[],legal:k.full_name}));
+    S.pendApps=[];try{S.pendApps=ok(await sb.rpc('admin_pending_vendor_applicants'))}catch(e){console.warn('pending applicants unavailable',e)}
     S.reports=reps.map(r=>{const sup=r.reason==='Support request',app=r.reason==='Suspension appeal';return {id:r.id,sl:r.support_level||null,kind:sup?'Support':app?'Appeal':r.kind==='vendor'?'Vendor':'Listing',target:sup||app?nm(r.reporter_id):r.kind==='vendor'?(nameOf(r.target_id)||'Vendor'):(pt[r.target_id]||'Listing'),tid:r.target_id,by:nm(r.reporter_id),reason:sup?(r.details||''):r.reason+(r.details?': '+r.details:''),when:fmtT(r.created_at),status:r.status}});
     S.audit=aud.map(a=>({t:fmtL(a.created_at),who:a.actor_label||'System',a:a.action,x:a.detail||'',v:a.vendor_id?(nameOf(a.vendor_id)||''):'',pl:a.plan_at_time||'',b:a.before_value||'',af:a.after_value||'',rs:a.reason||''}));
     S.flags=flg.map(f=>({id:f.id,who:f.side==='buyer'?nm(f.buyer_id):nameOf(f.vendor_id),to:f.side==='buyer'?nameOf(f.vendor_id):nm(f.buyer_id),text:f.original||'',reason:f.reason||'Flagged',when:fmtT(f.created_at),status:f.flag_status==='open'?'open':f.flag_status}));
@@ -3361,6 +3369,7 @@ function computeStats(){
       const within=p=>Date.now()-new Date(p.created_at)<=n*864e5,pr=S.adminProf||[];
       PLAT[n]={gmv:ok2.reduce((a,o)=>a+o.total,0),ord:ok2.length,fee:ok2.reduce((a,o)=>a+(o.fee||0),0),nb:pr.filter(p=>p.role==='buyer'&&within(p)).length,nv:pr.filter(p=>p.role==='vendor'&&within(p)).length,ref:b.inR.length?Math.round(100*b.inR.filter(o=>o.status==='refunded').length/b.inR.length*10)/10:0,lab:b.lab,val:b.val}});
   }
+  if(S.role==='vendor'&&S.vrChecked!==LIVE.uid){S.vrChecked=LIVE.uid;setTimeout(()=>{vrResume()},0)}
 }
 
 /* ---------- realtime ---------- */
@@ -3757,21 +3766,68 @@ HF.kycgo=async()=>{
 };
 /* vendor application (5 steps). The account is created on the last step. */
 document.addEventListener('change',e=>{const f=e.target.closest&&e.target.closest('[data-vrf]');if(!f)return;S.vr.fobj=S.vr.fobj||{};if(f.files&&f.files[0])S.vr.fobj[f.dataset.vrf]=f.files[0]},true);
+/* Sends the identity documents and payout bank for the logged-in user. Used by the application and by the resume-after-confirmation path. */
+async function vrSubmitDocs(d,fobj){
+  const files=Object.values(fobj||{}).filter(Boolean);
+  if(files.length<2)throw new Error('Attach your ID photo and a selfie holding it.');
+  const paths=await uploadKyc(files);
+  ok(await sb.from('kyc_submissions').insert({vendor_id:LIVE.uid,kind:'standard',full_name:d.name,id_number:String(d.idn).slice(-4),doc_paths:paths,
+    details:{dob:d.dob,idType:d.idt,idLast4:String(d.idn).slice(-4),bvnLast4:String(d.bvn).slice(-4),addr:d.addr,bank:d.bank,acctLast4:String(d.acct).slice(-4),link:d.link||'',sells:d.sells||[]}}));
+  if(!(S.bankIds||[]).length)ok(await sb.from('bank_accounts').insert({user_id:LIVE.uid,bank_name:d.bank,last4:String(d.acct).slice(-4),acct_number:String(d.acct),account_name:d.name}));
+}
+const vrStore=d=>({p_store:d.store,p_bio:d.bio||'',p_offers:(d.sells||[]).filter(x=>x!=='Social')});
+const vrFresh=()=>({step:1,d:{sells:[]},files:{},bankOk:false,userOk:null});
+/* An application that could not be sent yet (email not confirmed) waits in this browser, without the password, until the person logs in. */
+function pdb(){return new Promise((res,rej)=>{const r=indexedDB.open('subora-pending',1);r.onupgradeneeded=()=>r.result.createObjectStore('apps');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+async function pendOp(mode,fn){const db=await pdb();return new Promise((res,rej)=>{const t=db.transaction('apps',mode);const rq=fn(t.objectStore('apps'));t.oncomplete=()=>{db.close();res(rq&&rq.result)};t.onerror=()=>{db.close();rej(t.error)}})}
+const pendPut=(k,v)=>pendOp('readwrite',st=>st.put(v,k));
+const pendGet=k=>pendOp('readonly',st=>st.get(k));
+const pendDel=k=>pendOp('readwrite',st=>st.delete(k));
+async function vrResume(){
+  if(!LIVE.uid||S.vrResuming)return;
+  const key=String((LIVE.profile&&LIVE.profile.email)||(S.profile&&S.profile.email)||'').toLowerCase();if(!key)return;
+  let p=null;try{p=await pendGet(key)}catch(e){return}
+  if(!p)return;
+  if(Date.now()-p.at>7*864e5){try{await pendDel(key)}catch(e){}return}
+  S.vrResuming=true;
+  try{
+    ok(await sb.rpc('become_vendor',vrStore(p.d)));
+    const have=ok(await sb.from('kyc_submissions').select('id').eq('vendor_id',LIVE.uid).limit(1));
+    if(!have.length)await vrSubmitDocs(p.d,p.files);
+    await pendDel(key);
+    await hydrate();S.view='vendor';S.sub='verify';S.modal=null;render();jump();
+    toast('Application received. We review it within 24 hours.');
+  }catch(e){console.warn(e);toast(cleanErr(e)+' You can finish under Verification.')}
+  finally{S.vrResuming=false}
+}
 HF.vrnext=async f=>{
   vrSave();if(!vrValidate())return;
   if(S.vr.step<VR_STEPS.length){S.vr.step++;render();jump();return}
   if(!S.cfg.vendorsOpen){toast('Vendor applications are closed right now. Please try again later.');return}
-  const d=S.vr.d;
+  const d=S.vr.d,fobj=S.vr.fobj||{};
+  if(S.auth&&S.role==='buyer'){
+    /* logged-in buyer: upgrade this same account on the server, then send the documents */
+    ok(await sb.rpc('become_vendor',vrStore(d)));
+    await hydrate();
+    S.vr=vrFresh();
+    try{await vrSubmitDocs(d,fobj)}
+    catch(e){console.warn(e);S.view='vendor';S.sub='verify';render();jump();toast(cleanErr(e)+' Your store is created. Finish under Verification.');return}
+    await hydrate();S.view='vendor';S.sub='verify';render();jump();toast('Application received. We review it within 24 hours.');return;
+  }
   const r=await sb.auth.signUp({email:d.email,password:d.pw,options:{data:{full_name:d.name,username:d.user,phone:d.phone,role:'vendor',store_name:d.store}}});
   if(r.error)throw r.error;
-  if(!r.data.session){S.vr=undefined;S.vr={step:1,d:{sells:[]},files:{},bankOk:false,userOk:null};S.view='login';render();toast('Account created. Confirm your email, log in, then finish verification under Verification.');return}
-  LIVE.uid=r.data.user.id;
-  ok(await sb.from('vendors').update({bio:d.bio||'',offers:(d.sells||[]).filter(x=>x!=='Social')}).eq('id',LIVE.uid));
-  const files=Object.values(S.vr.fobj||{});const paths=await uploadKyc(files);
-  ok(await sb.from('kyc_submissions').insert({vendor_id:LIVE.uid,kind:'standard',full_name:d.name,id_number:String(d.idn).slice(-4),doc_paths:paths,
-    details:{dob:d.dob,idType:d.idt,idLast4:String(d.idn).slice(-4),bvnLast4:String(d.bvn).slice(-4),addr:d.addr,bank:d.bank,acctLast4:String(d.acct).slice(-4),link:d.link||'',sells:d.sells||[]}}));
-  ok(await sb.from('bank_accounts').insert({user_id:LIVE.uid,bank_name:d.bank,last4:String(d.acct).slice(-4),acct_number:String(d.acct),account_name:d.name}));
-  S.vr={step:1,d:{sells:[]},files:{},bankOk:false,userOk:null};
+  if(!r.data.session){
+    /* an email that already has an account comes back as a user with no identities */
+    if(r.data.user&&Array.isArray(r.data.user.identities)&&!r.data.user.identities.length){S.view='login';render();toast('That email already has a Subora account. Log in, then choose Apply to sell.');return}
+    let kept=false;
+    try{const dd=Object.assign({},d);delete dd.pw;await pendPut(String(d.email).toLowerCase(),{d:dd,files:fobj,at:Date.now()});kept=true}catch(e){console.warn('could not keep the application',e)}
+    S.vr=vrFresh();S.view='login';render();
+    toast(kept?'Account created. Confirm your email, then log in. Your application is sent for review automatically.':'Account created. Confirm your email, log in, then finish verification under Verification.');return;
+  }
+  LIVE.uid=r.data.user.id;S.bankIds=[];
+  ok(await sb.rpc('become_vendor',vrStore(d)));
+  await vrSubmitDocs(d,fobj);
+  S.vr=vrFresh();
   await hydrate();S.view='vendor';S.sub='verify';render();jump();toast('Application received. We review it within 24 hours.');
 };
 H.vruser=async()=>{
