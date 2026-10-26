@@ -50,8 +50,9 @@ th{color:var(--mute);font-weight:600;font-size:12px;text-transform:uppercase;let
 /* CORE START — all sign-in logic lives here so it can be tested without a browser */
 function createStaffApp(deps){
   var sb=deps.sb;
+  var pwUrl=deps.pwUrl||String(deps.loginUrl).replace('staff-login','staff-password');
   var IDLE_MS=deps.idleMs||30*60*1000, MAX_MS=deps.maxMs||8*3600*1000, BEAT_MS=deps.beatMs||4*60*1000;
-  var S={step:'loading',busy:false,error:'',notice:'',enroll:null,factorId:null,name:'',queue:[],queueErr:'',idleLeft:IDLE_MS,maxLeft:MAX_MS,newDevice:false};
+  var S={step:'loading',busy:false,error:'',notice:'',enroll:null,factorId:null,name:'',queue:[],queueErr:'',idleLeft:IDLE_MS,maxLeft:MAX_MS,newDevice:false,forced:false};
   var lastActivity=deps.now(), lastBeat=deps.now(), started=deps.now(), timer=null;
 
   function snap(){return Object.assign({},S,{queue:S.queue.slice()})}
@@ -74,7 +75,7 @@ function createStaffApp(deps){
   async function signOut(reason){
     try{await rpc('staff_end_session')}catch(e){}
     await hardSignOut();
-    S.notice={idle:'You were signed out after 30 minutes without activity.',max:'Your 8-hour session ended. Sign in again.',ended:'Your session ended. Sign in again.',elsewhere:'You were signed out because this account signed in somewhere else, or the session ended.'}[reason]||'You are signed out.';
+    S.notice={idle:'You were signed out after 30 minutes without activity.',max:'Your 8-hour session ended. Sign in again.',ended:'Your session ended. Sign in again.',pwcancel:'You are signed out. Sign in again when you are ready to choose a new password.',elsewhere:'You were signed out because this account signed in somewhere else, or the session ended.'}[reason]||'You are signed out.';
     go('signin');
   }
   async function locked(){await hardSignOut();go('locked')}
@@ -115,6 +116,7 @@ function createStaffApp(deps){
     try{r=await register()}catch(e){await hardSignOut();S.notice='';go('signin');S.error='Could not start your session. Check your connection and try again.';emit();return}
     if(r.ok){S.newDevice=!!r.new_device;await enterDashboard();return}
     if(r.error==='locked'){await locked();return}
+    if(r.error==='password_change_required'){S.forced=true;go('pw_change');return}
     await hardSignOut();go('signin');
     S.error=r.error==='not_staff'?'This account is not set up as staff.':'Could not start your session. Sign in again.';emit();
   }
@@ -124,6 +126,8 @@ function createStaffApp(deps){
     if(!acc||!acc.staff){await hardSignOut();go('signin');S.error='This account is not set up as staff.';emit();return}
     S.name=acc.display_name||'';
     if(acc.locked){await locked();return}
+    var ps=null;try{ps=await rpc('staff_my_pw_state')}catch(e){ps=null}
+    if(ps&&ps.must_change){S.forced=true;go('pw_change');return}
     if(acc.session_ok){await enterDashboard();return}
     if(acc.aal==='aal2'){await registerAndEnter();return}
     await mfaStep();
@@ -160,6 +164,7 @@ function createStaffApp(deps){
     try{
       var st=await sb.auth.setSession({access_token:body.access_token,refresh_token:body.refresh_token});
       if(st.error)throw st.error;
+      if(body.must_change){S.forced=true;go('pw_change');return}
       await resume();
     }catch(e){await hardSignOut();go('signin');S.error='Could not finish signing in. Try again.';emit()}
   }
@@ -186,6 +191,31 @@ function createStaffApp(deps){
       await wrongCode();return;
     }
     await registerAndEnter();
+  }
+
+  var PW_MSG={invalid_current_password:'Your current password is not right.',same_password:'The new password must be different from the current one.',password_reused:'You used that password recently. Choose one you have not used in your last 5.',not_staff:'This account is not set up as staff.',not_signed_in:'Your sign-in expired. Sign in again.'};
+  var WEAK={too_short:'Use at least 12 characters.',too_long:'That password is too long.',too_simple:'Use at least 3 of: lower case, UPPER CASE, numbers, symbols.',contains_email:'Do not use your email name in the password.',contains_brand:'Do not use the word Subora in the password.'};
+  function startPwChange(){S.forced=false;go('pw_change')}
+  async function cancelPwChange(){if(S.forced){await signOut('pwcancel');return}go('dashboard')}
+  async function changePassword(current,next,repeat){
+    S.error='';S.notice='';
+    current=String(current||'');next=String(next||'');repeat=String(repeat||'');
+    if(!current||!next||!repeat){S.error='Fill in all three boxes.';emit();return}
+    if(next!==repeat){S.error='The new password and the repeat do not match.';emit();return}
+    if(next.length<12){S.error=WEAK.too_short;emit();return}
+    busy(true);
+    var tok=null;
+    try{var g=await sb.auth.getSession();tok=g&&g.data&&g.data.session&&g.data.session.access_token}catch(e){tok=null}
+    if(!tok){await hardSignOut();go('signin');S.error='Your sign-in expired. Sign in again.';emit();return}
+    var res,b;
+    try{
+      res=await deps.fetch(pwUrl,{method:'POST',headers:{'Content-Type':'application/json','apikey':deps.anonKey,'Authorization':'Bearer '+tok},body:JSON.stringify({action:'change',current_password:current,new_password:next})});
+      try{b=await res.json()}catch(e){b={}}
+    }catch(e){S.error='Could not reach the server. Check your connection.';busy(false);return}
+    if(res.status===423||(b&&b.error==='account_locked')){await locked();return}
+    if(res.ok&&b&&b.ok){await hardSignOut();S.forced=false;S.notice='Password changed. Sign in with your new password.';go('signin');return}
+    S.error=(b&&b.error==='weak_password'&&WEAK[b.reason])||PW_MSG[b&&b.error]||'Could not change your password. Try again in a moment.';
+    busy(false);
   }
 
   async function loadQueue(){
@@ -215,7 +245,7 @@ function createStaffApp(deps){
   }
   function activity(){lastActivity=deps.now()}
 
-  return {init:init,signIn:signIn,submitCode:submitCode,signOut:signOut,loadQueue:loadQueue,activity:activity,tick:tick,state:snap};
+  return {init:init,signIn:signIn,submitCode:submitCode,signOut:signOut,loadQueue:loadQueue,activity:activity,tick:tick,state:snap,changePassword:changePassword,startPwChange:startPwChange,cancelPwChange:cancelPwChange};
 }
 /* CORE END */
 
@@ -231,12 +261,12 @@ function createStaffApp(deps){
   function mmss(ms){ms=Math.max(0,ms);var s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor((s%3600)/60);s=s%60;return (h?h+':':'')+('0'+m).slice(-2)+':'+('0'+s).slice(-2)}
   function waited(since){var m=Math.max(0,Math.floor((Date.now()-new Date(since).getTime())/60000));return m<60?m+' min':Math.floor(m/60)+'h '+(m%60)+'m'}
   var brand='<div class="brand"><i>S</i><b>Subora</b><span>Staff</span></div>';
-  var lastStep='',hold=null;
+  var lastStep='',lastKey='',hold=null;
 
   var app=createStaffApp({
     sb:sb,fetch:function(u,o){return window.fetch(u,o)},storage:window.localStorage,randomId:rid,
     now:function(){return Date.now()},setInterval:function(f,ms){return window.setInterval(f,ms)},clearInterval:function(t){window.clearInterval(t)},
-    loginUrl:URL+'/functions/v1/staff-login',anonKey:ANON,onChange:draw
+    loginUrl:URL+'/functions/v1/staff-login',pwUrl:URL+'/functions/v1/staff-password',anonKey:ANON,onChange:draw
   });
 
   function msgs(s){return (s.notice?'<div class="note" role="status">'+esc(s.notice)+'</div>':'')+(s.error?'<div class="err" role="alert">'+esc(s.error)+'</div>':'')}
@@ -246,6 +276,10 @@ function createStaffApp(deps){
     main.className=s.step==='dashboard'?'wide':'';
     // do not rebuild the form while someone is typing; only the dashboard timers refresh
     if(s.step===lastStep&&s.step==='dashboard'){paintDash(s);return}
+    // the password form must not be rebuilt by the dashboard timer while someone is typing in it
+    var key=s.step+'|'+s.busy+'|'+s.error+'|'+s.notice;
+    if(s.step==='pw_change'&&key===lastKey)return;
+    lastKey=key;
     var keep=document.getElementById('f_email')?document.getElementById('f_email').value:'';
     lastStep=s.step;
     if(s.step==='loading'){main.innerHTML=brand+'<div class="card"><p class="mute">Loading…</p></div>';return}
@@ -272,9 +306,23 @@ function createStaffApp(deps){
       document.getElementById('f_code').addEventListener('submit',function(e){e.preventDefault();app.submitCode(document.getElementById('f_c').value)});
       return;
     }
+    if(s.step==='pw_change'){
+      main.innerHTML=brand+'<div class="card"><h1>'+(s.forced?'Choose a new password':'Change your password')+'</h1>'
+        +'<p class="mute">'+(s.forced?'The owner reset your password. Choose one that only you know. You will sign in again after this.':'You will be signed out and sign in again with the new password.')+'</p>'
+        +'<form id="f_chg" novalidate><label for="p_cur">'+(s.forced?'Temporary password':'Current password')+'</label><input id="p_cur" type="password" autocomplete="current-password">'
+        +'<label for="p_new">New password</label><input id="p_new" type="password" autocomplete="new-password">'
+        +'<p class="mute" style="margin:6px 0 0">At least 12 characters, with 3 of: lower case, UPPER CASE, numbers, symbols. Not your email name, not "Subora", and not one of your last 5 passwords.</p>'
+        +'<label for="p_rep">Repeat the new password</label><input id="p_rep" type="password" autocomplete="new-password">'
+        +'<button class="pri" type="submit"'+(s.busy?' disabled':'')+'>'+(s.busy?'Saving…':'Save new password')+'</button></form>'
+        +'<p style="margin-top:14px"><button id="p_cancel" type="button">'+(s.forced?'Sign out':'Cancel')+'</button></p>'+msgs(s)+'</div>';
+      document.getElementById('f_chg').addEventListener('submit',function(e){e.preventDefault();app.changePassword(document.getElementById('p_cur').value,document.getElementById('p_new').value,document.getElementById('p_rep').value)});
+      document.getElementById('p_cancel').addEventListener('click',function(){app.cancelPwChange()});
+      return;
+    }
     if(s.step==='dashboard'){
-      main.innerHTML=brand+'<div class="bar"><div><div class="who" id="d_who"></div><div class="tm" id="d_tm"></div></div><div><button id="d_refresh" type="button">Refresh</button> <button id="d_out" type="button">Sign out</button></div></div><div class="card" id="d_body"></div>';
+      main.innerHTML=brand+'<div class="bar"><div><div class="who" id="d_who"></div><div class="tm" id="d_tm"></div></div><div><button id="d_refresh" type="button">Refresh</button> <button id="d_pw" type="button">Change password</button> <button id="d_out" type="button">Sign out</button></div></div><div class="card" id="d_body"></div>';
       document.getElementById('d_out').addEventListener('click',function(){app.signOut()});
+      document.getElementById('d_pw').addEventListener('click',function(){app.startPwChange()});
       document.getElementById('d_refresh').addEventListener('click',function(){app.loadQueue()});
       paintDash(s);return;
     }
