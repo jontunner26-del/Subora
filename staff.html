@@ -40,6 +40,18 @@ th{color:var(--mute);font-weight:600;font-size:12px;text-transform:uppercase;let
 .tag.amber{background:#3b3212;color:var(--warn)}
 .tw{overflow-x:auto}
 .empty{padding:26px 0;text-align:center;color:var(--mute)}
+h2{font-size:15px;margin:22px 0 6px}
+.kv{display:grid;grid-template-columns:max-content 1fr;gap:6px 18px;margin:12px 0;font-size:14px}.kv dt{color:var(--mute)}.kv dd{margin:0;word-break:break-word}
+textarea{width:100%;padding:12px 13px;border-radius:10px;border:1px solid var(--line);background:#0c1810;color:var(--ink);font:inherit;resize:vertical}
+textarea:focus{outline:2px solid var(--lime);outline-offset:1px}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+button.good{background:var(--lime);color:#0f1f14;border-color:var(--lime);font-weight:700}
+button.bad{border-color:var(--bad);color:var(--bad)}
+button.lnk{border:none;padding:4px 0;color:var(--lime);text-decoration:underline;background:none}
+.pre{white-space:pre-wrap;word-break:break-word}.quote{padding:10px 12px;border-left:3px solid var(--line);background:#0c1810;border-radius:6px}
+.thread .msg{padding:10px 12px;border:1px solid var(--line);border-radius:10px;margin:8px 0}.thread .msg p{margin:6px 0 0}
+tr.item{cursor:pointer}tr.item:hover td{background:#10241a}
+ul{margin:6px 0;padding-left:20px}
 </style>
 </head>
 <body>
@@ -48,11 +60,80 @@ th{color:var(--mute);font-weight:600;font-size:12px;text-transform:uppercase;let
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* CORE START — all sign-in logic lives here so it can be tested without a browser */
+
+function escHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function money(n){return '\u20A6'+Number(n||0).toLocaleString('en-NG')}
+function dtText(ts){if(!ts)return '';try{return new Date(ts).toLocaleString('en-NG',{dateStyle:'medium',timeStyle:'short'})}catch(e){return ''}}
+function listHtml(a){return Array.isArray(a)&&a.length?'<ul>'+a.map(function(x){return '<li>'+escHtml(x)+'</li>'}).join('')+'</ul>':'<span class="mute">None given</span>'}
+function kvHtml(rows){return '<dl class="kv">'+rows.filter(function(r){return r[1]!==null&&r[1]!==undefined&&r[1]!==''}).map(function(r){return '<dt>'+escHtml(r[0])+'</dt><dd>'+(r[2]?r[1]:escHtml(r[1]))+'</dd>'}).join('')+'</dl>'}
+function tagHtml(t,cls){return '<span class="tag'+(cls?' '+cls:'')+'">'+escHtml(t)+'</span>'}
+function reasonBox(label,help){return '<label for="x_reason">'+escHtml(label)+'</label><textarea id="x_reason" rows="3" maxlength="300"></textarea>'+(help?'<p class="mute" style="margin:4px 0 0">'+escHtml(help)+'</p>':'')}
+function vendorBtn(id){return id?'<button type="button" data-a="vendor" data-id="'+escHtml(id)+'">View vendor</button>':''}
+
+/* HTML for the open item. Pure: state in, string out, so it can be tested without a browser. */
+function viewHtml(s){
+  var v=s.view;if(!v)return '';
+  var dis=s.busy?' disabled':'';
+  var back='<p><button type="button" class="lnk" data-a="back">\u2190 Back</button></p>';
+  if(v.loading)return back+'<p class="mute">Loading\u2026</p>';
+  var d=v.data||{},h='';
+  if(v.kind==='listing'){
+    h=back+'<h1>Listing to approve</h1>'
+      +kvHtml([['Title',d.title],['Store',(d.store_name||'')+(d.vendor_verified?' (verified)':' (not verified)')],['Category',d.category],['Price',money(d.price)],['Duration',d.duration],['Stock',d.stock==null?'':String(d.stock)],['Service',d.service],['Plan',d.plan],['Access type',d.access_type],['Kind',d.kind],['Image',d.image_url?'Provided (not shown here)':'None'],['Submitted',dtText(d.created_at)]])
+      +'<h2>Description</h2><p class="pre">'+(d.description?escHtml(d.description):'<span class="mute">None given</span>')+'</p>'
+      +'<h2>Features</h2>'+listHtml(d.features)+'<h2>Terms</h2>'+listHtml(d.terms)
+      +'<p>'+vendorBtn(d.vendor_id)+'</p>'
+      +'<div class="row"><button type="button" class="good" data-a="approve"'+dis+'>Approve</button></div>'
+      +reasonBox('Reason (needed to reject, at least 5 characters)','The vendor sees this reason.')
+      +'<div class="row"><button type="button" class="bad" data-a="reject"'+dis+'>Reject listing</button></div>';
+  }else if(v.kind==='dispute'){
+    var dp=d.dispute||{},o=d.order||{},ev=d.events||[],closed=dp.status==='resolved',esc2=dp.status==='escalated';
+    h=back+'<h1>Dispute '+escHtml(dp.case_no||'')+'</h1><p>'+tagHtml(dp.status||'',closed?'':'amber')+(dp.outcome?' '+escHtml(dp.outcome):'')+'</p>'
+      +kvHtml([['Order','#'+(o.order_no==null?'':o.order_no)],['Product',o.product],['Buyer',o.buyer_name],['Store',o.store_name],['Quantity',o.qty==null?'':String(o.qty)],['Total',money(o.total)],['Order status',o.status],['Buyer\u2019s reason',o.reason],['Opened',dtText(dp.created_at)],['Reply due',dtText(dp.due_at)],['Delivered',dtText(o.delivered_at)],['Completed',dtText(o.completed_at)],['Delivery items',(o.delivery||[]).length?String((o.delivery||[]).length):'']])
+      +'<p>'+vendorBtn(o.vendor_id)+'</p><h2>Timeline</h2>'
+      +(ev.length?'<div class="thread">'+ev.map(function(e){return '<div class="msg"><b>'+escHtml(e.who==='admin'?'Subora support':(e.actor_name||e.who||''))+'</b> <span class="mute">'+escHtml(e.who==='admin'?'':e.who||'')+' '+escHtml(dtText(e.created_at))+'</span><p class="pre">'+escHtml(e.body)+'</p></div>'}).join('')+'</div>':'<p class="mute">No messages yet.</p>');
+    if(closed){h+='<p class="note">This case is closed.</p>'}
+    else{
+      h+='<label for="x_reply">Reply as Subora support</label><textarea id="x_reply" rows="3" maxlength="2000"></textarea><div class="row"><button type="button" data-a="reply"'+dis+'>Send reply</button></div>'
+        +'<h2>Decision</h2>'+reasonBox('Reason (at least 10 characters)','Both buyer and vendor are told the outcome.')
+        +'<div class="row"><button type="button" class="good" data-a="release"'+dis+'>Release to vendor</button>'
+        +(esc2?'':'<button type="button" class="bad" data-a="refund"'+dis+'>Refund the buyer</button>')+'</div>'
+        +(esc2?'<p class="note">A refund is already with the owner. You can still release to the vendor.</p>':'<p class="mute">A refund goes to the owner for approval. No money moves until the owner approves it.</p>');
+    }
+  }else if(v.kind==='flag'){
+    h=back+'<h1>Blocked message</h1>'
+      +kvHtml([['Sender side',d.side],['Buyer',d.buyer_name],['Why it was flagged',d.reason],['Flags from this sender today',d.sender_flags_today==null?'':String(d.sender_flags_today)],['Sent',dtText(d.created_at)]])
+      +'<h2>Message</h2><p class="pre quote">'+escHtml(d.text)+'</p><p>'+vendorBtn(d.vendor_id)+'</p>'
+      +'<div class="row"><button type="button" data-a="flag" data-s="dismissed"'+dis+'>Dismiss</button><button type="button" class="bad" data-a="flag" data-s="warned"'+dis+'>Warn sender</button></div>'
+      +'<p class="mute">Warning sends the sender a short notice about keeping payments and chats on Subora.</p>';
+  }else if(v.kind==='report'){
+    h=back+'<h1>Report</h1>'
+      +kvHtml([['About',d.kind],['Reason',d.reason],['Details',d.details],['Support level',d.support_level],['Sent',dtText(d.created_at)]])
+      +(d.kind==='vendor'&&d.target_id?'<p>'+vendorBtn(d.target_id)+'</p>':'')
+      +'<div class="row"><button type="button" data-a="report" data-s="dismissed"'+dis+'>Dismiss</button><button type="button" class="good" data-a="report" data-s="actioned"'+dis+'>Mark as actioned</button></div>';
+  }else if(v.kind==='vendor'){
+    var vd=d.vendor||{},pl=vd.plan||{},lc=d.listings||{},names=Object.keys(lc).sort();
+    var plan=pl.plan_key||pl.plan||pl.name||pl.key||'';
+    h=back+'<h1>'+escHtml(vd.store_name||'Vendor')+'</h1><p>'+(vd.suspended?tagHtml('Suspended','amber'):tagHtml('Active'))+' '+(vd.verified?tagHtml('Verified'):tagHtml('Not verified','amber'))+(vd.official?' '+tagHtml('Official'):'')+'</p>'
+      +kvHtml([['Username',vd.username?'@'+vd.username:''],['Name',vd.full_name],['Verification',vd.kyc_status],['Plan',plan],['Strikes',vd.strikes==null?'':String(vd.strikes)],['Rating',vd.rating==null?'':String(vd.rating)],['Sales',vd.sales_count==null?'':String(vd.sales_count)],['Trust',vd.trust==null?'':String(vd.trust)],['Open disputes',d.open_disputes==null?'':String(d.open_disputes)],['Listings',names.map(function(k){return k+': '+lc[k]}).join(', ')],['Since',dtText(vd.created_at)],['Suspended because',vd.suspended?vd.suspended_reason:'']])
+      +(vd.bio?'<h2>Bio</h2><p class="pre">'+escHtml(vd.bio)+'</p>':'')
+      +'<h2>Actions</h2>'+reasonBox('Reason (at least 5 characters, needed to suspend or hide)','Written to the audit log. The owner is told about every suspension.')
+      +'<div class="row">'+(vd.suspended?'<button type="button" class="good" data-a="reinstate"'+dis+'>Reinstate vendor</button>':'<button type="button" class="bad" data-a="suspend"'+dis+'>Suspend vendor</button>')+'</div>'
+      +'<h2>Listings</h2>';
+    var ls=v.listings||[];
+    if(v.listErr)h+='<p class="mute">Could not load the listings.</p>';
+    else if(!ls.length)h+='<p class="mute">No listings.</p>';
+    else h+='<div class="tw"><table><thead><tr><th>Title</th><th>Status</th><th>Price</th><th></th></tr></thead><tbody>'+ls.map(function(p){
+      var act=p.staff_hidden?'<button type="button" data-a="restore" data-id="'+escHtml(p.id)+'"'+dis+'>Restore</button>':(p.status==='live'?'<button type="button" data-a="hide" data-id="'+escHtml(p.id)+'"'+dis+'>Hide</button>':'');
+      return '<tr><td>'+escHtml(p.title)+'<div class="mute">'+escHtml(p.category||'')+(p.staff_hidden&&p.staff_hidden_reason?' \u00B7 hidden: '+escHtml(p.staff_hidden_reason):'')+'</div></td><td>'+tagHtml(p.staff_hidden?'hidden by staff':p.status,p.staff_hidden?'amber':'')+'</td><td>'+escHtml(money(p.price))+'</td><td>'+act+'</td></tr>'}).join('')+'</tbody></table></div>';
+  }
+  return h;
+}
 function createStaffApp(deps){
   var sb=deps.sb;
   var pwUrl=deps.pwUrl||String(deps.loginUrl).replace('staff-login','staff-password');
   var IDLE_MS=deps.idleMs||30*60*1000, MAX_MS=deps.maxMs||8*3600*1000, BEAT_MS=deps.beatMs||4*60*1000;
-  var S={step:'loading',busy:false,error:'',notice:'',enroll:null,factorId:null,name:'',queue:[],queueErr:'',idleLeft:IDLE_MS,maxLeft:MAX_MS,newDevice:false,forced:false};
+  var S={step:'loading',busy:false,error:'',notice:'',enroll:null,factorId:null,name:'',queue:[],queueErr:'',idleLeft:IDLE_MS,maxLeft:MAX_MS,newDevice:false,forced:false,view:null,nav:[]};
   var lastActivity=deps.now(), lastBeat=deps.now(), started=deps.now(), timer=null;
 
   function snap(){return Object.assign({},S,{queue:S.queue.slice()})}
@@ -68,6 +149,7 @@ function createStaffApp(deps){
     return id;
   }
   async function hardSignOut(){
+    S.view=null;S.nav=[];
     stopTimer();
     try{await sb.auth.signOut()}catch(e){}
     S.queue=[];S.enroll=null;S.factorId=null;
@@ -218,6 +300,105 @@ function createStaffApp(deps){
     busy(false);
   }
 
+  // ---------- 6e: open an item, act on it. The database decides every permission; this only asks and shows. ----------
+  var ERR={access_denied:'You do not have permission for that.',reason_required:'Add a reason that is long enough.',not_found:'That item no longer exists.',not_pending:'Someone already reviewed this listing.',case_closed:'This case is already closed.',bad_text:'Write a message of up to 2000 characters.',bad_decision:'Choose release or refund.',bad_status:'That action is not available.',not_live:'Only live listings can be hidden.',not_hidden:'This listing is not hidden.',not_allowed_target:'Staff cannot suspend owner or staff accounts.',approval_failed:'Could not send this to the owner. Try again.',network:'Could not reach the server. Check your connection.'};
+  function errText(e){return ERR[e]||'Something went wrong. Try again.'}
+  async function call(name,args){try{var r=await rpc(name,args||{});return r||{ok:false,error:'no_answer'}}catch(e){return {ok:false,error:'network'}}}
+  function clearMsg(){S.error='';S.notice=''}
+  function closeView(msg){S.view=null;S.nav=[];S.error='';S.notice=msg||'';S.busy=false;emit();return loadQueue()}
+  async function showFromList(fn,key,kind,id){
+    S.view={kind:kind,loading:true};emit();
+    var r=await call(fn,{});
+    if(!r.ok){S.view=null;S.error=errText(r.error);emit();return}
+    var f=(r[key]||[]).filter(function(x){return String(x.id)===String(id)})[0];
+    if(!f){return closeView('That item was already handled.')}
+    S.view={kind:kind,id:id,data:f};emit();
+  }
+  async function showDispute(id){
+    S.view={kind:'dispute',loading:true};emit();
+    var r=await call('staff_dispute_view',{p_dispute:id});
+    if(!r.ok){if(r.error==='not_found'){return closeView('That case no longer exists.')}S.view=null;S.error=errText(r.error);emit();return}
+    S.view={kind:'dispute',id:id,data:r};emit();
+  }
+  async function openItem(item){
+    if(!item)return;
+    clearMsg();S.nav=[];
+    if(item.kind==='dispute')return showDispute(item.id);
+    if(item.kind==='listing')return showFromList('staff_pending_listings','listings','listing',item.id);
+    if(item.kind==='flagged_message')return showFromList('staff_flagged_messages','items','flag',item.id);
+    if(item.kind==='report')return showFromList('staff_reports','items','report',item.id);
+  }
+  async function loadVendor(id){
+    var rs=await Promise.all([call('staff_vendor_view',{p_vendor:id}),call('staff_vendor_listings',{p_vendor:id})]);
+    return {v:rs[0],l:rs[1]};
+  }
+  async function openVendor(id){
+    if(!id)return;
+    clearMsg();
+    var prev=(S.view&&!S.view.loading)?S.view:null;
+    S.view={kind:'vendor',loading:true};emit();
+    var x=await loadVendor(id);
+    if(!x.v.ok){S.view=prev;S.error=errText(x.v.error);emit();return}
+    if(prev)S.nav.push(prev);
+    S.view={kind:'vendor',id:id,data:x.v,listings:x.l.ok?x.l.listings:[],listErr:!x.l.ok};emit();
+  }
+  async function back(){
+    clearMsg();
+    if(S.nav.length){S.view=S.nav.pop();emit();return}
+    return closeView('');
+  }
+  async function reloadVendor(msg){
+    var id=S.view&&S.view.id,x=await loadVendor(id);
+    if(x.v.ok){S.view={kind:'vendor',id:id,data:x.v,listings:x.l.ok?x.l.listings:[],listErr:!x.l.ok}}
+    S.notice=msg||'';S.error='';busy(false);
+  }
+  function needReason(txt,min){if(String(txt||'').trim().length<min){S.error='Add a reason of at least '+min+' characters.';S.notice='';emit();return true}return false}
+  async function act(fn,args){clearMsg();busy(true);var r=await call(fn,args);if(!r.ok){S.error=errText(r.error);busy(false);return null}return r}
+  async function reviewListing(approve,reason){
+    if(!S.view||S.view.kind!=='listing')return;
+    if(!approve&&needReason(reason,5))return;
+    var r=await act('staff_review_listing',{p_product:S.view.id,p_approve:!!approve,p_reason:approve?null:String(reason).trim()});
+    if(r)return closeView(approve?'Listing approved. The vendor has been told.':'Listing rejected. The vendor has been told.');
+  }
+  async function decideDispute(decision,reason){
+    if(!S.view||S.view.kind!=='dispute')return;
+    if(needReason(reason,10))return;
+    var r=await act('staff_decide_dispute',{p_dispute:S.view.id,p_decision:decision,p_reason:String(reason).trim()});
+    if(r)return closeView(r.pending_owner?'Refund sent to the owner for approval. No money moves until the owner approves it.':'Case closed: released to the vendor.');
+  }
+  async function replyDispute(text){
+    if(!S.view||S.view.kind!=='dispute')return;
+    text=String(text||'').trim();
+    if(!text||text.length>2000){clearMsg();S.error=ERR.bad_text;emit();return}
+    var r=await act('staff_add_dispute_note',{p_dispute:S.view.id,p_text:text});
+    if(!r)return;
+    var v=await call('staff_dispute_view',{p_dispute:S.view.id});
+    if(v.ok)S.view={kind:'dispute',id:S.view.id,data:v};
+    S.notice='Reply sent.';S.error='';busy(false);
+  }
+  async function resolveFlag(status){
+    if(!S.view||S.view.kind!=='flag')return;
+    var r=await act('staff_resolve_flag',{p_message:Number(S.view.id),p_status:status});
+    if(r)return closeView(status==='warned'?'Sender warned.':'Flag dismissed.');
+  }
+  async function resolveReport(status){
+    if(!S.view||S.view.kind!=='report')return;
+    var r=await act('staff_resolve_report',{p_report:S.view.id,p_status:status});
+    if(r)return closeView(status==='actioned'?'Report marked as actioned.':'Report dismissed.');
+  }
+  async function setSuspension(suspended,reason){
+    if(!S.view||S.view.kind!=='vendor')return;
+    if(suspended&&needReason(reason,5))return;
+    var r=await act('staff_set_vendor_suspension',{p_vendor:S.view.id,p_suspended:!!suspended,p_reason:suspended?String(reason).trim():(String(reason||'').trim()||null)});
+    if(r)return reloadVendor(suspended?'Vendor suspended. Their live listings are paused and the owner has been told.':'Vendor reinstated.');
+  }
+  async function setHidden(productId,hidden,reason){
+    if(!S.view||S.view.kind!=='vendor')return;
+    if(hidden&&needReason(reason,5))return;
+    var r=await act('staff_set_listing_hidden',{p_product:productId,p_hidden:!!hidden,p_reason:hidden?String(reason).trim():(String(reason||'').trim()||null)});
+    if(r)return reloadVendor(hidden?'Listing hidden. The vendor has been told.':'Listing restored.');
+  }
+
   async function loadQueue(){
     try{
       var r=await rpc('staff_support_queue');
@@ -245,7 +426,7 @@ function createStaffApp(deps){
   }
   function activity(){lastActivity=deps.now()}
 
-  return {init:init,signIn:signIn,submitCode:submitCode,signOut:signOut,loadQueue:loadQueue,activity:activity,tick:tick,state:snap,changePassword:changePassword,startPwChange:startPwChange,cancelPwChange:cancelPwChange};
+  return {init:init,signIn:signIn,submitCode:submitCode,signOut:signOut,loadQueue:loadQueue,activity:activity,tick:tick,state:snap,changePassword:changePassword,startPwChange:startPwChange,cancelPwChange:cancelPwChange,openItem:openItem,openVendor:openVendor,back:back,reviewListing:reviewListing,decideDispute:decideDispute,replyDispute:replyDispute,resolveFlag:resolveFlag,resolveReport:resolveReport,setSuspension:setSuspension,setHidden:setHidden};
 }
 /* CORE END */
 
@@ -261,7 +442,7 @@ function createStaffApp(deps){
   function mmss(ms){ms=Math.max(0,ms);var s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor((s%3600)/60);s=s%60;return (h?h+':':'')+('0'+m).slice(-2)+':'+('0'+s).slice(-2)}
   function waited(since){var m=Math.max(0,Math.floor((Date.now()-new Date(since).getTime())/60000));return m<60?m+' min':Math.floor(m/60)+'h '+(m%60)+'m'}
   var brand='<div class="brand"><i>S</i><b>Subora</b><span>Staff</span></div>';
-  var lastStep='',lastKey='',hold=null;
+  var lastStep='',lastKey='',lastMsg='',hold=null;
 
   var app=createStaffApp({
     sb:sb,fetch:function(u,o){return window.fetch(u,o)},storage:window.localStorage,randomId:rid,
@@ -324,6 +505,25 @@ function createStaffApp(deps){
       document.getElementById('d_out').addEventListener('click',function(){app.signOut()});
       document.getElementById('d_pw').addEventListener('click',function(){app.startPwChange()});
       document.getElementById('d_refresh').addEventListener('click',function(){app.loadQueue()});
+      document.getElementById('d_body').addEventListener('click',function(e){
+        var b=e.target.closest?e.target.closest('[data-a]'):null;if(!b||b.disabled)return;
+        var a=b.getAttribute('data-a'),st=app.state();
+        function val(id){var el=document.getElementById(id);return el?el.value:''}
+        if(a==='open')app.openItem(st.queue[Number(b.getAttribute('data-i'))]);
+        else if(a==='back')app.back();
+        else if(a==='vendor')app.openVendor(b.getAttribute('data-id'));
+        else if(a==='approve')app.reviewListing(true,'');
+        else if(a==='reject')app.reviewListing(false,val('x_reason'));
+        else if(a==='release')app.decideDispute('release',val('x_reason'));
+        else if(a==='refund')app.decideDispute('refund',val('x_reason'));
+        else if(a==='reply')app.replyDispute(val('x_reply'));
+        else if(a==='flag')app.resolveFlag(b.getAttribute('data-s'));
+        else if(a==='report')app.resolveReport(b.getAttribute('data-s'));
+        else if(a==='suspend')app.setSuspension(true,val('x_reason'));
+        else if(a==='reinstate')app.setSuspension(false,val('x_reason'));
+        else if(a==='hide')app.setHidden(b.getAttribute('data-id'),true,val('x_reason'));
+        else if(a==='restore')app.setHidden(b.getAttribute('data-id'),false,val('x_reason'));
+      });
       paintDash(s);return;
     }
   }
@@ -333,15 +533,28 @@ function createStaffApp(deps){
     if(!who||!tm||!body)return;
     who.textContent=(s.name||'Staff')+' · Subora support';
     tm.textContent='Signs out after '+mmss(s.idleLeft)+' of no activity · session ends in '+mmss(s.maxLeft);
-    var html='<h1>Support queue</h1><p class="mute">Oldest first. Items turn amber after 12 hours. Detailed screens for each item are coming next.</p>';
-    if(s.queueErr)html+='<div class="err" role="alert">'+esc(s.queueErr)+'</div>';
-    if(!s.queue.length&&!s.queueErr)html+='<div class="empty">Nothing waiting. Good work.</div>';
-    if(s.queue.length){
-      html+='<div class="tw"><table><thead><tr><th>Type</th><th>Order</th><th>Detail</th><th>Waiting</th></tr></thead><tbody>'+s.queue.map(function(i){
-        return '<tr><td>'+esc(i.label)+'</td><td>'+esc(i.order_no==null?'':'#'+i.order_no)+'</td><td>'+esc(i.reason||'')+'</td><td><span class="tag'+(i.amber?' amber':'')+'">'+esc(waited(i.since))+'</span></td></tr>';
-      }).join('')+'</tbody></table></div>';
+    var html;
+    if(s.view){html=msgs(s)+viewHtml(s)}
+    else{
+      html=msgs(s)+'<h1>Support queue</h1><p class="mute">Oldest first. Items turn amber after 12 hours. Open an item to work on it.</p>';
+      if(s.queueErr)html+='<div class="err" role="alert">'+esc(s.queueErr)+'</div>';
+      if(!s.queue.length&&!s.queueErr)html+='<div class="empty">Nothing waiting. Good work.</div>';
+      if(s.queue.length){
+        html+='<div class="tw"><table><thead><tr><th>Type</th><th>Order</th><th>Detail</th><th>Waiting</th><th></th></tr></thead><tbody>'+s.queue.map(function(i,n){
+          return '<tr class="item" data-a="open" data-i="'+n+'"><td>'+esc(i.label)+'</td><td>'+esc(i.order_no==null?'':'#'+i.order_no)+'</td><td>'+esc(i.reason||'')+'</td><td><span class="tag'+(i.amber?' amber':'')+'">'+esc(waited(i.since))+'</span></td><td><button type="button" class="lnk" data-a="open" data-i="'+n+'">Open</button></td></tr>';
+        }).join('')+'</tbody></table></div>';
+      }
     }
-    if(body.getAttribute('data-html')!==html){body.innerHTML=html;body.setAttribute('data-html',html)}
+    if(body.getAttribute('data-html')!==html){
+      // when the form is rebuilt because of an error or a busy state, keep what the person typed
+      var saved={};
+      if(s.error||s.busy){['x_reason','x_reply'].forEach(function(id){var el=document.getElementById(id);if(el)saved[id]=el.value})}
+      body.innerHTML=html;body.setAttribute('data-html',html);
+      Object.keys(saved).forEach(function(id){var el=document.getElementById(id);if(el)el.value=saved[id]});
+    }
+    // a new message appears at the top of the card: scroll to it once, never on timer repaints
+    var mk=(s.error||'')+'|'+(s.notice||'');
+    if(mk!==lastMsg){lastMsg=mk;if(s.error||s.notice)window.scrollTo(0,0)}
   }
 
   var t=0;
