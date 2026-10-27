@@ -35,7 +35,7 @@ function arr(marker, { before } = {}) {
   return new Function('FEE', 'N', 'WFEE', 'S', 'SUBORA_CONFIG', 'return ' + txt)(0.1, N, 100, { levy: { amount: 2000 } }, { SUPPORT_EMAIL: CFG.support_email });
 }
 const HELP = arr('const HELP=[');
-const FAQ_BASICS = arr('const faq=[[');
+const FAQ_BASICS = arr('const faq=[');
 const TERMS = arr('const sec=[', { before: "head('Terms and Conditions')" });
 const PRIVACY = arr('const sec=[', { before: "head('Privacy Policy')" });
 const REFUNDS = arr('const sec=[', { before: "head('Refund policy')" });
@@ -266,6 +266,31 @@ ${footer()}
 }
 const report = pages.map(render);
 
+/* ---------- knowledge.md: what the support chatbot knows (built from the public pages above) ---------- */
+const toText = h => typo(h
+  .replace(/<script[\s\S]*?<\/script>/g, '').replace(/<div class="chips"[\s\S]*?<\/div>/g, '')
+  .replace(/<summary>([\s\S]*?)<\/summary>\s*<p>([\s\S]*?)<\/p>/g, '\n**Q: $1**\nA: $2\n')
+  .replace(/<h1[^>]*>([\s\S]*?)<\/h1>/g, '\n# $1\n')
+  .replace(/<h2[^>]*>([\s\S]*?)<\/h2>/g, '\n## $1\n')
+  .replace(/<li[^>]*>/g, '\n- ').replace(/<dt>/g, '\n- ').replace(/<\/dt>/g, ': ')
+  .replace(/<\/(p|div|ul|ol|dl|aside|details)>/g, '\n')
+  .replace(/<a [^>]*class="btn[^>]*>[\s\S]*?<\/a>/g, '')
+  .replace(/<nav[\s\S]*?<\/nav>/g, '')
+  .replace(/<[^>]+>/g, '')
+  .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
+  .replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim());
+const SUPPORT = has(CFG.support_email) ? CFG.support_email : '';
+let KB = `# Subora knowledge base (generated ${CFG.updated}; do not edit by hand)\n\nSubora is a Nigerian marketplace for shared subscriptions, courses, software seats and digital goods, with escrow on every order. Prices are in naira (₦).\n\n## Contact and escalation\n- Human support: live chat in the app (Help Centre, then Chat with support), every day 8am to 10pm West Africa Time${SUPPORT ? `\n- Support email: ${SUPPORT}` : ''}\n- Typical reply: 15 to 30 minutes in chat hours${SUPPORT ? ', within 24 hours by email' : ''}\n\n## Site pages (link users with these paths)\n- /store marketplace, /login, /signup, /sell (apply to sell), /help (Help Centre), /account (buyer account), /vendor (vendor dashboard), /how-it-works, /safety, /faq, /about, /contact, /terms, /privacy, /refunds\n`;
+for (const p of pages) {
+  const html = fs.readFileSync(path.join(ROOT, p.slug + '.html'), 'utf8');
+  const m = html.match(/<main[^>]*>([\s\S]*?)<\/main>/);
+  if (!m) continue;
+  KB += `\n\n---\n# PAGE /${p.slug}\n` + toText(m[1]).replace(/^# .*\n/, '').replace(/^See also:.*$/gm, '');
+}
+KB += '\n';
+fs.writeFileSync(path.join(ROOT, 'knowledge.md'), KB);
+console.log(`knowledge.md written: ${KB.length} characters (about ${Math.round(KB.length / 4)} tokens)`);
+
 /* ---------- home page: head tags + crawlable shell inside #app ---------- */
 const HOME_TITLE = 'Subora Marketplace: shared subscriptions with escrow';
 const HOME_DESC = 'Subora marketplace for shared subscriptions, courses, software seats and digital goods in Nigeria. Every payment is held in escrow until you confirm.';
@@ -295,7 +320,7 @@ const urls = [SITE + '/', SITE + '/store', ...pages.map(p => `${SITE}/${p.slug}`
 fs.writeFileSync(path.join(ROOT, 'sitemap.xml'),
   `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(u => `  <url><loc>${u}</loc><lastmod>${CFG.updated}</lastmod></url>`).join('\n')}\n</urlset>\n`);
 fs.writeFileSync(path.join(ROOT, 'robots.txt'),
-  `# Subora: public pages are open to search engines and AI crawlers.\nUser-agent: *\nAllow: /\nDisallow: /account/\nDisallow: /vendor/\nDisallow: /admin/\nDisallow: /case/\n\nSitemap: ${SITE}/sitemap.xml\n`);
+  `# Subora: public pages are open to search engines and AI crawlers.\nUser-agent: *\nAllow: /\nDisallow: /account/\nDisallow: /vendor/\nDisallow: /admin/\nDisallow: /case/\nDisallow: /knowledge.md\n\nSitemap: ${SITE}/sitemap.xml\n`);
 fs.writeFileSync(path.join(ROOT, '404.html'), `<!doctype html>
 <html lang="en-NG"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Page not found | Subora</title>

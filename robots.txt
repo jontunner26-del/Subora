@@ -5,5 +5,6 @@ Disallow: /account/
 Disallow: /vendor/
 Disallow: /admin/
 Disallow: /case/
+Disallow: /knowledge.md
 
 Sitemap: https://www.subora.com.ng/sitemap.xml
