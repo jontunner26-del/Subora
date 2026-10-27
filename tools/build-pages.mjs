@@ -258,6 +258,7 @@ ${ld(...graph)}
 ${header('/' + p.slug)}
 <main id="main" class="page"><div class="wrap"><div class="page-in">${crumbs}<h1>${esc(p.h1)}</h1><p class="lede">${esc(p.lede)}</p>${p.upd ? `<p class="upd">Last updated ${date}</p>` : ''}${p.pre || ''}${main}</div></div></main>
 ${footer()}
+<script src="/assets/chat-widget.js" defer></script>
 </body></html>
 `;
   fs.writeFileSync(path.join(ROOT, p.slug + '.html'), html);
@@ -338,6 +339,7 @@ ${header('')}
 <ul><li><a href="/">Subora home</a></li><li><a href="/how-it-works">How Subora works</a></li><li><a href="/safety">Buying safely on Subora</a></li><li><a href="/faq">Frequently asked questions</a></li><li><a href="/contact">Contact Subora</a></li></ul>
 <p><a class="btn pri" href="/">Back to home</a></p></div></div></main>
 ${footer()}
+<script src="/assets/chat-widget.js" defer></script>
 </body></html>
 `);
 
