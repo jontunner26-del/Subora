@@ -1,4 +1,4 @@
-<!doctype html><html lang="en-NG"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<!doctype html><html lang="en-NG"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:0;padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:0}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
 <title>Subora Marketplace: shared subscriptions with escrow</title>
 <meta name="description" content="Subora marketplace for shared subscriptions, courses, software seats and digital goods in Nigeria. Every payment is held in escrow until you confirm.">
 <meta name="theme-color" content="#d1fe17">
@@ -61,7 +61,7 @@ a{color:var(--link)}
 .seg{display:inline-flex;background:rgba(255,255,255,.12);border-radius:999px;padding:2px}
 .seg button{border:0;background:transparent;color:inherit;padding:3px 12px;border-radius:999px;font-size:12.5px;font-weight:600}
 .seg button.on{background:var(--lime);color:var(--lime-ink)}
-.hdr{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.hdr{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
 .hdr .wrap{display:flex;align-items:center;gap:14px;padding-block:12px;flex-wrap:wrap}
 .logo{display:flex;align-items:center;gap:9px;font-family:var(--fd);font-weight:800;font-size:22px;letter-spacing:-.03em;background:none;border:0;padding:0;color:var(--fg)}
 .logo i{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--lime);color:var(--lime-ink);font-style:normal;font-size:17px}
@@ -144,7 +144,7 @@ a.btn:not(.pri):not(.dark):not(.bad):not(.good):not(.info):not(.warn){color:var(
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px}
 .panel + .panel{margin-top:16px}
 .panel h3{font-size:17px;margin-bottom:10px}
-.buybox{position:sticky;top:calc(env(safe-area-inset-top,0px) + 130px)}
+.buybox{position:sticky;top:130px}
 .buybox .big{font-family:var(--fm);font-size:30px;font-weight:600}
 .kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14px;margin:14px 0}
 .kv dt{color:var(--muted)}.kv dd{margin:0;font-weight:600;text-align:right}
@@ -156,7 +156,7 @@ a.btn:not(.pri):not(.dark):not(.bad):not(.good):not(.info):not(.warn){color:var(
 .rev{padding:12px 0;border-top:1px solid var(--line)}
 /* console layout */
 .console{display:grid;grid-template-columns:230px minmax(0,1fr);gap:24px;padding-block:22px}
-.rail{display:flex;flex-direction:column;gap:3px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 130px);align-self:start}
+.rail{display:flex;flex-direction:column;gap:3px;position:sticky;top:130px;align-self:start}
 .rail button{display:flex;align-items:center;gap:10px;border:0;background:transparent;border-radius:11px;padding:10px 12px;font-weight:600;text-align:left}
 .rail button:hover{background:var(--surface2)}
 .rail button.on{background:var(--ink);color:var(--ink-fg)}
@@ -427,15 +427,15 @@ tbody tr:hover td:first-child{box-shadow:inset 3px 0 0 var(--link)}
 #app[data-w="m"] .foot{padding-bottom:96px}
 
 @media (prefers-reduced-motion:reduce){.scr-v *,.scr-v,.spin{animation:none!important}.btn{transition:none}}
-#devbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:70;background:#0b140c;color:#fff;font-size:12.5px;padding:7px 16px;display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+#devbar{position:sticky;top:0;z-index:70;background:#0b140c;color:#fff;font-size:12.5px;padding:7px 16px;display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 #devbar .grp{display:flex;gap:8px;align-items:center}
 #devbar .seg{display:inline-flex;background:rgba(255,255,255,.14);border-radius:999px;padding:2px}
 #devbar .seg button{border:0;background:transparent;color:inherit;padding:3px 12px;border-radius:999px;font-size:12.5px;font-weight:600}
 #devbar .seg button.on{background:var(--lime);color:var(--lime-ink)}
 #frame{position:relative}
 #frame .sbar{display:none}
-#stage[data-dev="web"] .hdr{top:calc(env(safe-area-inset-top,0px) + 36px)}
-#stage:not([data-dev="web"]) .hdr{top:0}
+#devbar:empty{display:none}
+.hdr{top:0}
 #stage[data-dev="phone"],#stage[data-dev="tablet"]{display:flex;justify-content:center;padding:22px 16px 36px;background:var(--surface2)}
 #stage[data-dev="phone"] #frame,#stage[data-dev="tablet"] #frame{display:flex;flex-direction:column;overflow:hidden;transform:translateZ(0);background:var(--bg);box-shadow:0 24px 60px rgba(0,0,0,.28);flex:none}
 #stage[data-dev="phone"] #frame{width:394px;max-width:100%;height:min(844px,calc(100vh - 110px));border:9px solid #0b140c;border-radius:48px}
