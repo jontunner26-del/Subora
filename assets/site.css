@@ -70,3 +70,5 @@ dl.kv dd{margin:0;color:var(--muted)}
 .fbase{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:26px;padding-top:16px;border-top:1px solid var(--line);font-size:13px}
 @media (max-width:760px){.fgrid{grid-template-columns:1fr 1fr}.fgrid>div:first-child{grid-column:1/-1}.acts{margin-left:auto}.site-hdr nav{order:3;width:100%}dl.kv{grid-template-columns:1fr;gap:2px}dl.kv dd{margin-bottom:10px}}
 @media (prefers-reduced-motion:reduce){.btn{transition:none}}
+/* mobile: the header no longer stays pinned over the content; the nav scrolls sideways in one row */
+@media (max-width:760px){html{scroll-padding-top:12px}.site-hdr{position:static}.site-hdr .wrap{gap:6px 12px;min-height:0}.site-hdr nav{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}.site-hdr nav::-webkit-scrollbar{display:none}.site-hdr nav a{white-space:nowrap}}

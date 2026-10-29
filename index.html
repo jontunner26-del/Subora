@@ -1099,7 +1099,7 @@ body{margin:0}
 @media (hover:hover) and (pointer:fine){
  .sa-bar[data-l="1"]~.sa-prev,.sa-bar[data-r="1"]~.sa-next{display:grid}
 }
-.srch2{display:flex;align-items:center;gap:12px;margin:4px 0 16px;max-width:780px}
+.srch2{display:flex;align-items:center;gap:12px;margin:4px 0 16px;width:100%;max-width:none}
 .srch2 .search{flex:1;min-width:0;height:54px;border-radius:999px;background:var(--surface2);border:0;padding:0 20px;gap:12px;box-shadow:0 8px 22px rgba(14,31,16,.08),0 1px 2px rgba(14,31,16,.06)}
 .srch2 .search svg{color:var(--fg);flex:none}
 .srch2 .search input{font-size:16px;padding:0;height:100%}
@@ -1134,6 +1134,41 @@ body{margin:0}
 .pmb{height:10px;border-radius:99px;background:var(--surface2);border:1.5px solid var(--edge,var(--line));overflow:hidden}.pmb i{display:block;height:100%;background:var(--lime)}.pmb i.full{background:#e0553d}
 .krow{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}.krow:first-of-type{border-top:0}.krow label{flex:1;min-width:0;display:flex;gap:10px;align-items:center}
 .pst td,.pst th{white-space:nowrap}.pst .cellb{border:0;background:none;font:inherit;font-weight:600;cursor:pointer;color:var(--fg);padding:4px 8px;border-radius:8px;border:1px dashed var(--line)}.pst .cellb:hover{background:var(--surface2)}
+
+/* ===== mobile header: one slim sticky row; search + categories scroll with the page ===== */
+#app[data-w="m"] .hdr .wal b{display:none}
+#app[data-w="m"] .hdr .wal-b{display:none}
+#app[data-w="m"] .hdr .wrap{padding-inline:12px}
+.msearch,.mcats{display:none}
+#app[data-w="m"] .msearch{display:block;padding-top:10px}
+#app[data-w="m"] .mcats{display:block;padding-top:8px}
+#app[data-w="m"] .msearch .search{flex:none;width:100%;box-sizing:border-box}
+#app[data-w="m"] .hdr .search,#app[data-w="m"] .hdr .cats{display:none}
+#app[data-w="m"] .hdr .wrap{flex-wrap:nowrap;gap:8px;padding-block:8px}
+#app[data-w="m"] .hdr .hspace{flex:1}
+#app[data-w="m"] .hdr .hacts{margin-left:auto;width:auto;flex:none;gap:6px}
+#app[data-w="m"] .hdr .logo{font-size:19px;gap:7px;flex:none}
+#app[data-w="m"] .hdr .logo svg{width:26px;height:26px}
+#app[data-w="m"] .hdr .chip{padding:6px 9px;font-size:13px}
+#app[data-w="m"] .hdr .btn.sm{padding:5px 9px}
+#app[data-w="m"] .hdr .tgl{width:50px;height:30px;padding:0!important}
+#app[data-w="m"] .hdr .tgl .knob{width:22px;height:22px;top:3px;left:3px}
+:root[data-theme="dark"] #app[data-w="m"] .hdr .tgl .knob{transform:translateX(20px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #app[data-w="m"] .hdr .tgl .knob{transform:translateX(20px)}}
+
+/* ===== notice (escrow / vendor reminder) ===== */
+.topbar .wrap{justify-content:flex-end}
+#app[data-w="m"] .topbar{display:none}
+.notice{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 76px);z-index:200;display:flex;align-items:center;gap:10px;background:var(--lime);color:var(--lime-ink);border:1.5px solid var(--edge-pri);box-shadow:0 3px 0 var(--edge-pri);padding:10px 12px 10px 14px;border-radius:14px;font-weight:600;font-size:14px;width:max-content;max-width:calc(100% - 24px);animation:ntin .25s ease-out}
+.notice span{flex:1;min-width:0}
+.notice svg{flex:none}
+.notice button{flex:none;border:0;background:rgba(14,31,16,.1);color:inherit;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;padding:0;cursor:pointer}
+@keyframes ntin{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+@media (prefers-reduced-motion:reduce){.notice{animation:none}}
+
+/* console pages on phones: let the content column shrink so tabs scroll inside themselves instead of widening the page */
+#app[data-w="m"] .console{grid-template-columns:minmax(0,1fr)}
+.console>*{min-width:0}
 </style>
 <div id="devbar"></div>
 <div id="stage" data-dev="web"><div id="frame"><div class="sbar" aria-hidden="true"></div><div id="scroller"><div id="app" data-w="d"><!--SEO-SHELL-START-->
@@ -1316,11 +1351,11 @@ function header(){
  const inBody=S.view==='store';
  const acts=!S.auth
   ?`<button class="btn sm" data-act="nav" data-view="login">Log in</button><button class="btn sm pri" data-act="nav" data-view="signup">Sign up</button>`
-  :`<button class="chip bell" data-act="notifs" aria-label="Notifications, ${unread()} unread">${I('bell')}${unread()?`<span class="badge">${unread()}</span>`:''}</button>${S.role!=='admin'?`<button class="chip" data-act="nav" data-view="${S.role==='vendor'?'vendor':'buyer'}" data-sub="wallet" aria-label="Wallet">${I('wallet')}<b>${N(bal)}</b></button>`:''}
+  :`<button class="chip bell" data-act="notifs" aria-label="Notifications, ${unread()} unread">${I('bell')}${unread()?`<span class="badge">${unread()}</span>`:''}</button>${S.role!=='admin'?`<button class="chip wal${S.role==='buyer'?' wal-b':''}" data-act="nav" data-view="${S.role==='vendor'?'vendor':'buyer'}" data-sub="wallet" aria-label="Wallet">${I('wallet')}<b>${N(bal)}</b></button>`:''}
   ${S.role==='buyer'?`<button class="chip" data-act="cart" aria-label="Open cart">${I('cart')}<span class="lbl">Cart</span> <span class="badge">${S.cart.length}</span></button><button class="chip who" data-act="nav" data-view="buyer" data-sub="profile">${I('user')}${esc(S.profile.name.split(' ')[0])}</button>`:''}
   ${S.role==='vendor'?`<button class="chip who" data-act="nav" data-view="vendor" data-sub="overview">${I('store')}Vendor console</button>`:''}
   ${S.role==='admin'?`<button class="chip who" data-act="nav" data-view="admin" data-sub="review">${I('shield')}Admin</button>`:''}`;
- return `<div class="topbar"><div class="wrap"><span>Payments are held in escrow until you confirm delivery. Every listing is reviewed before it goes live.</span><span class="tb-r">${S.auth&&S.role!=='buyer'?'':`<button data-act="sellnow">${I('store',14)} Sell on Subora</button>`}<button data-act="help">${I('list',14)} Help Centre</button><button data-act="a11y" aria-label="Display and accessibility">${I('type',14)} Display</button></span></div></div>
+ return `<div class="topbar"><div class="wrap"><span class="tb-r">${S.auth&&S.role!=='buyer'?'':`<button data-act="sellnow">${I('store',14)} Sell on Subora</button>`}<button data-act="help">${I('list',14)} Help Centre</button><button data-act="a11y" aria-label="Display and accessibility">${I('type',14)} Display</button></span></div></div>
  <header class="hdr"><div class="wrap">
  ${S.auth?`<button class="hamb chip" data-act="menu" aria-label="Open menu">${I('list')}</button>`:''}
  <button class="logo" data-act="nav" data-view="home" aria-label="Subora home"><i class="lg"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#0e1f10"/><rect x=".75" y=".75" width="30.5" height="30.5" rx="8.4" fill="none" stroke="#d1fe17" stroke-opacity=".35" stroke-width="1.5"/><path d="M21.6 8.4A5.4 5.4 0 1 0 16 16.2" fill="none" stroke="#d1fe17" stroke-width="3.8" stroke-linecap="round"/><path d="M16 16.2A5.4 5.4 0 1 1 10.4 23.6" fill="none" stroke="#ffffff" stroke-width="3.8" stroke-linecap="round"/><circle cx="23.4" cy="6.6" r="1.7" fill="#d1fe17"/></svg></i>Subora</button>
@@ -1328,7 +1363,7 @@ function header(){
  ${(!S.auth||inBody)?'<span class="hspace"></span>':''}${inBody?'':`<label class="search" ${!S.auth?'hidden':''}>${I('search',17)}<input id="q" placeholder="Search ChatGPT, courses, templates, vendors" value="${esc(S.q)}" aria-label="Search listings"></label>`}
  <div class="hacts"><button class="chip tgl" data-act="theme" aria-label="${isDark()?'Switch to light mode':'Switch to dark mode'}" title="${isDark()?'Light mode':'Dark mode'}"><span class="knob">${I(isDark()?'moon':'sun',14)}</span></button><button class="chip" data-act="region" aria-label="Region and currency" hidden><b class="cc">${REG.c}</b>${REG.cur}</button>${acts}</div></div>
  ${onStore&&!inBody?`<div class="wrap"><nav class="cats" aria-label="Categories">${CATS.map(c=>`<button class="${S.cat===c?'on':''}" data-act="cat" data-id="${c}">${catL(c)}</button>`).join('')}</nav></div>`:''}
- </header>`;
+ </header>${inBody||!S.auth?'':`<div class="wrap msearch"><label class="search">${I('search',17)}<input id="qm" placeholder="Search ChatGPT, courses, templates, vendors" value="${esc(S.q)}" aria-label="Search listings"></label></div>`}${onStore&&!inBody?`<div class="wrap mcats"><nav class="cats" aria-label="Categories">${CATS.map(c=>`<button class="${S.cat===c?'on':''}" data-act="cat" data-id="${c}">${catL(c)}</button>`).join('')}</nav></div>`:''}`;
 }
 
 /* ---------- storefront ---------- */
@@ -2547,6 +2582,12 @@ function render(){
 }
 let tt;
 const jump=()=>{window.scrollTo(0,0);const sc=$('#scroller');if(sc)sc.scrollTop=0;const m=$('main');if(m){m.classList.remove('in');void m.offsetWidth;m.classList.add('in')}};
+/* notice: escrow reminder (buyers/guests) or listing-review reminder (vendors). Shows once per session while scrolling, and each time the cart opens */
+let ntT;
+function noticeText(){if(S.auth&&S.role==='admin')return '';return S.auth&&S.role==='vendor'?'Every listing is reviewed before it goes live.':'Payments are held in escrow until you confirm delivery.'}
+function notice(txt){if(!txt)return;clearTimeout(ntT);const old=$('.notice');if(old)old.remove();const e=document.createElement('div');e.className='notice';e.setAttribute('role','status');e.innerHTML=`${I('shield',18)}<span>${esc(txt)}</span><button type="button" aria-label="Dismiss notice">${I('x',16)}</button>`;e.querySelector('button').addEventListener('click',()=>e.remove());($('#frame')||document.body).appendChild(e);ntT=setTimeout(()=>{e.remove()},7000)}
+(function(){let seen=false;try{seen=sessionStorage.getItem('subora_notice')==='1'}catch(e){}
+document.addEventListener('scroll',()=>{if(seen)return;const y=Math.max(window.scrollY||0,(document.querySelector('#scroller')||{}).scrollTop||0);if(y>360){seen=true;try{sessionStorage.setItem('subora_notice','1')}catch(e){}notice(noticeText())}},{passive:true,capture:true})})();
 function toast(t){try{histToast(t)}catch(e){}S.toast=t;clearTimeout(tt);let e=$('.toast');if(!e){e=document.createElement('div');e.className='toast';e.setAttribute('role','status');($('#frame')||document.body).appendChild(e)}e.textContent=t;tt=setTimeout(()=>{S.toast='';const x=$('.toast');if(x)x.remove()},2600)}
 /*NEWLISTING*/
 /* ---------- new listing: service search, auto cover, duration pills ---------- */
@@ -2825,7 +2866,7 @@ document.addEventListener('click',e=>{
  case 'chatseller':{if(!S.auth){gate();break}if(S.role!=='buyer'){toast('Switch to the buyer view to chat');break}const p=S.products.find(x=>x.v===id&&x.status==='live');if(!p){toast('This vendor has no live listings to chat about');break}ensureThread(p.id);S.view='buyer';S.sub='messages';S.modal=null;render();jump()}break;
  case 'add':if(!S.auth){gate();break}if($('#agree')&&!$('#agree').checked){toast('Read and tick the vendor terms first');break}if(!assetOk(id))break;if(S.role!=='buyer'){toast('Switch to the buyer view to shop');break}if(!S.cart.includes(id))S.cart.push(id);render();toast('Added to cart');break;
  case 'buynow':if(!S.auth){gate();break}if($('#agree')&&!$('#agree').checked){toast('Read and tick the vendor terms first');break}if(!assetOk(id))break;if(S.role!=='buyer'){toast('Switch to the buyer view to shop');break}if(!S.cart.includes(id))S.cart.push(id);S.modal={t:'cart'};render();break;
- case 'cart':if(!S.auth){gate();break}S.modal={t:'cart'};paintModal();break;
+ case 'cart':if(!S.auth){gate();break}S.modal={t:'cart'};paintModal();notice('Payments are held in escrow until you confirm delivery.');break;
  case 'rmcart':S.cart=S.cart.filter(x=>x!==id);render();break;
  case 'checkout':{if(S.susp&&S.susp['b:'+slug(ME)]){toast('Your account is suspended. Contact Subora support.');break}if(S.buyerVerified===false&&cartTotals().tot>150000){toast('New accounts can pay up to ₦150,000 per order. Verify your phone and ID in your profile to raise this.');break}if(!$('#cagree').checked){toast('Tick that you have read the terms');break}if(cartTotals().tot>S.buyer.wallet){toast('Fund your wallet first');break}const made=orderFromCart();const anyA=made.some(o=>o.asset);S.cart=[];S.cpn=null;S.modal=null;S.view='buyer';S.sub=anyA?'assets':'subs';render();toast(anyA?'Paid into escrow. Your code, transfer or login is in Cards & crypto.':'Payment held in escrow. Your access is on your subscription card.');jump()}break;
  case 'close':S.modal=null;paintModal();break;
@@ -3013,7 +3054,7 @@ document.addEventListener('submit',e=>{
 });
 document.addEventListener('input',e=>{
  const t=e.target;
- if(t.id==='q'){S.q=t.value;if(S.view!=='store'){S.view='store';render();const q=$('#q');q.focus();q.setSelectionRange(q.value.length,q.value.length);return}const sa=$('.sa');if(sa)sa.hidden=!!S.q||S.cat!=='All';const g=$('#grid');if(g)g.innerHTML=gridHTML();const c=$('#cnt');if(c)c.textContent=filtered().length+' listings'}
+ if(t.id==='q'||t.id==='qm'){S.q=t.value;if(S.view!=='store'){S.view='store';render();const q=$('#q')||$('#qm');q.focus();q.setSelectionRange(q.value.length,q.value.length);return}const sa=$('.sa');if(sa)sa.hidden=!!S.q||S.cat!=='All';const g=$('#grid');if(g)g.innerHTML=gridHTML();const c=$('#cnt');if(c)c.textContent=filtered().length+' listings'}
  if(t.id==='rq'){const q=t.value.toLowerCase();document.querySelectorAll('.rrow').forEach(r=>r.hidden=!r.dataset.q.includes(q))}
  if(t.id==='su_pw'){const s=t.value.length<8?Math.min(pwScore(t.value),1):pwScore(t.value);document.querySelectorAll('#meter i').forEach((b,i)=>b.classList.toggle('on',i<s));const h=$('#mhint');if(h)h.textContent=['Use 8+ characters with a number and a capital letter.','Weak','Fair','Good','Strong'][t.value.length<8?0:s]}
  if(/^c\d$/.test(t.id)){t.value=t.value.replace(/\D/g,'').slice(0,1);const n=$('#c'+(+t.id[1]+1));if(n&&t.value)n.focus()}
