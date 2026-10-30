@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
+import { buildBlog } from './build-blog.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CFG = JSON.parse(fs.readFileSync(path.join(ROOT, 'tools/site.config.json'), 'utf8'));
@@ -214,9 +215,9 @@ ${cta('New to Subora?', 'Browse listings and compare prices now. Create a free a
 ];
 
 /* ---------- page rendering ---------- */
-const NAV = [['/store', 'Marketplace'], ['/how-it-works', 'How it works'], ['/safety', 'Safety'], ['/faq', 'FAQ'], ['/about', 'About'], ['/contact', 'Contact']];
+const NAV = [['/store', 'Marketplace'], ['/how-it-works', 'How it works'], ['/safety', 'Safety'], ['/faq', 'FAQ'], ['/blog', 'Blog'], ['/about', 'About'], ['/contact', 'Contact']];
 const header = cur => `<a class="skip" href="#main">Skip to content</a><header class="site-hdr"><div class="wrap"><a class="logo" href="/" aria-label="Subora home">${MARK}<span>Subora</span></a><nav aria-label="Main">${NAV.map(([h, l]) => `<a href="${h}"${cur === h ? ' aria-current="page"' : ''}>${l}</a>`).join('')}</nav><div class="acts"><a class="btn sm" href="${CTA_LOGIN}">Log in</a><a class="btn sm pri" href="${CTA_SIGNUP}">Sign up</a></div></div></header>`;
-const footer = () => `<footer class="site-ftr"><div class="wrap"><div class="fgrid"><div><a class="logo" href="/" aria-label="Subora home">${MARK}<span>Subora</span></a><p>Shared subscriptions, courses, software and digital products, with escrow on every order.</p>${has(CFG.business_name) ? `<p>${esc(CFG.business_name)}</p>` : ''}</div><div><h2>Learn</h2><ul><li><a href="/store">Marketplace</a></li><li><a href="/how-it-works">How it works</a></li><li><a href="/safety">Safety</a></li><li><a href="/faq">FAQ</a></li><li><a href="/about">About</a></li></ul></div><div><h2>Support</h2><ul><li><a href="/contact">Contact</a></li><li><a href="${CTA_SIGNUP}">Create an account</a></li><li><a href="${CTA_SELL}">Sell on Subora</a></li></ul></div><div><h2>Legal</h2><ul><li><a href="/terms">Terms and Conditions</a></li><li><a href="/privacy">Privacy Policy</a></li><li><a href="/refunds">Refund policy</a></li></ul></div></div><div class="fbase"><span>© 2026 Subora.</span><span>Prices are shown in Nigerian naira (₦)</span></div></div></footer>`;
+const footer = () => `<footer class="site-ftr"><div class="wrap"><div class="fgrid"><div><a class="logo" href="/" aria-label="Subora home">${MARK}<span>Subora</span></a><p>Shared subscriptions, courses, software and digital products, with escrow on every order.</p>${has(CFG.business_name) ? `<p>${esc(CFG.business_name)}</p>` : ''}</div><div><h2>Learn</h2><ul><li><a href="/store">Marketplace</a></li><li><a href="/how-it-works">How it works</a></li><li><a href="/safety">Safety</a></li><li><a href="/faq">FAQ</a></li><li><a href="/blog">Blog</a></li><li><a href="/about">About</a></li></ul></div><div><h2>Support</h2><ul><li><a href="/contact">Contact</a></li><li><a href="${CTA_SIGNUP}">Create an account</a></li><li><a href="${CTA_SELL}">Sell on Subora</a></li></ul></div><div><h2>Legal</h2><ul><li><a href="/terms">Terms and Conditions</a></li><li><a href="/privacy">Privacy Policy</a></li><li><a href="/refunds">Refund policy</a></li></ul></div></div><div class="fbase"><span>© 2026 Subora.</span><span>Prices are shown in Nigerian naira (₦)</span></div></div></footer>`;
 
 function render(p) {
   const url = `${SITE}/${p.slug}`;
@@ -266,6 +267,9 @@ ${footer()}
   return { slug: p.slug, words, title: t.length };
 }
 const report = pages.map(render);
+
+/* ---------- blog: /blog, /blog/<post>, /blog/feed.xml (posts live in tools/blog/posts) ---------- */
+const BLOG = await buildBlog({ ROOT, SITE, ORG, WEBSITE, ld, header, footer, esc, attr, typo, fullTitle, warn, cta });
 
 /* ---------- knowledge.md: what the support chatbot knows (built from the public pages above) ---------- */
 const toText = h => typo(h
@@ -317,9 +321,9 @@ else throw new Error('Could not find the empty #app container in index.html');
 fs.writeFileSync(INDEX, idx);
 
 /* ---------- sitemap.xml, robots.txt, 404.html ---------- */
-const urls = [SITE + '/', SITE + '/store', ...pages.map(p => `${SITE}/${p.slug}`)];
+const urls = [[SITE + '/', CFG.updated], [SITE + '/store', CFG.updated], ...pages.map(p => [`${SITE}/${p.slug}`, CFG.updated]), ...BLOG.urls];
 fs.writeFileSync(path.join(ROOT, 'sitemap.xml'),
-  `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(u => `  <url><loc>${u}</loc><lastmod>${CFG.updated}</lastmod></url>`).join('\n')}\n</urlset>\n`);
+  `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(([u, d]) => `  <url><loc>${u}</loc><lastmod>${d}</lastmod></url>`).join('\n')}\n</urlset>\n`);
 fs.writeFileSync(path.join(ROOT, 'robots.txt'),
   `# Subora: public pages are open to search engines and AI crawlers.\nUser-agent: *\nAllow: /\nDisallow: /account/\nDisallow: /vendor/\nDisallow: /admin/\nDisallow: /case/\nDisallow: /knowledge.md\n\nSitemap: ${SITE}/sitemap.xml\n`);
 fs.writeFileSync(path.join(ROOT, '404.html'), `<!doctype html>
@@ -344,4 +348,5 @@ ${footer()}
 `);
 
 console.log('Pages written:'); report.forEach(r => console.log(`  /${r.slug}  ${r.words} words, title ${r.title} chars`));
+BLOG.rendered.forEach(r => console.log(`  /blog/${r.p.slug}  ${r.words} words, ${r.mins} min read, title ${r.titleLen} chars`));
 if (warn.length) { console.log('\nStill to fill in or check:'); warn.forEach(w => console.log('  - ' + w)); }
