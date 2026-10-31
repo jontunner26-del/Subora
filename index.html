@@ -1530,7 +1530,7 @@ function adminPlansView(){
  if(!A.loaded&&!A.err&&!A.loading){A.loading=true;setTimeout(apLoad,0)}
  const tabs=[['overview','Overview'],['usage','Usage'],['overrides','Overrides'],['settings','Plan settings']];
  const tb=`<div class="tabs" role="tablist">${tabs.map(t=>`<button class="${A.tab===t[0]?'on':''}" data-act="ap_tab" data-id="${t[0]}">${t[1]}</button>`).join('')}</div>`;
- if(A.err)return tb+`<div class="panel"><h3>Could not load plan data</h3><p class="muted sm">${esc(A.err)}</p><p class="muted sm">If this mentions a missing function, run 004_plans_admin_reads.sql in Supabase first.</p><button class="btn" data-act="ap_reload">Try again</button></div>`;
+ if(A.err)return tb+`<div class="panel"><h3>Could not load plan data</h3><p class="muted sm">${esc(A.err)}</p><button class="btn" data-act="ap_reload">Try again</button></div>`;
  if(!A.loaded)return tb+`<div class="panel empty">Loading plan data…</div>`;
  const o=A.ov||{},sub=o.subscribers||{};
  if(A.tab==='overview'){
@@ -2373,7 +2373,7 @@ const anLock=(r,what)=>{const p=anPlanFor(r);return `<div class="panel" style="t
 async function anLoad(){const A=S.an=S.an||{};A.loading=true;const days=S.per;try{A.data=ok(await sb.rpc('vendor_analytics',{p_days:days}));A.days=days;A.err=''}catch(e){A.err=cleanErr(e)}A.loading=false;render()}
 function anTiers(){
  const A=S.an||{},D=A.data;
- if(A.err)return `<div class="panel" style="margin-top:14px"><h3>Could not load detailed analytics</h3><p class="muted sm">${esc(A.err)}</p><p class="muted sm">If this mentions a missing function, run 005b_plan_analytics.sql in Supabase first.</p><button class="btn" data-act="an_reload">Try again</button></div>`;
+ if(A.err)return `<div class="panel" style="margin-top:14px"><h3>Could not load detailed analytics</h3><p class="muted sm">${esc(A.err)}</p><button class="btn" data-act="an_reload">Try again</button></div>`;
  if(!D||A.days!==S.per)return `<div class="panel empty" style="margin-top:14px">Loading…</div>`;
  const r=AN_RANK[D.tier]||0,L=D.listings||[],B=D.buyers||[],Y=D.daily||[];let h='';
  if(r<1)h+=anLock(1,'See sales for each listing');
@@ -3184,7 +3184,7 @@ const SUBORA_CONFIG={
   SUPABASE_URL:'https://znywpatsqmmxkbqtybrr.supabase.co',
   SUPABASE_ANON_KEY:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpueXdwYXRzcW1teGticXR5YnJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIwNzAxODEsImV4cCI6MjEwNzY0NjE4MX0.F3XtaNmuOXFsC8r6UjfbtnZdxoz0HDUDtieY6bSyqqc',
   PAYSTACK_PUBLIC_KEY:'',
-  SUPPORT_EMAIL:'support@yourdomain.com',
+  SUPPORT_EMAIL:'support@subora.com.ng',
   COMPANY_LINE:''   // paste your pk_live_... / pk_test_... key here to enable wallet funding
 };
 const sb=window.supabase.createClient(SUBORA_CONFIG.SUPABASE_URL,SUBORA_CONFIG.SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
@@ -4160,14 +4160,13 @@ function ownerSecView(){
  }else{
   two=`<p style="margin-top:0">Authenticator app: <span class="pill good">Set up</span></p><p>This sign-in: ${ver?'<span class="pill good">Verified with a code</span>':'<span class="pill warn">Not verified yet</span>'}</p>`+(ver?'':`<div class="form" style="margin:0;align-items:end"><div class="fld"><label for="os_code2">6-digit code</label><input id="os_code2" inputmode="numeric" autocomplete="one-time-code" maxlength="7"></div><button class="btn pri" data-act="os_verify">Verify now</button></div>`);
  }
- let enf;
- if(!has)enf=`<p class="muted sm" style="margin:0">Set up the authenticator app first.</p>`;
+ let enf='';
+ if(!has)enf='';
  else if(A.enforced)enf=`<p style="margin-top:0">Require 2FA for the owner: <span class="pill good">On</span></p><p class="muted sm">Every owner sign-in needs your code. The server refuses owner actions from a sign-in that has not passed 2FA.</p><button class="btn" data-act="os_enf" data-id="0"${ver?'':' disabled'}>Turn off</button>`;
- else enf=`<p style="margin-top:0">Require 2FA for the owner: <span class="pill warn">Off</span></p><p class="muted sm">Turn this on once your authenticator app works. It can only be switched on from a sign-in that already passed 2FA, so you cannot lock yourself out by accident.</p><button class="btn pri" data-act="os_enf" data-id="1"${ver?'':' disabled'}>Turn on</button>${ver?'':'<p class="muted xs">Verify a code above first.</p>'}`;
- const rec=`<div class="panel" style="margin-top:14px"><h3>If you lose your phone</h3><p class="muted sm" style="margin:0">In the Supabase dashboard open Authentication, then Users, open your owner account and remove the authenticator factor. To switch the requirement off first, run this in the SQL editor: <code class="mono">update staff_limits set value = 0 where key = 'owner_mfa_enforced';</code></p></div>`;
- return `<div class="panel"><h3>Owner two-factor sign-in</h3>${two}</div><div class="panel" style="margin-top:14px"><h3>Requirement</h3>${enf}</div>`+rec;
+ else enf=`<p style="margin-top:0">Require 2FA for the owner: <span class="pill warn">Off</span></p><p class="muted sm">When on, every owner sign-in needs your authenticator code.</p><button class="btn pri" data-act="os_enf" data-id="1"${ver?'':' disabled'}>Turn on</button>`;
+  return `<div class="panel"><h3>Owner two-factor sign-in</h3>${two}</div>`+(enf?`<div class="panel" style="margin-top:14px"><h3>Requirement</h3>${enf}</div>`:'');
 }
-MODALS.osenf=(m,head)=>({cls:'c',c:head(m.on?'Require 2FA for the owner':'Stop requiring 2FA')+`<p class="muted sm" style="margin:0 0 14px">${m.on?'From now on, owner actions only work from a sign-in that passed your authenticator code. Make sure your phone app works and you know the recovery steps shown on this page.':'Owner actions will work after the password alone again. You will still be asked for your code when you sign in.'}</p><button class="btn pri full" data-act="os_enf_go">Confirm</button>`});
+MODALS.osenf=(m,head)=>({cls:'c',c:head(m.on?'Require 2FA for the owner':'Stop requiring 2FA')+`<p class="muted sm" style="margin:0 0 14px">${m.on?'From now on, owner actions only work from a sign-in that passed your authenticator code. Keep your authenticator app handy.':'Owner actions will work after the password alone again. You will still be asked for your code when you sign in.'}</p><button class="btn pri full" data-act="os_enf_go">Confirm</button>`});
 H.os_reload=async()=>{Object.assign(S.osec||(S.osec={}),{loaded:false,err:'',loading:false});render()};
 H.os_enrol=async()=>{
  const A=S.osec;
