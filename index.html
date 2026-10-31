@@ -4035,13 +4035,14 @@ H.mfa_go=async()=>{
 };
 H.mfa_cancel=async()=>{S.mfa=null;await H.signout()};
 
-const STF_ERR={access_denied:'Access denied. If owner 2FA is on, sign in with your authenticator code first.',no_such_user:'No account has that email. They must sign up on the normal site first.',already_staff:'That person is already staff.',owner_cannot_be_staff:'The owner account cannot be staff.',name_required:'Enter a display name.',reason_required:'Add a reason (5+ characters).',no_such_staff:'Staff account not found.',bad_value:'That value is not allowed.',verify_2fa_first:'Verify a 2FA code in this sign-in first.',unknown_limit:'Unknown setting.',update_failed:'Could not set the password. Try again.',not_signed_in:'Your sign-in expired. Sign in again.'};
+const STF_ERR={already_decided:'Someone already decided this request.',order_not_refundable:'That order was already settled, so nothing was paid.',access_denied:'Access denied. If owner 2FA is on, sign in with your authenticator code first.',no_such_user:'No account has that email. They must sign up on the normal site first.',already_staff:'That person is already staff.',owner_cannot_be_staff:'The owner account cannot be staff.',name_required:'Enter a display name.',reason_required:'Add a reason (5+ characters).',no_such_staff:'Staff account not found.',bad_value:'That value is not allowed.',verify_2fa_first:'Verify a 2FA code in this sign-in first.',unknown_limit:'Unknown setting.',update_failed:'Could not set the password. Try again.',not_signed_in:'Your sign-in expired. Sign in again.'};
 const stfMsg=r=>STF_ERR[r&&r.error]||(r&&r.error)||'Something went wrong';
 const stfWhen=t=>t?new Date(t).toLocaleString('en-NG',{dateStyle:'medium',timeStyle:'short'}):'Never';
 async function stfLoad(){
  const A=S.stf;
  try{const r=ok(await sb.rpc('admin_list_staff'));if(!r||r.ok===false)throw new Error(stfMsg(r));A.rows=r.staff||[];A.loaded=true;A.err=''}
  catch(e){A.err=cleanErr(e)}
+ try{const q=ok(await sb.rpc('admin_pending_approvals'));A.appr=(q&&q.ok!==false&&q.items)||[]}catch(e){A.appr=A.appr||[]}
  A.loading=false;render();
 }
 function staffAccessView(){
@@ -4063,14 +4064,24 @@ function staffAccessView(){
  const table=rows.length?`<div class="tw"><table><thead><tr><th>Name</th><th>Email</th><th>Status</th><th>Last sign-in</th><th class="num">Devices</th><th></th></tr></thead><tbody>${rows.map(r=>`<tr><td class="t"><b>${esc(r.display_name)}</b>${r.session_active?' <span class="pill info">Signed in now</span>':''}</td><td class="mono">${esc(r.email||'')}</td><td>${pill(r)}${r.must_change?' <span class="pill info">New password pending</span>':''}${r.disabled_reason?`<div class="muted xs">${esc(r.disabled_reason)}</div>`:''}${r.failed_attempts?`<div class="muted xs">${+r.failed_attempts} failed attempt${r.failed_attempts==1?'':'s'}</div>`:''}</td><td>${esc(stfWhen(r.last_login_at))}${r.last_country?` · ${esc(r.last_country)}`:''}</td><td class="num">${+r.devices||0}</td><td>${acts(r)}</td></tr>`).join('')}</tbody></table></div>`:`<div class="empty">No staff yet.</div>`;
  const add=`<div class="panel" style="margin-top:14px"><h3>Add a staff member</h3><p class="muted sm" style="margin-top:0">They must first sign up on the normal site with their own email and a password only they know. Then enter that email here.</p><div class="form" style="margin:0;align-items:end"><div class="fld"><label for="stf_email">Their account email</label><input id="stf_email" type="email" autocomplete="off"></div><div class="fld"><label for="stf_name">Display name (shown only to you)</label><input id="stf_name" autocomplete="off"></div><button class="btn pri" data-act="stf_add">Add staff</button></div></div>`;
  const kill=`<div class="panel" style="margin-top:14px;border-color:var(--bad)"><h3>Emergency stop</h3><p class="muted sm" style="margin-top:0">Disables every staff account and signs them out everywhere, at once. You can enable people again one by one.</p><button class="btn" style="border-color:var(--bad);color:var(--bad)" data-act="stf_all">Disable all staff and sign out everywhere</button></div>`;
- return intro+`<div class="panel" style="margin-top:14px">${table}</div>`+add+kill;
+ const LIMW={per_case:'over the per-refund limit',per_day:'over the daily total',per_count:'daily refund count used',same_buyer:'same buyer refunded in the last 7 days'};
+ const ap=A.appr||[];
+ const pend=ap.length?`<div class="panel" style="margin-top:14px;border-color:var(--warn)"><h3>Waiting for your decision (${ap.length})</h3><p class="muted sm" style="margin:0 0 10px">Staff cannot pay these themselves. Approving a refund pays the buyer's wallet at once and closes the case. Declining moves no money.</p><div class="tw"><table><thead><tr><th>From</th><th>Request</th><th>Why it waits</th><th></th></tr></thead><tbody>${ap.map(r=>`<tr><td class="t"><b>${esc(r.staff)}</b><br><span class="muted sm">${esc(fmtT(r.created_at))}</span></td><td>${r.kind==='refund_over_limit'?'Refund of <b>₦'+Number(r.amount||0).toLocaleString('en-NG')+'</b>'+(r.order_no?' on order #'+esc(r.order_no):'')+(r.buyer?' for '+esc(r.buyer):''):esc(r.kind)}<br><span class="muted sm">${esc(r.reason||'')}</span></td><td>${(r.limit_reasons||[]).map(k=>`<span class="pill warn">${esc(LIMW[k]||k)}</span>`).join(' ')||'<span class="muted sm">Needs owner approval</span>'}</td><td style="white-space:nowrap"><button class="btn sm pri" data-act="stf_apr_yes" data-id="${esc(r.id)}">Approve</button> <button class="btn sm" data-act="stf_apr_no" data-id="${esc(r.id)}">Decline</button></td></tr>`).join('')}</tbody></table></div></div>`:'';
+ return intro+pend+`<div class="panel" style="margin-top:14px">${table}</div>`+add+kill;
 }
 MODALS.stf=(m,head)=>{
+ if(m.kind==='apr_yes'||m.kind==='apr_no'){
+  const r=((S.stf&&S.stf.appr)||[]).find(x=>x.id===m.id)||{},yes=m.kind==='apr_yes';
+  const txt=yes?(r.kind==='refund_over_limit'?'This pays <b>₦'+Number(r.amount||0).toLocaleString('en-NG')+'</b> to the buyer wallet now and closes the case.':'The staff member is told you approved.'):'The staff member is told you declined. No money moves.';
+  return {cls:'c',c:head(yes?'Approve this request':'Decline this request')+`<p class="muted sm" style="margin:0 0 12px">${txt}</p><div class="fld"><label for="stf_reason">Note to staff (optional)</label><input id="stf_reason" autocomplete="off"></div><button class="btn pri full" data-act="stf_go">Confirm</button>`};
+ }
  if(m.kind==='temp')return {cls:'c',c:head('Temporary password')+`<p class="muted sm" style="margin:0 0 12px">Give this to <b>${esc(m.name||'the staff member')}</b> in person or over a private message. It is shown only now and cannot be looked up later. They must choose their own password at sign-in, and their code app is still needed.</p><div class="mono" style="font-size:20px;letter-spacing:.04em;padding:14px;border:1px dashed var(--line);border-radius:10px;text-align:center;user-select:all;word-break:break-all">${esc(m.pw)}</div><div style="display:flex;gap:8px;margin-top:14px"><button class="btn full" data-act="stf_copy">Copy</button><button class="btn pri full" data-act="close">Done</button></div>`};
  const T={reset:['Reset staff password','Sets a one-time temporary password, signs them out everywhere and clears any lock. They must choose their own password the next time they sign in. Your reason is written to the audit log.',true],unlock:['Unlock staff account','Only unlock when you are sure it is really them. Your reason is written to the audit log.',true],disable:['Disable staff account','They are signed out straight away and cannot sign in until you enable them again.',true],all:['Disable all staff','Every staff account is disabled and signed out everywhere.',false]}[m.kind]||['Staff','',true];
  return {cls:'c',c:head(T[0])+`<p class="muted sm" style="margin:0 0 12px">${T[1]}</p><div class="fld"><label for="stf_reason">Reason${T[2]?' (required, 5+ characters)':' (optional)'}</label><input id="stf_reason" autocomplete="off"></div><button class="btn pri full" data-act="stf_go">Confirm</button>`};
 };
 H.stf_reload=async()=>{Object.assign(S.stf||(S.stf={}),{loaded:false,err:'',loading:false});render()};
+H.stf_apr_yes=async(el,id)=>{S.modal={t:'stf',kind:'apr_yes',id};paintModal()};
+H.stf_apr_no=async(el,id)=>{S.modal={t:'stf',kind:'apr_no',id};paintModal()};
 H.stf_unlock=async(el,id)=>{S.modal={t:'stf',kind:'unlock',id};paintModal()};
 H.stf_reset=async(el,id)=>{S.modal={t:'stf',kind:'reset',id};paintModal()};
 H.stf_copy=async()=>{const m=S.modal;if(!m||m.kind!=='temp')return;try{await navigator.clipboard.writeText(m.pw);toast('Copied')}catch(e){toast('Select the password and copy it')}};
@@ -4079,6 +4090,13 @@ H.stf_all=async()=>{S.modal={t:'stf',kind:'all'};paintModal()};
 H.stf_go=async()=>{
  const m=S.modal;if(!m||m.t!=='stf')return;
  const reason=gv('stf_reason');
+ if(m.kind==='apr_yes'||m.kind==='apr_no'){
+  const r0=ok(await sb.rpc('admin_decide_approval',{p_id:m.id,p_approve:m.kind==='apr_yes',p_note:reason||null}));
+  if(!r0||r0.ok===false){toast(stfMsg(r0));return}
+  Object.assign(S.stf||(S.stf={}),{loaded:false,loading:false,err:''});
+  await after(m.kind==='apr_no'?'Request declined':r0.paid?'Refund approved and paid to the buyer':r0.error==='order_not_refundable'?'Nothing paid: that order was already settled':'Approved','admin','staff');
+  return;
+ }
  if(m.kind!=='all'&&reason.length<5){toast('Add a reason (5+ characters)');return}
  if(m.kind==='reset'){
   let res,b;
