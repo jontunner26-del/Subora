@@ -179,7 +179,7 @@ function viewHtml(s){
         +'<h2>Decision</h2>'+reasonBox('Reason (at least 10 characters)','Both buyer and vendor are told the outcome.')
         +'<div class="row"><button type="button" class="good" data-a="release"'+dis+'>Release to vendor</button>'
         +(esc2?'':'<button type="button" class="bad" data-a="refund"'+dis+'>Refund the buyer</button>')+'</div>'
-        +(esc2?'<p class="note">A refund is already with the owner. You can still release to the vendor.</p>':'<p class="mute">A refund goes to the owner for approval. No money moves until the owner approves it.</p>');
+        +(esc2?'<p class="note">A refund is already with the owner. You can still release to the vendor.</p>':'<p class="mute">A refund inside your limits is paid to the buyer at once. A larger or repeat refund goes to the owner, and no money moves until the owner approves it.</p>');
     }
   }else if(v.kind==='flag'){
     h=back+'<h1>Blocked message</h1>'
@@ -397,7 +397,7 @@ function createStaffApp(deps){
   }
 
   // ---------- 6e: open an item, act on it. The database decides every permission; this only asks and shows. ----------
-  var ERR={access_denied:'You do not have permission for that.',reason_required:'Add a reason that is long enough.',not_found:'That item no longer exists.',not_pending:'Someone already reviewed this listing.',case_closed:'This case is already closed.',bad_text:'Write a message of up to 2000 characters.',bad_decision:'Choose release or refund.',bad_status:'That action is not available.',not_live:'Only live listings can be hidden.',not_hidden:'This listing is not hidden.',not_allowed_target:'Staff cannot suspend owner or staff accounts.',already_taken:'Someone else already took this ticket.',approval_failed:'Could not send this to the owner. Try again.',network:'Could not reach the server. Check your connection.'};
+  var ERR={order_not_refundable:'This order can no longer be refunded.',already_pending:'A refund for this order is already waiting for the owner.',bad_amount:'That refund amount is not valid.',access_denied:'You do not have permission for that.',reason_required:'Add a reason that is long enough.',not_found:'That item no longer exists.',not_pending:'Someone already reviewed this listing.',case_closed:'This case is already closed.',bad_text:'Write a message of up to 2000 characters.',bad_decision:'Choose release or refund.',bad_status:'That action is not available.',not_live:'Only live listings can be hidden.',not_hidden:'This listing is not hidden.',not_allowed_target:'Staff cannot suspend owner or staff accounts.',already_taken:'Someone else already took this ticket.',approval_failed:'Could not send this to the owner. Try again.',network:'Could not reach the server. Check your connection.'};
   Object.assign(ERR,{no_official_store:'There is no official Subora store yet. Ask the owner to set it up.',store_suspended:'The official store is suspended.',bad_title:'The title needs 3 to 120 characters.',bad_category:'Choose a listing type.',bad_price:'Enter a price above zero.',bad_link:'The course link must start with https://',course_ownership:'Confirm that Subora made this course or can resell it.',course_link_missing:'Add the link to the course first.',not_editable:'This listing cannot be edited now.',own_listing:'You edited this listing, so another staff member or the owner has to approve it.',bad_input:'Check the numbers and try again.'});
   function errText(e){return ERR[e]||'Something went wrong. Try again.'}
   async function call(name,args){try{var r=await rpc(name,args||{});return r||{ok:false,error:'no_answer'}}catch(e){return {ok:false,error:'network'}}}
@@ -479,7 +479,13 @@ function createStaffApp(deps){
     if(!S.view||S.view.kind!=='dispute')return;
     if(needReason(reason,10))return;
     var r=await act('staff_decide_dispute',{p_dispute:S.view.id,p_decision:decision,p_reason:String(reason).trim()});
-    if(r)return closeView(r.pending_owner?'Refund sent to the owner for approval. No money moves until the owner approves it.':'Case closed: released to the vendor.');
+    if(r){
+      var LIMW={per_case:'it is above the per-refund limit',per_day:'it would pass the daily refund total',per_count:'the daily refund count is used up',same_buyer:'this buyer was refunded in the last 7 days'};
+      if(r.paid)return closeView('Refund paid to the buyer. The case is closed.');
+      if(r.pending_owner){var why=(r.reasons||[]).map(function(k){return LIMW[k]}).filter(Boolean).join('; ');
+        return closeView('Sent to the owner'+(why?' because '+why:'')+'. No money moves until the owner approves it.')}
+      return closeView('Case closed: released to the vendor.');
+    }
   }
   async function replyDispute(text){
     if(!S.view||S.view.kind!=='dispute')return;
