@@ -3924,21 +3924,40 @@ HF.cfgsave=async()=>{
 /* admin: people list (replaces the old simulated history view) */
 peopleView=function(){
   const roleOf=id=>{const p=(S.adminProf||[]).find(x=>x.id===id);return p?p.role:''};
-  const vend=Object.entries(VENDORS).filter(([k])=>k!=='__none__').map(([k,v])=>({k,n:v.name,r:roleOf(k)==='admin'?'Owner':'Vendor',s:v.suspended}));
+  const vend=Object.entries(VENDORS).filter(([k])=>k!=='__none__').map(([k,v])=>({k,n:v.name,r:roleOf(k)==='admin'?'Owner':'Vendor',s:v.suspended,o:!!v.official,vf:!!v.verified}));
   const buyers=Object.entries(S.adminNames||{}).filter(([k])=>!VENDORS[k]).map(([k,n])=>({k,n,r:roleOf(k)==='admin'?'Owner':'Account',s:false}));
   const list=[...vend,...buyers];
   const acts=x=>{
     if(x.r==='Owner'||x.k===LIVE.uid)return '<span class="muted sm">Protected</span>';
-    return (x.s?`<button class="btn sm" data-act="reinstate" data-id="${x.k}">Reinstate</button>`:`<button class="btn sm bad" data-act="suspend" data-id="${x.k}">Suspend</button>`)+` <button class="btn sm bad" data-act="delacct" data-id="${x.k}">Delete account</button>`;
+    const off=x.r!=='Vendor'?'':(x.o?` <button class="btn sm" data-act="offoff" data-id="${x.k}">Remove official</button>`:(x.vf&&!x.s?` <button class="btn sm" data-act="offon" data-id="${x.k}">Make official store</button>`:''));
+    return (x.s?`<button class="btn sm" data-act="reinstate" data-id="${x.k}">Reinstate</button>`:`<button class="btn sm bad" data-act="suspend" data-id="${x.k}">Suspend</button>`)+off+(x.o?'':` <button class="btn sm bad" data-act="delacct" data-id="${x.k}">Delete account</button>`);
   };
-  return `<div class="panel"><h3>Accounts</h3><p class="muted sm" style="margin:0 0 12px">Suspending a vendor hides all their listings. Reinstating makes them live again. Delete account removes an account for good, and only works for accounts with no orders, payments, messages or reviews.</p>
+  return `<div class="panel"><h3>Accounts</h3><p class="muted sm" style="margin:0 0 12px">Suspending a vendor hides all their listings. Reinstating makes them live again. Delete account removes an account for good, and only works for accounts with no orders, payments, messages or reviews. The official store is a verified vendor that staff help manage: it gets the gold badge, and staff can create and edit its listings.</p>
   <div class="fld" style="margin-bottom:12px"><label for="susp_r">Reason for suspension (kept on record)</label><input id="susp_r" placeholder="Required to suspend"></div>
-  <div class="tw"><table><thead><tr><th>Name</th><th>Type</th><th>Status</th><th></th></tr></thead><tbody>${list.map(x=>`<tr><td><span class="t">${esc(x.n)}</span></td><td>${x.r}</td><td>${x.s?'<span class="pill bad">Suspended</span>':'<span class="pill good">Active</span>'}</td><td>${acts(x)}</td></tr>`).join('')||'<tr><td colspan="4" class="muted">No accounts yet.</td></tr>'}</tbody></table></div></div>`;
+  <div class="tw"><table><thead><tr><th>Name</th><th>Type</th><th>Status</th><th></th></tr></thead><tbody>${list.map(x=>`<tr><td><span class="t">${esc(x.n)}</span></td><td>${x.r}</td><td>${x.s?'<span class="pill bad">Suspended</span>':'<span class="pill good">Active</span>'}${x.o?' <span class="pill info">Official store</span>':''}</td><td>${acts(x)}</td></tr>`).join('')||'<tr><td colspan="4" class="muted">No accounts yet.</td></tr>'}</tbody></table></div></div>`;
+};
+
+/* admin: official Subora store (owner only, enforced by admin_set_official_store on the database) */
+const OFF_ERR={access_denied:'Only an owner can do this. If owner 2FA is on, sign in with your authenticator code first.',no_such_vendor:'That vendor no longer exists.',cannot_be_owner:'An owner account cannot be the official store.',vendor_suspended:'Reinstate this vendor first.',not_verified:'This vendor has not passed verification yet.',not_official:'This store is not marked official.'};
+MODALS.offstore=(m,head)=>({c:head(m.on?'Make official store':'Remove official status')+`<p class="muted" style="margin:0">${m.on?`<b style="color:var(--fg)">${esc(m.name)}</b> will become the official Subora store. It gets the gold Official Subora badge, ranks first, and is not held to vendor plan limits. Staff with store permission can create and edit its listings and hide them. They cannot delete listings, and price changes above their limit still need you. Only one store can be official.`:`<b style="color:var(--fg)">${esc(m.name)}</b> goes back to being a regular vendor. Staff will no longer be able to manage its listings.`}</p><div class="fld"><label for="of_r">Note <span class="muted">optional, kept in the audit log</span></label><input id="of_r" maxlength="200" value="${esc(m.r||'')}"></div>${m.err?`<p class="hint bad" role="alert">${esc(m.err)}</p>`:''}<div class="acts"><button class="btn" data-act="close">Cancel</button><button class="btn pri" data-act="offgo">${m.on?'Make official':'Remove official'}</button></div>`});
+H.offon=async(el,id)=>{if(!id)return;S.modal={t:'offstore',id,on:true,name:(VENDORS[id]&&VENDORS[id].name)||'this store',r:'',err:''};paintModal()};
+H.offoff=async(el,id)=>{if(!id)return;S.modal={t:'offstore',id,on:false,name:(VENDORS[id]&&VENDORS[id].name)||'this store',r:'',err:''};paintModal()};
+H.offgo=async()=>{
+  const m=S.modal;if(!m||m.t!=='offstore')return;
+  m.r=gv('of_r');
+  let res;
+  try{res=await rpc('admin_set_official_store',{p_vendor:m.id,p_on:!!m.on,p_reason:m.r.trim()||null})}
+  catch(e){m.err='Could not save. Check your connection and try again.';paintModal();return}
+  if(!res||res.ok!==true){
+    m.err=res&&res.error==='another_official'?'Another store is already official ('+(res.store||'unknown')+'). Remove its status first.':(OFF_ERR[res&&res.error]||'Could not save this change.');
+    paintModal();return;
+  }
+  await after(m.on?'Official store set':'Official status removed','admin','people');
 };
 
 /* admin: delete account (owner only, enforced by admin_delete_account on the database) */
 MODALS.delacct=(m,head)=>({c:head('Delete account')+`<p class="muted" style="margin:0">You are about to permanently delete <b style="color:var(--fg)">${esc(m.name)}</b>. Their sign-in, profile and saved items are removed. This cannot be undone.</p><div class="note" style="margin-top:12px">${I('shield',16)}<span>Accounts with orders, payments, messages or reviews cannot be deleted, because those are permanent records. Suspend them instead.</span></div><div class="fld"><label for="da_r">Reason (kept in the audit log)</label><input id="da_r" value="${esc(m.r||'')}" placeholder="At least 5 characters"></div><div class="fld"><label for="da_c">Type DELETE to confirm</label><input id="da_c" autocomplete="off"></div>${m.err?`<p class="hint bad" role="alert">${esc(m.err)}</p>`:''}<div class="acts"><button class="btn" data-act="close">Cancel</button><button class="btn pri bad" data-act="delacct_go">Delete account</button></div>`});
-const DEL_ERR={access_denied:'Only an owner can delete accounts. If owner 2FA is on, sign in with your authenticator code first.',reason_required:'Write a reason of at least 5 characters.',cannot_delete_self:'You cannot delete your own account.',cannot_delete_owner:'Owner accounts cannot be deleted here.',is_active_staff:'This is an active staff account. Disable it in Staff access first.',no_such_user:'That account no longer exists.'};
+const DEL_ERR={is_official_store:'This is the official Subora store. Remove its official status first.',access_denied:'Only an owner can delete accounts. If owner 2FA is on, sign in with your authenticator code first.',reason_required:'Write a reason of at least 5 characters.',cannot_delete_self:'You cannot delete your own account.',cannot_delete_owner:'Owner accounts cannot be deleted here.',is_active_staff:'This is an active staff account. Disable it in Staff access first.',no_such_user:'That account no longer exists.'};
 H.delacct=async(el,id)=>{
   if(!id||id===LIVE.uid)return;
   const nm=(S.adminNames&&S.adminNames[id])||(VENDORS[id]&&VENDORS[id].name)||'this account';

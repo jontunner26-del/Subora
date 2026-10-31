@@ -52,6 +52,14 @@ button.lnk{border:none;padding:4px 0;color:var(--lime);text-decoration:underline
 .thread .msg{padding:10px 12px;border:1px solid var(--line);border-radius:10px;margin:8px 0}.thread .msg.cust{border-color:var(--lime)}.thread .msg p{margin:6px 0 0}
 tr.item{cursor:pointer}tr.item:hover td{background:#10241a}
 ul{margin:6px 0;padding-left:20px}
+select{width:100%;padding:12px 13px;border-radius:10px;border:1px solid var(--line);background:#0c1810;color:var(--ink);font:inherit}
+select:focus{outline:2px solid var(--lime);outline-offset:1px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+@media (max-width:640px){.two{grid-template-columns:1fr}}
+label.ck{display:flex;gap:10px;align-items:flex-start;color:var(--ink);margin:12px 0}
+label.ck input{width:auto;margin-top:4px}
+.course-only[hidden],.sub-only[hidden]{display:none!important}
+.tabsrow button.on{background:var(--lime);color:#0f1f14;border-color:var(--lime);font-weight:700}
 </style>
 </head>
 <body>
@@ -71,6 +79,77 @@ function reasonBox(label,help){return '<label for="x_reason">'+escHtml(label)+'<
 function vendorBtn(id){return id?'<button type="button" data-a="vendor" data-id="'+escHtml(id)+'">View vendor</button>':''}
 
 /* HTML for the open item. Pure: state in, string out, so it can be tested without a browser. */
+
+/* ---- Subora official store: list and form. The database decides every permission and rule. ---- */
+var STORE_TYPES=['Subscriptions','Software','Digital','Courses'];
+var STORE_DURS=['1 month','3 months','6 months','1 year','2 years'];
+var STORE_DELIV=['Instant','Within 1 hour','Within 24 hours'];
+var STORE_ATYPES=[['Password','Password (email + password)'],['OTP code','OTP / sign-in code'],['Link','Access link or invite']];
+var STORE_ACC=[['manual','Staff or owner send the details'],['code','Automatic sign-in code'],['link','Automatic access link']];
+var STORE_PLAT=['My own website','Course platform','Google Drive or Dropbox','Private YouTube or Vimeo','Telegram or community group'];
+var STORE_FMT=['Recorded video','Live classes','PDF and notes','Mixed'];
+var STORE_LVL=['Beginner','Intermediate','Advanced','All levels'];
+var STORE_STATUS={live:'Live',pending:'Waiting for review',draft:'Draft',rejected:'Rejected',paused:'Paused',archived:'Archived',suspended:'Suspended'};
+var STORE_EDITABLE=['draft','pending','live','paused','rejected'];
+function optHtml(list,sel){return list.map(function(o){var val=Array.isArray(o)?o[0]:o,lab=Array.isArray(o)?o[1]:o;return '<option value="'+escHtml(val)+'"'+(String(val)===String(sel)?' selected':'')+'>'+escHtml(lab)+'</option>'}).join('')}
+function storeListHtml(s){
+  var st=s.store;
+  if(!st||st.loading)return '<h1>Subora store</h1><p class="mute">Loading\u2026</p>';
+  var info=s.storeInfo||{},can=info.can||{},L=st.listings||[];
+  var h='<h1>Subora store</h1><p class="mute">Listings of the official store'+(st.name?' ('+escHtml(st.name)+')':'')+'. Everything you change here is logged. A listing you edited has to be approved by someone else. You can change the price of a live listing by up to '+escHtml(String(info.price_change_pct==null?20:info.price_change_pct))+'%.</p>';
+  if(can.create)h+='<div class="row"><button type="button" class="good" data-a="snew"'+(s.busy?' disabled':'')+'>New listing</button></div>';
+  if(!L.length)return h+'<div class="empty">No store listings yet.</div>';
+  h+='<div class="tw"><table><thead><tr><th>Listing</th><th>Type</th><th>Price</th><th>Status</th><th></th></tr></thead><tbody>'+L.map(function(l){
+    var label=l.staff_hidden?'Hidden by staff':(STORE_STATUS[l.status]||l.status);
+    var amber=(l.status==='pending'||l.status==='rejected'||l.staff_hidden);
+    var note=l.status==='pending'&&l.mine?'<div class="mute">You edited this, so someone else must approve it.</div>':(l.status==='rejected'&&l.reject_reason?'<div class="mute">'+escHtml(l.reject_reason)+'</div>':'');
+    var edit=can.edit&&STORE_EDITABLE.indexOf(l.status)>-1?'<button type="button" class="lnk" data-a="sedit" data-id="'+escHtml(l.id)+'">Edit</button>':'';
+    return '<tr><td><b>'+escHtml(l.title)+'</b><div class="mute">'+escHtml(l.service||'')+(l.plan?' \u00b7 '+escHtml(l.plan):'')+'</div></td><td>'+escHtml(l.category)+'</td><td>'+money(l.price)+'</td><td>'+tagHtml(label,amber?'amber':'')+note+'</td><td>'+edit+'</td></tr>';
+  }).join('')+'</tbody></table></div>';
+  return h;
+}
+function storeFormHtml(s,v){
+  var d=v.data||{},isNew=!d.id,dis=s.busy?' disabled':'',cat=d.category||'Subscriptions',course=cat==='Courses',c=d.course||{};
+  var st=d.status||'',published=(st==='live'||st==='paused'),info=s.storeInfo||{},can=info.can||{};
+  var featTxt=(d.features||[]).join('\n'),termsTxt=(d.terms||[]).join('\n');
+  function f(id,label,inner,hint){return '<label for="'+id+'">'+label+'</label>'+inner+(hint?'<p class="mute" style="margin:4px 0 0">'+hint+'</p>':'')}
+  var h='<h1>'+(isNew?'New store listing':'Edit store listing')+'</h1>';
+  if(!isNew)h+='<p>'+tagHtml(d.staff_hidden?'Hidden by staff':(STORE_STATUS[st]||st),(st==='pending'||st==='rejected'||d.staff_hidden)?'amber':'')+'</p>'+(st==='rejected'&&d.reject_reason?'<div class="note">Rejected: '+escHtml(d.reject_reason)+'</div>':'');
+  h+='<div class="two">'+f('sf_cat','Listing type','<select id="sf_cat">'+optHtml(STORE_TYPES,cat)+'</select>')
+    +f('sf_svc','Service','<input id="sf_svc" maxlength="120" value="'+escHtml(d.service||'')+'" placeholder="e.g. ChatGPT, Netflix, Excel course">')+'</div>'
+    +'<div class="two">'+f('sf_plan','Plan','<input id="sf_plan" maxlength="120" value="'+escHtml(d.plan||'')+'" placeholder="e.g. Plus, Premium 4K">')
+    +f('sf_title','Title','<input id="sf_title" maxlength="120" value="'+escHtml(d.title||'')+'" placeholder="What buyers see">')+'</div>'
+    +'<div class="two">'+f('sf_price','Price (\u20A6)','<input id="sf_price" type="number" min="1" inputmode="numeric" value="'+escHtml(d.price==null?'':d.price)+'">',published?'Live listing: staff can change this by up to '+escHtml(String(info.price_change_pct==null?20:info.price_change_pct))+'%. For more, ask the owner.':'')
+    +f('sf_old','Original price (\u20A6)','<input id="sf_old" type="number" min="1" inputmode="numeric" value="'+escHtml(d.old_price==null?'':d.old_price)+'">','Shown crossed out with the discount. Optional.')+'</div>'
+    +'<div class="sub-only"'+(course?' hidden':'')+'><div class="two">'+f('sf_atype','Access type','<select id="sf_atype">'+optHtml(STORE_ATYPES,d.access_type||'Password')+'</select>')
+    +f('sf_dur','Duration','<select id="sf_dur">'+optHtml(STORE_DURS,d.duration||'1 month')+'</select>')+'</div>'
+    +'<div class="two">'+f('sf_stock','Stock (slots or copies)','<input id="sf_stock" type="number" min="1" max="50" value="'+escHtml(d.stock==null?10:d.stock)+'">','Maximum 50.')
+    +f('sf_deliv','Delivery time','<select id="sf_deliv">'+optHtml(STORE_DELIV,d.delivery||'Instant')+'</select>')+'</div></div>'
+    +f('sf_acc','How buyers get access','<select id="sf_acc">'+optHtml(STORE_ACC,d.acc||'manual')+'</select>')
+    +f('sf_desc','Description','<textarea id="sf_desc" rows="4" maxlength="4000">'+escHtml(d.description||'')+'</textarea>')
+    +'<div class="two">'+f('sf_feat','Features (one per line)','<textarea id="sf_feat" rows="4">'+escHtml(featTxt)+'</textarea>')
+    +f('sf_terms','Terms (one per line)','<textarea id="sf_terms" rows="4">'+escHtml(termsTxt)+'</textarea>')+'</div>'
+    +'<div class="course-only"'+(course?'':' hidden')+'><h2>Course details</h2>'
+    +f('sf_c_link','Link to the course','<input id="sf_c_link" type="url" inputmode="url" autocomplete="off" placeholder="'+(d.has_course_link?'A link is saved. Leave empty to keep it.':'https://')+'">','Buyers get this link after they pay. It is saved but never shown here again.')
+    +'<div class="two">'+f('sf_c_plat','Where it is hosted','<select id="sf_c_plat">'+optHtml(STORE_PLAT,c.plat)+'</select>')+f('sf_c_fmt','Format','<select id="sf_c_fmt">'+optHtml(STORE_FMT,c.fmt)+'</select>')+'</div>'
+    +'<div class="two">'+f('sf_c_lvl','Level','<select id="sf_c_lvl">'+optHtml(STORE_LVL,c.lvl)+'</select>')+f('sf_c_len','Length','<input id="sf_c_len" maxlength="120" value="'+escHtml(c.len||'')+'" placeholder="e.g. 14 hours, 32 lessons">')+'</div>'
+    +f('sf_c_prev','Free preview link (optional)','<input id="sf_c_prev" type="url" inputmode="url" maxlength="300" value="'+escHtml(c.prev||'')+'" placeholder="https://">')
+    +'<label class="ck"><input type="checkbox" id="sf_c_cert"'+(c.cert?' checked':'')+'> Buyers also get a certificate or project files</label>'
+    +'<label class="ck"><input type="checkbox" id="sf_c_own"'+(c.own?' checked':'')+'> Subora made this course, or has written permission to resell it.</label></div>';
+  if(isNew||st==='draft'||st==='rejected'){
+    h+='<div class="row"><button type="button" data-a="ssave"'+dis+'>Save as draft</button><button type="button" class="good" data-a="ssubmit"'+dis+'>Save and send for review</button></div>'
+      +'<p class="mute">Someone other than you, or the owner, must approve it before it goes live.</p>';
+  }else{
+    h+='<div class="row"><button type="button" class="good" data-a="ssave"'+dis+'>Save changes</button></div>';
+  }
+  if(!isNew&&can.hide&&(st==='live'||d.staff_hidden)){
+    h+='<h2>'+(d.staff_hidden?'Restore this listing':'Hide this listing')+'</h2>'
+      +(d.staff_hidden?'<p class="mute">Hidden because: '+escHtml(d.staff_hidden_reason||'')+'</p>':'')
+      +reasonBox(d.staff_hidden?'Note (optional)':'Reason (at least 5 characters)','The store is told.')
+      +'<div class="row">'+(d.staff_hidden?'<button type="button" class="good" data-a="srestore" data-id="'+escHtml(d.id)+'"'+dis+'>Restore listing</button>':'<button type="button" class="bad" data-a="shide" data-id="'+escHtml(d.id)+'"'+dis+'>Hide listing</button>')+'</div>';
+  }
+  return h;
+}
 function viewHtml(s){
   var v=s.view;if(!v)return '';
   var dis=s.busy?' disabled':'';
@@ -86,6 +165,8 @@ function viewHtml(s){
       +'<div class="row"><button type="button" class="good" data-a="approve"'+dis+'>Approve</button></div>'
       +reasonBox('Reason (needed to reject, at least 5 characters)','The vendor sees this reason.')
       +'<div class="row"><button type="button" class="bad" data-a="reject"'+dis+'>Reject listing</button></div>';
+  }else if(v.kind==='storeform'){
+    h=back+storeFormHtml(s,v);
   }else if(v.kind==='dispute'){
     var dp=d.dispute||{},o=d.order||{},ev=d.events||[],closed=dp.status==='resolved',esc2=dp.status==='escalated';
     h=back+'<h1>Dispute '+escHtml(dp.case_no||'')+'</h1><p>'+tagHtml(dp.status||'',closed?'':'amber')+(dp.outcome?' '+escHtml(dp.outcome):'')+'</p>'
@@ -147,7 +228,7 @@ function createStaffApp(deps){
   var sb=deps.sb;
   var pwUrl=deps.pwUrl||String(deps.loginUrl).replace('staff-login','staff-password');
   var IDLE_MS=deps.idleMs||30*60*1000, MAX_MS=deps.maxMs||8*3600*1000, BEAT_MS=deps.beatMs||4*60*1000;
-  var S={step:'loading',busy:false,error:'',notice:'',enroll:null,factorId:null,name:'',queue:[],queueErr:'',idleLeft:IDLE_MS,maxLeft:MAX_MS,newDevice:false,forced:false,view:null,nav:[]};
+  var S={step:'loading',busy:false,error:'',notice:'',enroll:null,factorId:null,name:'',queue:[],queueErr:'',idleLeft:IDLE_MS,maxLeft:MAX_MS,newDevice:false,forced:false,view:null,nav:[],tab:'queue',storeInfo:null,store:null};
   var lastActivity=deps.now(), lastBeat=deps.now(), started=deps.now(), timer=null;
 
   function snap(){return Object.assign({},S,{queue:S.queue.slice()})}
@@ -205,6 +286,7 @@ function createStaffApp(deps){
     go('dashboard');
     stopTimer();
     timer=deps.setInterval(tick,1000);
+    loadStoreInfo();
     await loadQueue();
   }
   async function registerAndEnter(){
@@ -316,6 +398,7 @@ function createStaffApp(deps){
 
   // ---------- 6e: open an item, act on it. The database decides every permission; this only asks and shows. ----------
   var ERR={access_denied:'You do not have permission for that.',reason_required:'Add a reason that is long enough.',not_found:'That item no longer exists.',not_pending:'Someone already reviewed this listing.',case_closed:'This case is already closed.',bad_text:'Write a message of up to 2000 characters.',bad_decision:'Choose release or refund.',bad_status:'That action is not available.',not_live:'Only live listings can be hidden.',not_hidden:'This listing is not hidden.',not_allowed_target:'Staff cannot suspend owner or staff accounts.',already_taken:'Someone else already took this ticket.',approval_failed:'Could not send this to the owner. Try again.',network:'Could not reach the server. Check your connection.'};
+  Object.assign(ERR,{no_official_store:'There is no official Subora store yet. Ask the owner to set it up.',store_suspended:'The official store is suspended.',bad_title:'The title needs 3 to 120 characters.',bad_category:'Choose a listing type.',bad_price:'Enter a price above zero.',bad_link:'The course link must start with https://',course_ownership:'Confirm that Subora made this course or can resell it.',course_link_missing:'Add the link to the course first.',not_editable:'This listing cannot be edited now.',own_listing:'You edited this listing, so another staff member or the owner has to approve it.',bad_input:'Check the numbers and try again.'});
   function errText(e){return ERR[e]||'Something went wrong. Try again.'}
   async function call(name,args){try{var r=await rpc(name,args||{});return r||{ok:false,error:'no_answer'}}catch(e){return {ok:false,error:'network'}}}
   function clearMsg(){S.error='';S.notice=''}
@@ -375,6 +458,7 @@ function createStaffApp(deps){
   }
   async function back(){
     clearMsg();
+    if(S.tab==='store'&&S.view&&S.view.kind==='storeform'){S.view=null;emit();return loadStoreList()}
     if(S.nav.length){S.view=S.nav.pop();emit();return}
     return closeView('');
   }
@@ -430,6 +514,52 @@ function createStaffApp(deps){
     if(r)return reloadVendor(hidden?'Listing hidden. The vendor has been told.':'Listing restored.');
   }
 
+
+  // ---------- Subora official store ----------
+  async function loadStoreInfo(){
+    var r=await call('staff_store_info',{});
+    S.storeInfo=(r&&r.ok&&r.store)?r:null;
+    if(!S.storeInfo&&S.tab==='store'){S.tab='queue';S.view=null}
+    emit();
+  }
+  async function loadStoreList(){
+    S.store={loading:true};emit();
+    var r=await call('staff_store_listings',{});
+    if(!r.ok){S.store=null;S.error=errText(r.error);emit();return}
+    S.store={name:r.store&&r.store.name,listings:r.listings||[]};emit();
+  }
+  async function openStore(){clearMsg();S.tab='store';S.view=null;S.nav=[];emit();await loadStoreInfo();if(S.storeInfo)await loadStoreList()}
+  function showQueue(){clearMsg();S.tab='queue';S.view=null;S.nav=[];emit();return loadQueue()}
+  function newStoreListing(){clearMsg();S.view={kind:'storeform',data:{}};emit()}
+  function editStoreListing(id){
+    clearMsg();
+    var l=((S.store&&S.store.listings)||[]).filter(function(x){return String(x.id)===String(id)})[0];
+    if(!l){S.error=errText('not_found');emit();return}
+    S.view={kind:'storeform',id:id,data:l};emit();
+  }
+  async function saveStoreListing(data,publish){
+    if(!S.view||S.view.kind!=='storeform')return;
+    clearMsg();busy(true);
+    var id=S.view.id||null;
+    var r=await call('staff_store_save_listing',{p_id:id,p_data:data||{},p_publish:!!publish});
+    if(!r.ok){
+      if(r.error==='price_over_limit')S.error='That is a '+r.change+'% price change. Staff can change a live price by up to '+r.limit+'%. Ask the owner to make this change.';
+      else if(r.error==='rejected')S.error=r.message||'The store rules did not accept this listing.';
+      else S.error=errText(r.error);
+      busy(false);return;
+    }
+    S.view=null;
+    S.notice=id?('Changes saved.'+(r.status==='pending'?' The listing is waiting for review.':'')):(r.status==='pending'?'Listing saved and sent for review. Someone else, or the owner, has to approve it.':'Draft saved.');
+    S.busy=false;emit();
+    await loadStoreList();
+  }
+  async function storeSetHidden(productId,hidden,reason){
+    if(!S.view||S.view.kind!=='storeform')return;
+    if(hidden&&needReason(reason,5))return;
+    var r=await act('staff_set_listing_hidden',{p_product:productId,p_hidden:!!hidden,p_reason:hidden?String(reason).trim():(String(reason||'').trim()||null)});
+    if(r){S.view=null;S.notice=hidden?'Listing hidden from the store.':'Listing restored.';S.busy=false;emit();await loadStoreList()}
+  }
+
   async function loadQueue(){
     try{
       var r=await rpc('staff_support_queue');
@@ -457,7 +587,7 @@ function createStaffApp(deps){
   }
   function activity(){lastActivity=deps.now()}
 
-  return {init:init,signIn:signIn,submitCode:submitCode,signOut:signOut,loadQueue:loadQueue,activity:activity,tick:tick,state:snap,changePassword:changePassword,startPwChange:startPwChange,cancelPwChange:cancelPwChange,openItem:openItem,openVendor:openVendor,back:back,reviewListing:reviewListing,decideDispute:decideDispute,replyDispute:replyDispute,resolveFlag:resolveFlag,resolveReport:resolveReport,setSuspension:setSuspension,setHidden:setHidden,setTicketStatus:setTicketStatus};
+  return {openStore:openStore,showQueue:showQueue,newStoreListing:newStoreListing,editStoreListing:editStoreListing,saveStoreListing:saveStoreListing,storeSetHidden:storeSetHidden,loadStoreInfo:loadStoreInfo,init:init,signIn:signIn,submitCode:submitCode,signOut:signOut,loadQueue:loadQueue,activity:activity,tick:tick,state:snap,changePassword:changePassword,startPwChange:startPwChange,cancelPwChange:cancelPwChange,openItem:openItem,openVendor:openVendor,back:back,reviewListing:reviewListing,decideDispute:decideDispute,replyDispute:replyDispute,resolveFlag:resolveFlag,resolveReport:resolveReport,setSuspension:setSuspension,setHidden:setHidden,setTicketStatus:setTicketStatus};
 }
 /* CORE END */
 
@@ -557,9 +687,37 @@ function createStaffApp(deps){
         else if(a==='tktake')app.setTicketStatus('in_progress','','You took this ticket.');
         else if(a==='tkresolve')app.setTicketStatus('resolved',val('x_reason'));
         else if(a==='tkopen')app.setTicketStatus('open','','Ticket put back in the queue.');
+        else if(a==='tabqueue')app.showQueue();
+        else if(a==='tabstore')app.openStore();
+        else if(a==='snew')app.newStoreListing();
+        else if(a==='sedit')app.editStoreListing(b.getAttribute('data-id'));
+        else if(a==='ssave')app.saveStoreListing(readStoreForm(),false);
+        else if(a==='ssubmit')app.saveStoreListing(readStoreForm(),true);
+        else if(a==='shide')app.storeSetHidden(b.getAttribute('data-id'),true,val('x_reason'));
+        else if(a==='srestore')app.storeSetHidden(b.getAttribute('data-id'),false,val('x_reason'));
       });
+      document.getElementById('d_body').addEventListener('change',function(e){if(e.target&&e.target.id==='sf_cat')syncStoreForm()});
       paintDash(s);return;
     }
+  }
+
+  function syncStoreForm(){
+    var sel=document.getElementById('sf_cat');if(!sel)return;
+    var c=sel.value==='Courses';
+    [].forEach.call(document.querySelectorAll('#d_body .course-only'),function(n){n.hidden=!c});
+    [].forEach.call(document.querySelectorAll('#d_body .sub-only'),function(n){n.hidden=c});
+  }
+  function readStoreForm(){
+    function v(id){var e=document.getElementById(id);return e?e.value:''}
+    function ck(id){var e=document.getElementById(id);return !!(e&&e.checked)}
+    function lines(id){return v(id).split('\n').map(function(x){return x.trim()}).filter(Boolean)}
+    var cat=v('sf_cat');
+    var d={category:cat,title:v('sf_title'),service:v('sf_svc'),plan:v('sf_plan'),price:v('sf_price'),old_price:v('sf_old'),description:v('sf_desc'),features:lines('sf_feat'),terms:lines('sf_terms'),acc:v('sf_acc')};
+    if(cat==='Courses'){
+      d.course={plat:v('sf_c_plat'),fmt:v('sf_c_fmt'),lvl:v('sf_c_lvl'),len:v('sf_c_len'),prev:v('sf_c_prev'),cert:ck('sf_c_cert'),own:ck('sf_c_own')};
+      if(v('sf_c_link').trim())d.course_link=v('sf_c_link').trim();
+    }else{d.access_type=v('sf_atype');d.duration=v('sf_dur');d.stock=v('sf_stock');d.delivery=v('sf_deliv')}
+    return d;
   }
 
   function paintDash(s){
@@ -567,10 +725,12 @@ function createStaffApp(deps){
     if(!who||!tm||!body)return;
     who.textContent=(s.name||'Staff')+' · Subora support';
     tm.textContent='Signs out after '+mmss(s.idleLeft)+' of no activity · session ends in '+mmss(s.maxLeft);
-    var html;
+    var html,nav='';
+    if(s.storeInfo&&s.storeInfo.store){nav='<div class="row tabsrow"><button type="button" data-a="tabqueue" class="'+(s.tab!=='store'?'on':'')+'">Support queue</button><button type="button" data-a="tabstore" class="'+(s.tab==='store'?'on':'')+'">Subora store</button></div>'}
     if(s.view){html=msgs(s)+viewHtml(s)}
+    else if(s.tab==='store'&&s.storeInfo){html=msgs(s)+nav+storeListHtml(s)}
     else{
-      html=msgs(s)+'<h1>Support queue</h1><p class="mute">Oldest first. Items turn amber after 12 hours. Open an item to work on it.</p>';
+      html=msgs(s)+nav+'<h1>Support queue</h1><p class="mute">Oldest first. Items turn amber after 12 hours. Open an item to work on it.</p>';
       if(s.queueErr)html+='<div class="err" role="alert">'+esc(s.queueErr)+'</div>';
       if(!s.queue.length&&!s.queueErr)html+='<div class="empty">Nothing waiting. Good work.</div>';
       if(s.queue.length){
@@ -582,9 +742,10 @@ function createStaffApp(deps){
     if(body.getAttribute('data-html')!==html){
       // when the form is rebuilt because of an error or a busy state, keep what the person typed
       var saved={};
-      if(s.error||s.busy){['x_reason','x_reply'].forEach(function(id){var el=document.getElementById(id);if(el)saved[id]=el.value})}
+      if(s.error||s.busy){[].forEach.call(body.querySelectorAll('input[id],textarea[id],select[id]'),function(el){saved[el.id]=(el.type==='checkbox')?{c:el.checked}:{v:el.value}})}
       body.innerHTML=html;body.setAttribute('data-html',html);
-      Object.keys(saved).forEach(function(id){var el=document.getElementById(id);if(el)el.value=saved[id]});
+      Object.keys(saved).forEach(function(id){var el=document.getElementById(id);if(!el)return;if(saved[id].c!==undefined)el.checked=saved[id].c;else el.value=saved[id].v});
+      syncStoreForm();
     }
     // a new message appears at the top of the card: scroll to it once, never on timer repaints
     var mk=(s.error||'')+'|'+(s.notice||'');
