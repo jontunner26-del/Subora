@@ -1353,8 +1353,10 @@ function header(){
   ?`<button class="btn sm" data-act="nav" data-view="login">Log in</button><button class="btn sm pri" data-act="nav" data-view="signup">Sign up</button>`
   :`<button class="chip bell" data-act="notifs" aria-label="Notifications, ${unread()} unread">${I('bell')}${unread()?`<span class="badge">${unread()}</span>`:''}</button>${S.role!=='admin'?`<button class="chip wal${S.role==='buyer'?' wal-b':''}" data-act="nav" data-view="${S.role==='vendor'?'vendor':'buyer'}" data-sub="wallet" aria-label="Wallet">${I('wallet')}<b>${N(bal)}</b></button>`:''}
   ${S.role==='buyer'?`<button class="chip" data-act="cart" aria-label="Open cart">${I('cart')}<span class="lbl">Cart</span> <span class="badge">${S.cart.length}</span></button><button class="chip who" data-act="nav" data-view="buyer" data-sub="profile">${I('user')}${esc(S.profile.name.split(' ')[0])}</button>`:''}
-  ${S.role==='vendor'?`<button class="chip who" data-act="nav" data-view="vendor" data-sub="overview">${I('store')}Vendor console</button>`:''}
-  ${S.role==='admin'?`<button class="chip who" data-act="nav" data-view="admin" data-sub="review">${I('shield')}Admin</button>`:''}`;
+  ${S.role==='vendor'?`<button class="chip who" data-act="nav" data-view="vendor" data-sub="overview">${I('store')}${S.ownerStore?'Store console':'Vendor console'}</button>`:''}
+  ${S.role==='vendor'&&S.ownerStore?`<button class="chip who" data-act="ownermode" data-id="admin">${I('shield')}Admin</button>`:''}
+  ${S.role==='admin'?`<button class="chip who" data-act="nav" data-view="admin" data-sub="review">${I('shield')}Admin</button>`:''}
+  ${S.role==='admin'&&S.ownerStore?`<button class="chip who" data-act="ownermode" data-id="store">${I('store')}Store console</button>`:''}`;
  return `<div class="topbar"><div class="wrap"><span class="tb-r">${S.auth&&S.role!=='buyer'?'':`<button data-act="sellnow">${I('store',14)} Sell on Subora</button>`}<button data-act="help">${I('list',14)} Help Centre</button><button data-act="a11y" aria-label="Display and accessibility">${I('type',14)} Display</button></span></div></div>
  <header class="hdr"><div class="wrap">
  ${S.auth?`<button class="hamb chip" data-act="menu" aria-label="Open menu">${I('list')}</button>`:''}
@@ -3277,13 +3279,17 @@ async function hydrate(){
   const uid=sess.user.id;LIVE.uid=uid;
   const prof=ok(await sb.from('profiles').select('*').eq('id',uid).single());
   LIVE.profile=prof;
-  S.auth=true;S.role=prof.role;ME=prof.full_name||prof.username||'You';
-  MYV=prof.role==='vendor'?uid:'__none__';
+  const ownStore=prof.role==='admin'&&vend.some(v=>v.id===uid&&v.official);
+  let mode='';try{mode=sessionStorage.getItem('sub_mode')||''}catch(e){}
+  const eff=ownStore&&mode==='store'?'vendor':prof.role;
+  S.ownerStore=ownStore;
+  S.auth=true;S.role=eff;ME=prof.full_name||prof.username||'You';
+  MYV=eff==='vendor'?uid:'__none__';
   S.profile={name:prof.full_name||'',user:prof.username||'',phone:prof.phone||'',email:prof.email||sess.user.email||''};
   S.buyerVerified=!!prof.buyer_verified;
   S.suspended=!!prof.suspended;S.suspReason=prof.suspended_reason||'';
 
-  const isV=prof.role==='vendor',isA=prof.role==='admin';
+  const isV=eff==='vendor',isA=eff==='admin';
   const q=(t,f)=>{let r=sb.from(t).select('*');if(f)r=f(r);return r.then(ok)};
   const [orders,deliv,subs,wal,tx,threads,msgs,disp,devs,wish,notes,banks]=await Promise.all([
     q('orders',r=>r.order('created_at',{ascending:false}).limit(1000)),
@@ -3327,7 +3333,7 @@ async function hydrate(){
       due:d.status==='resolved'?'':d.status==='escalated'?'Subora decision due in '+hrsLeft(d.due_at)+'h':'Vendor reply due in '+hrsLeft(d.due_at)+'h',
       log:(evBy[d.id]||[]).map(e=>({w:wmap[e.who]||'s',who:e.actor_name||(e.who==='system'?'System':e.who),t:fmtT(e.created_at),e:e.body}))}}).filter(Boolean);
   S.wish=wish.map(w=>({pid:w.product_id,at:+w.price_at_save||0}));
-  S.notes={buyer:[],vendor:[],admin:[]};S.notes[prof.role]=notes.map(mapNote);
+  S.notes={buyer:[],vendor:[],admin:[]};S.notes[eff]=notes.map(mapNote);
   S.banks=banks.map(b=>b.bank_name+' •••• '+b.last4);S.bankIds=banks.map(b=>b.id);
 
   /* vendor specifics */
@@ -3932,13 +3938,39 @@ peopleView=function(){
     const off=x.r!=='Vendor'?'':(x.o?` <button class="btn sm" data-act="offoff" data-id="${x.k}">Remove official</button>`:(x.vf&&!x.s?` <button class="btn sm" data-act="offon" data-id="${x.k}">Make official store</button>`:''));
     return (x.s?`<button class="btn sm" data-act="reinstate" data-id="${x.k}">Reinstate</button>`:`<button class="btn sm bad" data-act="suspend" data-id="${x.k}">Suspend</button>`)+off+(x.o?'':` <button class="btn sm bad" data-act="delacct" data-id="${x.k}">Delete account</button>`);
   };
-  return `<div class="panel"><h3>Accounts</h3><p class="muted sm" style="margin:0 0 12px">Suspending a vendor hides all their listings. Reinstating makes them live again. Delete account removes an account for good, and only works for accounts with no orders, payments, messages or reviews. The official store is a verified vendor that staff help manage: it gets the gold badge, and staff can create and edit its listings.</p>
+  const offV=Object.entries(VENDORS).find(([k,v])=>k!=='__none__'&&v.official);
+  const storeCard=S.ownerStore?`<div class="panel"><div class="mh"><h3 style="margin:0">Official Subora store</h3><button class="btn sm pri" data-act="ownermode" data-id="store">${I('store',16)}Open store console</button></div><p class="muted sm" style="margin:8px 0 0"><b style="color:var(--fg)">${esc((VENDORS[LIVE.uid]||{}).name||'Your store')}</b> runs from this owner account. Staff with store permission help manage its listings.</p></div>`
+    :(!offV?`<div class="panel"><div class="mh"><h3 style="margin:0">Official Subora store</h3><button class="btn sm pri" data-act="mkstore">Create official store</button></div><p class="muted sm" style="margin:8px 0 0">Run the official store from this owner account. Staff with store permission can then create and edit its listings within their limits.</p></div>`:'');
+  return storeCard+`<div class="panel" style="margin-top:${storeCard?14:0}px"><h3>Accounts</h3><p class="muted sm" style="margin:0 0 12px">Suspending a vendor hides all their listings. Reinstating makes them live again. Delete account removes an account for good, and only works for accounts with no orders, payments, messages or reviews. The official store is a verified vendor that staff help manage: it gets the gold badge, and staff can create and edit its listings.</p>
   <div class="fld" style="margin-bottom:12px"><label for="susp_r">Reason for suspension (kept on record)</label><input id="susp_r" placeholder="Required to suspend"></div>
   <div class="tw"><table><thead><tr><th>Name</th><th>Type</th><th>Status</th><th></th></tr></thead><tbody>${list.map(x=>`<tr><td><span class="t">${esc(x.n)}</span></td><td>${x.r}</td><td>${x.s?'<span class="pill bad">Suspended</span>':'<span class="pill good">Active</span>'}${x.o?' <span class="pill info">Official store</span>':''}</td><td>${acts(x)}</td></tr>`).join('')||'<tr><td colspan="4" class="muted">No accounts yet.</td></tr>'}</tbody></table></div></div>`;
 };
 
 /* admin: official Subora store (owner only, enforced by admin_set_official_store on the database) */
 const OFF_ERR={access_denied:'Only an owner can do this. If owner 2FA is on, sign in with your authenticator code first.',no_such_vendor:'That vendor no longer exists.',cannot_be_owner:'An owner account cannot be the official store.',vendor_suspended:'Reinstate this vendor first.',not_verified:'This vendor has not passed verification yet.',not_official:'This store is not marked official.'};
+MODALS.mkstore=(m,head)=>({c:head('Create official store')+`<p class="muted" style="margin:0 0 12px">Your owner account becomes the official Subora store. It gets the gold Official Subora badge and ranks first. Sales go to your own wallet.</p>
+  <div class="fld"><label for="mk_n">Store name</label><input id="mk_n" maxlength="60" value="${esc(m.n||'Subora')}"></div>
+  <div class="fld"><label for="mk_u">Store username (optional)</label><input id="mk_u" maxlength="30" autocomplete="off" placeholder="subora" value="${esc(m.u||'')}"></div>
+  ${m.err?`<p class="err sm" role="alert" style="margin:0 0 10px">${esc(m.err)}</p>`:''}
+  <button class="btn pri full" data-act="mkstore_go">Create official store</button>`});
+const MK_ERR={access_denied:'Only an owner can do this. If owner 2FA is on, sign in with your authenticator code first.',bad_name:'Enter a store name of 2 to 60 characters.',bad_username:'Use 3 to 30 letters, numbers, dashes or underscores for the username.',username_reserved:'That username is reserved. Pick another.',username_taken:'That username is already taken.',another_official:'Another store is already official. Remove its status first.'};
+H.mkstore=async()=>{S.modal={t:'mkstore',n:'Subora',u:'',err:''};paintModal()};
+H.mkstore_go=async()=>{
+  const m=S.modal;if(!m||m.t!=='mkstore')return;
+  m.n=gv('mk_n');m.u=gv('mk_u');
+  let res;
+  try{res=await rpc('admin_create_official_store',{p_store:m.n,p_username:m.u||null})}
+  catch(e){m.err='Could not create the store. Check your connection and try again.';paintModal();return}
+  if(!res||res.ok!==true){m.err=res&&res.error==='another_official'?'Another store is already official ('+(res.store||'unknown')+'). Remove its status first.':(MK_ERR[res&&res.error]||'Could not create the store.');paintModal();return}
+  await after('Official store created','admin','people');
+};
+H.ownermode=async(el,id)=>{
+  if(id!=='store'&&id!=='admin')return;
+  try{sessionStorage.setItem('sub_mode',id)}catch(e){}
+  await hydrate();
+  S.view=id==='store'?'vendor':'admin';S.sub=id==='store'?'overview':'review';
+  render();jump();
+};
 MODALS.offstore=(m,head)=>({c:head(m.on?'Make official store':'Remove official status')+`<p class="muted" style="margin:0">${m.on?`<b style="color:var(--fg)">${esc(m.name)}</b> will become the official Subora store. It gets the gold Official Subora badge, ranks first, and is not held to vendor plan limits. Staff with store permission can create and edit its listings and hide them. They cannot delete listings, and price changes above their limit still need you. Only one store can be official.`:`<b style="color:var(--fg)">${esc(m.name)}</b> goes back to being a regular vendor. Staff will no longer be able to manage its listings.`}</p><div class="fld"><label for="of_r">Note <span class="muted">optional, kept in the audit log</span></label><input id="of_r" maxlength="200" value="${esc(m.r||'')}"></div>${m.err?`<p class="hint bad" role="alert">${esc(m.err)}</p>`:''}<div class="acts"><button class="btn" data-act="close">Cancel</button><button class="btn pri" data-act="offgo">${m.on?'Make official':'Remove official'}</button></div>`});
 H.offon=async(el,id)=>{if(!id)return;S.modal={t:'offstore',id,on:true,name:(VENDORS[id]&&VENDORS[id].name)||'this store',r:'',err:''};paintModal()};
 H.offoff=async(el,id)=>{if(!id)return;S.modal={t:'offstore',id,on:false,name:(VENDORS[id]&&VENDORS[id].name)||'this store',r:'',err:''};paintModal()};
