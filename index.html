@@ -1228,6 +1228,7 @@ mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>'
 lock:'<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
 store:'<path d="M4 9l1.5-5h13L20 9M4 9h16v11H4zM9 20v-6h6v6"/>',
 heart:'<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
+swap:'<path d="M4 8h13M13 4l4 4-4 4M20 16H7M11 12l-4 4 4 4"/>',
 share:'<circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="m8.2 10.8 7.6-3.6M8.2 13.2l7.6 3.6"/>',
 flag:'<path d="M5 21V4h11l-2 4 2 4H5"/>',
 bell:'<path d="M6 16v-5a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/>',
@@ -1341,7 +1342,8 @@ function bnavHTML(){
  else if(S.role==='vendor')it=[['vendor','listings','Listings','list'],['vendor','orders','Orders','box'],['vendor','refunds','Refunds','undo'],['vendor','overview','Overview','chart']];
  else if(S.role==='admin')it=[['admin','review','Review','list'],['admin','disputes','Disputes','undo'],['admin','payouts','Payouts','wallet']];
  else it=[['store','','Market','box'],['buyer','subs','Subscriptions','shield'],['buyer','messages','Messages','chat'],['buyer','wallet','Wallet','wallet']];
- return `<nav class="bnav" style="--n:${it.length+1}" aria-label="Quick navigation"><button data-act="menu">${I('list',20)}Menu</button>${it.map(x=>`<button class="${isOn(x[0],x[1])?'on':''}" data-act="nav" data-view="${x[0]}" data-sub="${x[1]}">${I(x[3],20)}${x[2]}</button>`).join('')}</nav>`;
+ const sw=S.role==='admin'||S.ownerStore;
+ return `<nav class="bnav" style="--n:${it.length+1+(sw?1:0)}" aria-label="Quick navigation"><button data-act="menu">${I('list',20)}Menu</button>${sw?`<button data-act="swpick">${I('swap',20)}Switch</button>`:''}${it.map(x=>`<button class="${isOn(x[0],x[1])?'on':''}" data-act="nav" data-view="${x[0]}" data-sub="${x[1]}">${I(x[3],20)}${x[2]}</button>`).join('')}</nav>`;
 }
 const fabHTML=()=>(S.view==='login'||S.view==='signup')?'':`<button class="fab" data-act="support" aria-label="Chat with support">${I('chat',24)}</button>`;
 function devbarHTML(){return ''}
@@ -3975,8 +3977,22 @@ H.ownermode=async(el,id)=>{
   if(id!=='store'&&id!=='admin')return;
   try{sessionStorage.setItem('sub_mode',id)}catch(e){}
   await hydrate();
+  S.modal=null;S.tid=null;
   S.view=id==='store'?'vendor':'admin';S.sub=id==='store'?'overview':'review';
   render();jump();
+};
+H.swpick=async()=>{S.modal={t:'swpick'};paintModal()};
+H.swgo=async(el,id)=>{
+  S.modal=null;S.tid=null;
+  if(id==='site'){S.view='store';render();jump();return}
+  if(id==='admin'&&S.role==='admin'){S.view='admin';S.sub='review';render();jump();return}
+  if(id==='store'&&S.role==='vendor'){S.view='vendor';S.sub='overview';render();jump();return}
+  await H.ownermode(null,id);
+};
+MODALS.swpick=(m,head)=>{
+  const here=S.view==='store'?'site':(S.role==='vendor'?'store':'admin');
+  const row=(id,ic,l,sub)=>`<button class="mi" data-act="swgo" data-id="${id}">${I(ic,18)}<span><b>${l}</b><br><span class="xs muted">${sub}</span></span>${here===id?'<span class="pill good" style="margin-left:auto">Here</span>':''}</button>`;
+  return {cls:'c',c:head('Switch view')+`<div class="mlist">${row('admin','shield','Admin','Reviews, disputes, staff and payouts')}${S.ownerStore?row('store','store','Store console','Listings and orders of the official store'):''}${row('site','box','Main site','Browse the marketplace as buyers see it')}</div>`};
 };
 MODALS.offstore=(m,head)=>({c:head(m.on?'Make official store':'Remove official status')+`<p class="muted" style="margin:0">${m.on?`<b style="color:var(--fg)">${esc(m.name)}</b> will become the official Subora store. It gets the gold Official Subora badge, ranks first, and is not held to vendor plan limits. Staff with store permission can create and edit its listings and hide them. They cannot delete listings, and price changes above their limit still need you. Only one store can be official.`:`<b style="color:var(--fg)">${esc(m.name)}</b> goes back to being a regular vendor. Staff will no longer be able to manage its listings.`}</p><div class="fld"><label for="of_r">Note <span class="muted">optional, kept in the audit log</span></label><input id="of_r" maxlength="200" value="${esc(m.r||'')}"></div>${m.err?`<p class="hint bad" role="alert">${esc(m.err)}</p>`:''}<div class="acts"><button class="btn" data-act="close">Cancel</button><button class="btn pri" data-act="offgo">${m.on?'Make official':'Remove official'}</button></div>`});
 H.offon=async(el,id)=>{if(!id)return;S.modal={t:'offstore',id,on:true,name:(VENDORS[id]&&VENDORS[id].name)||'this store',r:'',err:''};paintModal()};
