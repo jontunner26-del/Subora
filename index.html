@@ -850,6 +850,19 @@ td .qrow{grid-template-columns:90px 44px;margin:0}
 #app[data-w="m"] .ph h2{font-size:32px}
 #app[data-w="m"] main h1.serif,#app[data-w="m"] .helphero h1{font-size:40px!important}
 #app[data-w="m"] main h2.serif{font-size:30px!important}
+/* mobile polish: vendor page header, tap targets, no sideways scroll */
+#app[data-w="m"] main{overflow-x:clip}
+#app[data-w="m"] .mono{overflow-wrap:anywhere;word-break:break-word}
+#app[data-w="m"] .vhead{display:grid;grid-template-columns:64px minmax(0,1fr);gap:14px;align-items:center}
+#app[data-w="m"] .vhead .av.big{width:64px;height:64px;font-size:22px}
+#app[data-w="m"] main .vhead h1.serif{font-size:30px!important;line-height:1.1;overflow-wrap:anywhere}
+#app[data-w="m"] .vhead .acts{grid-column:1/-1;width:100%}
+#app[data-w="m"] .vhead .acts .btn{width:100%;justify-content:center;min-height:46px}
+#app[data-w="m"] .vhead .meta{flex-wrap:wrap;row-gap:4px}
+#app[data-w="m"] .btn,#app[data-w="m"] .chip,#app[data-w="m"] .kebab{min-height:42px}
+#app[data-w="m"] .panel{padding:16px}
+body{-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+button,.btn,[data-act]{touch-action:manipulation}
 #app[data-w="m"] .tile.big .cv-txt b{font-size:44px}#app[data-w="m"] .tile.big .cv-txt.long b{font-size:30px}
 #app[data-w="m"] .auth-main h1{font-size:34px}
 #app[data-w="m"] .votm h2{font-size:32px}
@@ -1901,7 +1914,7 @@ function vprofile(){
  <div class="pgrid"><div>
   <section class="panel vhead"><span class="av big">${esc(init(v.name))}</span>
    <div style="min-width:0;flex:1"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><h1 class="serif" style="font-size:clamp(32px,4vw,46px)">${esc(v.name)}</h1>${bdg(v,24)}${v.official?'<span class="pill gold">Official Subora store</span>':ver?'<span class="pill info">Verified vendor</span>':'<span class="pill warn">Not verified</span>'}</div>
-   <div class="muted">@${esc(v.user)} · Selling since ${v.since} · <span class="mono xs">${esc(location.host+location.pathname)}?v=${id}</span></div>
+   <div class="muted">@${esc(v.user)} · Selling since ${v.since} </div>
    <div class="meta" style="margin-top:8px">${stars(v.rating)}<span>${v.sales.toLocaleString()} sales</span><span>${esc(v.resp)}</span>${ptxt(id)}</div></div>
    <div class="acts" style="flex-direction:column;align-items:stretch"><button class="btn pri" data-act="chatseller" data-id="${id}">${I('chat',16)} Chat with vendor</button><button class="btn" data-act="share" data-kind="store" data-id="${id}">${I('share',16)} Share store</button><button class="linkbtn quiet" data-act="report" data-kind="vendor" data-id="${id}">${I('flag',13)} Report vendor</button></div></section>${v.suspended?`<div class="warnbox" style="margin-top:16px">${I('shield',16)}<span>This vendor is ${v.terminated?'closed':'suspended'} while Subora reviews claims against them. Their listings are hidden.</span></div>`:''}
   ${ver?'':`<div class="note" style="margin-top:16px">${I('shield')}<span>This vendor has not completed identity verification yet. Escrow still protects your payment until you confirm access.</span></div>`}
