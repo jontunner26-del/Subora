@@ -1143,6 +1143,31 @@ body{margin:0}
 .pcard.cur{border-color:var(--fg);box-shadow:0 0 0 3px var(--lime)}
 .pcard h4{margin:0;font-size:20px}.pcard .pr{font-size:22px;font-weight:800}.pcard .pr small{font-size:12px;font-weight:600;color:var(--muted)}
 .pcard ul{margin:4px 0 10px;padding:0 0 0 18px;font-size:13.5px;line-height:1.5;flex:1}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:14px;margin-bottom:14px}
+.plans-hint{display:none;margin:-6px 0 12px}
+.pc-h{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pc-now{font-size:11px;font-weight:800;padding:2px 9px;border-radius:99px;background:var(--lime);color:#0e1f10;border:1px solid #0e1f10;white-space:nowrap}
+.pc-left{font-size:13px;font-weight:700;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:7px 10px}
+.pc-left.warn{border-color:#e0a030}
+.pc-hi{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:2px 0 4px}
+.pc-hi div{background:var(--surface2);border-radius:10px;padding:8px 4px;text-align:center;min-width:0}
+.pc-hi b{display:block;font-size:16px;line-height:1.1;overflow-wrap:anywhere}.pc-hi span{display:block;font-size:10.5px;color:var(--muted);margin-top:3px;line-height:1.2}
+.pstrip{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:11px 14px;margin:0 0 14px;cursor:pointer;color:var(--fg);font:inherit}
+.pstrip.warn{border-color:#e0a030}
+.pstrip .ps-n{display:block;font-weight:800;font-size:15px}
+.pstrip .ps-s{display:block;font-weight:600;font-size:12px;color:var(--muted);margin-top:1px}
+.pstrip .ps-t{margin-left:auto;text-align:right;font-weight:800;font-size:14px}
+.vr-plans{margin:0 0 18px;border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;background:var(--surface)}
+.vr-plans summary{cursor:pointer;font-weight:800;list-style-position:inside}
+.vr-plans[open] summary{margin-bottom:2px}
+#app[data-w="m"] .plans{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;margin:0 -16px 12px;padding:2px 16px 10px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+#app[data-w="m"] .plans::-webkit-scrollbar{display:none}
+#app[data-w="m"] .plans .pcard{flex:0 0 84%;scroll-snap-align:center}
+#app[data-w="m"] .plans .pcard.cur{order:-1}
+#app[data-w="m"] .plans-hint{display:block}
+#app[data-w="m"] .vr-plans{padding:10px 12px}
+#app[data-w="m"] .vr-plans .plans{margin:0 -12px 8px;padding:2px 12px 10px}
+#app[data-w="m"] .pstrip{padding:10px 12px;gap:10px}
 .pm{margin:0 0 14px}.pmh{display:flex;justify-content:space-between;gap:10px;font-size:14px;margin-bottom:6px}
 .pmb{height:10px;border-radius:99px;background:var(--surface2);border:1.5px solid var(--edge,var(--line));overflow:hidden}.pmb i{display:block;height:100%;background:var(--lime)}.pmb i.full{background:#e0553d}
 .krow{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}.krow:first-of-type{border-top:0}.krow label{flex:1;min-width:0;display:flex;gap:10px;align-items:center}
@@ -1507,6 +1532,41 @@ function perkLines(p){
  if(p.levy_waived)L.push('Marketing levy waived');
  return L;
 }
+
+let PLANS_BUSY=false;
+function ensurePlans(){
+ if(PLANS_BUSY||Object.keys(PLANS).length)return;
+ PLANS_BUSY=true;
+ (async()=>{try{ok(await sb.from('plan_settings').select('*')).forEach(x=>PLANS[x.plan]=x)}catch(e){}
+  PLANS_BUSY=false;const el=document.getElementById('vr-plans-box');if(el)el.innerHTML=plansPublicHTML()})();
+}
+function planTimeLeft(ms){const d=Math.floor(ms/864e5);if(d>=1)return d+(d===1?' day':' days');const h=Math.floor(ms/36e5);if(h>=1)return h+(h===1?' hour':' hours');return 'under 1 hour'}
+function planClock(P){
+ if(!P||P.plan==='admin')return null;
+ if(P.grace_until){const ms=new Date(P.grace_until)-Date.now();return {t:ms>0?planTimeLeft(ms)+' of grace left':'Grace period ending',s:'Choose which listings stay live',warn:true}}
+ if(P.plan!=='free'&&P.period_end){const ms=new Date(P.period_end)-Date.now();return {t:ms>0?planTimeLeft(ms)+' left':'Ends today',s:(P.auto_renew?'Renews ':'Ends ')+fmtLD(P.period_end),warn:ms<3*864e5}}
+ return {t:'No expiry',s:'Free plan',warn:false,free:true};
+}
+function planStrip(){
+ const P=S.plan;if(!P||P.plan==='admin'||!PLANS[P.plan])return '';
+ const c=planClock(P);if(!c)return '';
+ return `<button class="pstrip ${c.warn?'warn':''}" data-act="nav" data-view="vendor" data-sub="plan" aria-label="Your plan: ${esc(planLabel(P.plan))}, ${esc(c.t)}. Open plans"><span><span class="ps-n">${esc(planLabel(P.plan))} plan</span><span class="ps-s">${esc(c.s)}</span></span><span class="ps-t">${c.free?'Upgrade':esc(c.t)}${c.free?'':`<span class="ps-s">Manage plan</span>`}</span>${I('chev',16)}</button>`;
+}
+function planCard(k,o){
+ o=o||{};const pl=PLANS[k];if(!pl)return '';
+ const fee=Math.round((pl.fee_rate==null?FEE:+pl.fee_rate)*1000)/10;
+ const hi=[[plim(pl.listing_limit),'live listings'],[fee+'%','sale fee'],[pl.featured_per_month==null?'Unlimited':(pl.featured_per_month||'None'),'featured a month']];
+ return `<div class="pcard ${o.cur?'cur':''}"><div class="pc-h"><h4>${esc(pl.label)}</h4>${o.cur?'<span class="pc-now">Your plan</span>':''}</div>
+  <div class="pr">${k==='free'?'₦0':N(+pl.price)} <small>per month</small></div>
+  ${o.cur&&o.left?`<div class="pc-left ${o.warn?'warn':''}">${esc(o.left)}</div>`:''}
+  <div class="pc-hi">${hi.map(x=>`<div><b>${esc(String(x[0]))}</b><span>${x[1]}</span></div>`).join('')}</div>
+  <ul>${perkLines(pl).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>${o.btn||''}</div>`;
+}
+function plansPublicHTML(){
+ if(!Object.keys(PLANS).length)return '<p class="muted sm" style="margin:8px 0 0">Loading plans…</p>';
+ return `<p class="muted sm" style="margin:8px 0 12px">Everyone starts on Free. You can move to a paid plan at any time from your Plan page. It is paid from your wallet balance and starts straight away.</p><div class="plans">${PORDER.map(k=>planCard(k)).join('')}</div><p class="muted xs plans-hint">Swipe to compare all plans</p>`;
+}
+const vrPlansBox=st=>{ensurePlans();return `<details class="vr-plans" ${st===1?'open':''}><summary>See vendor plans: Free to Elite</summary><div id="vr-plans-box">${plansPublicHTML()}</div></details>`};
 function planView(){
  const P=S.plan;
  if(!P||!Object.keys(PLANS).length)return `<div class="panel empty">Plan details are not available yet. If this keeps showing, ask the Subora team to finish the plan setup.</div>`;
@@ -1521,9 +1581,10 @@ function planView(){
  const feat=L.featured_per_month,pinned={};(S.pins||[]).forEach(x=>pinned[x.product_id]=x.ends_at);
  const keep=new Set(P.keep_ids||[]);
  const needKeep=P.grace_until&&L.listing_limit!=null&&live.length>L.listing_limit;
- const grid=P.plan==='admin'?'':`<div class="pgrid">${PORDER.map(k=>{const pl=PLANS[k];if(!pl)return '';const isCur=k===P.plan;const rank=PORDER.indexOf(k),cr=PORDER.indexOf(P.plan);
-  const btn=isCur?`<button class="btn full" disabled>Your plan</button>`:k==='free'?(P.plan!=='free'&&P.auto_renew?`<button class="btn full" data-act="plan_pick" data-id="free">Cancel renewal</button>`:''):rank>cr?`<button class="btn pri full" data-act="plan_pick" data-id="${k}">Upgrade</button>`:`<button class="btn full" data-act="plan_pick" data-id="${k}">Switch at renewal</button>`;
-  return `<div class="pcard ${isCur?'cur':''}"><h4>${esc(pl.label)}</h4><div class="pr">${k==='free'?'₦0':N(+pl.price)} <small>per month</small></div><ul>${perkLines(pl).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>${btn}</div>`}).join('')}</div>`;
+ const clk=planClock(P)||{};
+ const grid=P.plan==='admin'?'':`<div class="plans">${PORDER.map(k=>{const pl=PLANS[k];if(!pl)return '';const isCur=k===P.plan;const rank=PORDER.indexOf(k),cr=PORDER.indexOf(P.plan);
+  const btn=isCur?'':k==='free'?(P.plan!=='free'&&P.auto_renew?`<button class="btn full" data-act="plan_pick" data-id="free">Cancel renewal</button>`:''):rank>cr?`<button class="btn pri full" data-act="plan_pick" data-id="${k}">Upgrade</button>`:`<button class="btn full" data-act="plan_pick" data-id="${k}">Switch at renewal</button>`;
+  return planCard(k,{cur:isCur,left:isCur?(clk.t+(clk.s&&!clk.free?' · '+clk.s:'')):'',warn:isCur&&clk.warn,btn})}).join('')}</div><p class="muted xs plans-hint">Swipe to compare all plans</p>`;
  return `<div class="panel"><div class="mh" style="margin-bottom:6px"><h3 style="margin:0">${esc(cur.label||P.plan)} plan</h3>${cur.badge?`<span class="ptag p-${esc(P.plan)}" style="margin:0">${esc(cur.badge)} badge</span>`:''}</div><p class="muted sm" style="margin:0 0 14px">${st}</p>
   ${meter('Listings in use',P.listings_used,L.listing_limit,L.fair_use?'Fair-use cap. Contact support to raise it.':'Drafts and paused listings count too. Archive one to free a place.')}
   ${meter('Discount codes running',P.codes_used,L.discount_codes)}
@@ -1891,7 +1952,7 @@ function vendor(){
   <div class="panel"><div class="mh" style="margin-bottom:8px"><h3 style="margin:0">Payout accounts</h3><button class="btn sm" data-act="bank">${I('plus',14)} Add account</button></div>${S.banks.map((b,i)=>`<div class="line"><span>${I('wallet',16)}<b>${esc(b)}</b></span>${i===0?'<span class="pill good">Default</span>':'<span class="pill">Name verified</span>'}</div>`).join('')}<p class="hint" style="margin:8px 0 0">Accounts must be in your verified name (${esc(kycName())}). Adding one needs a security code, and it can receive payouts after 24 hours.</p></div>
   ${securityPanel()}${prefsPanel()}${alertsPanel()}`;
  }
- return `<div class="wrap console">${railHTML('Vendor console')}<div><div class="ph"><h2>${titles[S.sub]}</h2><span class="pill good">${I('shield',13)} Verified vendor</span></div>${body}</div></div>`;
+ return `<div class="wrap console">${railHTML('Vendor console')}<div><div class="ph"><h2>${titles[S.sub]}</h2><span class="pill good">${I('shield',13)} Verified vendor</span></div>${planStrip()}${body}</div></div>`;
 }
 
 /* ---------- vendor public profile ---------- */
@@ -2815,6 +2876,7 @@ function vregView(){
  return `<div class="wrap"><div class="vreg">
   <aside class="vr-side"><span class="pill gold">By application</span><h1>Sell on Subora</h1><p>We keep the vendor list small so every seller gets real buyers. Five short steps, about 6 minutes.</p>${rail}<p class="xs" style="opacity:.75;margin:0">Just want to shop? <button class="linkbtn" data-act="nav" data-view="signup">Create a buyer account</button></p></aside>
   <section class="vr-main"><div class="vr-top"><span class="xs muted">Step ${st} of ${VR_STEPS.length}</span><div class="vr-bar"><i style="width:${st/VR_STEPS.length*100}%"></i></div></div>
+  ${vrPlansBox(st)}
   <form data-act="vrnext" class="auth-form" novalidate>${body}
   <div class="vr-nav">${st>1?`<button type="button" class="btn" data-act="vrback">Back</button>`:'<span></span>'}<button class="btn pri" type="submit">${last?'Submit application':'Continue'}</button></div></form>
   ${st===1?`<p class="muted sm" style="margin:0">Already a vendor? <button class="linkbtn" data-act="nav" data-view="login">Log in</button></p>`:''}</section></div></div>`;
