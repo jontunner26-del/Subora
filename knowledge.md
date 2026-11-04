@@ -1,4 +1,4 @@
-# Subora knowledge base (generated 2026-10-19; do not edit by hand)
+# Subora knowledge base (generated 2026-11-04; do not edit by hand)
 
 Subora is a Nigerian marketplace for shared subscriptions, courses, software seats and digital goods, with escrow on every order. Prices are in naira (₦).
 
@@ -8,7 +8,7 @@ Subora is a Nigerian marketplace for shared subscriptions, courses, software sea
 - Typical reply: 15 to 30 minutes in chat hours, within 24 hours by email
 
 ## Site pages (link users with these paths)
-- /store marketplace, /login, /signup, /sell (apply to sell), /help (Help Centre), /account (buyer account), /vendor (vendor dashboard), /how-it-works, /safety, /faq, /about, /contact, /terms, /privacy, /refunds
+- /store marketplace, /login, /signup, /sell (apply to sell), /help (Help Centre), /account (buyer account), /vendor (vendor dashboard), /how-it-works, /safety, /escrow, /faq, /about, /contact, /terms, /privacy, /refunds
 
 
 ---
@@ -35,6 +35,9 @@ Subora is for buyers in Nigeria who want the lower price of a shared plan withou
 ## How does Subora make money?
 
 Subora charges vendors 10% of each sale and a flat ₦100 for each withdrawal to a bank, plus a monthly marketing levy that pays for adverts that bring buyers to the marketplace. Buyers pay only the price shown on the listing. The full wording is in the Terms and Conditions.
+
+## Who runs Subora?
+Subora is operated by SUBORA MARKETPLACE.
 
 ## Where to read next
 
@@ -99,7 +102,7 @@ PermanentChats and payments cannot be edited or deleted
 
 ## How does escrow protect my money?
 
-When you pay, Subora holds the money instead of sending it to the vendor. The vendor is paid once you confirm that your login, code or link works, or after 48 hours if you have not reported a problem. While you are checking your access, the vendor never holds your money.
+When you pay, Subora holds the money instead of sending it to the vendor. The vendor is paid once you confirm that your login, code or link works, or after 48 hours if you have not reported a problem. While you are checking your access, the vendor never holds your money. See how escrow works, step by step.
 
 ## What if my access stops working?
 
@@ -134,6 +137,54 @@ Subora is a marketplace: we provide the place where buyers and vendors meet, and
 ## I am a brand or rights holder. How do I report a listing?
 
 Send us a rights holder notice. We review notices within 24 hours and pause the listing while we check. See how to contact us.
+
+## Shop with escrow on every order
+Browse listings and compare prices now. Create a free account when you are ready to buy or chat with vendors.
+
+---
+# PAGE /escrow
+Escrow means Subora holds your payment instead of the vendor. The vendor is paid only after you confirm that your access works, or after 48 hours with no problem reported.
+Last updated 4 November 2026
+HeldYour payment is held by Subora, not sent to the vendor
+48 hoursWindow to report a problem before the vendor is paid
+WalletRefunds go straight back to your Subora wallet
+PermanentChats and payments cannot be edited or deleted
+
+## What is escrow on Subora?
+
+Escrow is a safety step between paying and getting paid. When you buy, Subora holds your money instead of passing it to the vendor. The vendor only receives it once you confirm that your login, code or link works, or after 48 hours if you have not reported a problem. Escrow applies to every order on Subora.
+
+## What happens to my money, step by step?
+
+- You fund your wallet. Add money by card, bank transfer or USSD. It is credited when the payment is confirmed.
+- You pay into escrow. You pick a listing, accept the vendor’s terms and pay from your wallet. The money is held, not sent.
+- Your access arrives. A login, code or link appears on your subscription card. Many listings deliver automatically within seconds.
+- You check that it works. While you check, the vendor does not hold your money.
+- The vendor is paid. This happens when you confirm, or after 48 hours with no problem reported.
+
+## What if my access does not work?
+
+Tap Report a problem on your subscription card. The vendor has 48 hours to respond, and your payment stays frozen in escrow while they do. A refund can be full, for the days you did not use, or a custom amount, and it goes back to your Subora wallet straight away. If the vendor is away, you can send an urgent nudge by SMS and email, and Subora support steps in if there is still no reply.
+
+If you and the vendor disagree, Subora decides using the full chat and payment record, writes down the reason, and decides within 48 hours of both sides sharing their evidence. See the refund policy for the rules for each kind of listing.
+
+## What records does Subora keep?
+
+Chats, wallet entries and dispute statements cannot be edited or deleted. This means any problem can be traced and settled from what was actually said and paid, not from anyone’s memory of it.
+
+## How is escrow different from paying a seller directly?
+
+When you pay a vendor outside Subora, there is no escrow, no refund and no dispute help, because Subora cannot see or hold that payment. This is why you pay for everything from your Subora wallet and cannot pay a vendor directly. If a vendor asks you to pay or talk outside Subora, report the message. It is hidden and reviewed. Subora staff never ask for your password, your codes or payment outside the app.
+
+## What does escrow not cover?
+
+Escrow protects your payment for what the listing promised. It does not change the rules of the service itself. Some providers, such as streaming, AI and software companies, have their own rules about sharing accounts, and a provider can change or end access at any time. If that happens, the refund rules apply. Gift cards, crypto, accounts and OTP numbers carry more risk, so they have shorter claim windows and extra checks for sellers. Read buying safely on Subora for the details.
+
+## When is the vendor paid, and what does it cost?
+
+The vendor is paid after you confirm or after the 48 hours pass without a problem. Payouts only go to a bank account in the vendor’s own verified name. Buyers pay only the price shown on the listing. Vendors pay a 10% fee on each sale and a flat ₦100 for each withdrawal to a bank.
+
+Read how Subora works, the FAQ and the full Terms and Conditions.
 
 ## Shop with escrow on every order
 Browse listings and compare prices now. Create a free account when you are ready to buy or chat with vendors.
@@ -275,7 +326,7 @@ Browse listings and compare prices now. Create a free account when you are ready
 ---
 # PAGE /terms
 These terms explain how buyers and vendors use Subora, how escrow and fees work, and what each side is responsible for.
-Last updated 19 October 2026
+Last updated 4 November 2026
 
 ## 1. Your account
 You must give accurate details and keep your login private. You are responsible for all activity on your account. Vendors must complete identity verification to use Pro features.
@@ -308,7 +359,7 @@ Subora is a marketplace. We provide the place where buyers and vendors meet, and
 ---
 # PAGE /privacy
 This policy explains what personal data Subora collects, why we use it, who we share it with, and the rights you have over it.
-Last updated 19 October 2026
+Last updated 4 November 2026
 
 ## What we collect
 Your name, email, phone number, orders, wallet activity, chats and the device you use. Vendors also give identity documents, a selfie and bank details for verification.
@@ -335,7 +386,7 @@ Questions about your data: support@subora.com.ng.
 ---
 # PAGE /refunds
 If something you bought does not work, you can report it and get a full or prorated refund. This page shows the rules for each kind of listing.
-Last updated 19 October 2026
+Last updated 4 November 2026
 
 ## How do I get a refund?
 Tap Report a problem on the subscription card. The vendor has 48 hours to respond. If you disagree, Subora decides using the full record. Every refund is recorded in both wallets. Read more about refunds and disputes.

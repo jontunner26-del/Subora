@@ -4,8 +4,14 @@
   "whatsapp": "",
   "phone": "",
   "city_state": "",
-  "business_name": "",
+  "business_name": "SUBORA MARKETPLACE",
   "registration_number": "",
-  "social": { "instagram": "", "x": "", "facebook": "", "tiktok": "", "linkedin": "" },
-  "updated": "2026-10-19"
+  "social": {
+    "instagram": "",
+    "x": "",
+    "facebook": "",
+    "tiktok": "",
+    "linkedin": ""
+  },
+  "updated": "2026-11-04"
 }
