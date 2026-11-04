@@ -3,10 +3,6 @@
   "trailingSlash": false,
   "rewrites": [
     {
-      "source": "/store",
-      "destination": "/"
-    },
-    {
       "source": "/login",
       "destination": "/"
     },

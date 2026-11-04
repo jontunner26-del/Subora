@@ -302,6 +302,7 @@ const HOME_DESC = 'Subora marketplace for shared subscriptions, courses, softwar
 idx = idx.replace(/<title>[^<]*<\/title>/, `<title>${HOME_TITLE}</title>`)
   .replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${HOME_DESC}">`);
 const headBlock = `<!--SEO-HEAD-START-->
+<link rel="canonical" href="${SITE}/"><meta property="og:url" content="${SITE}/">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
 ${ld(ORG, WEBSITE)}
 <!--SEO-HEAD-END-->`;
@@ -319,6 +320,38 @@ if (idx.includes('<!--SEO-SHELL-START-->')) idx = idx.replace(/<!--SEO-SHELL-STA
 else if (idx.includes('<div id="app" data-w="d"></div>')) idx = idx.replace('<div id="app" data-w="d"></div>', `<div id="app" data-w="d">${shell}</div>`);
 else throw new Error('Could not find the empty #app container in index.html');
 fs.writeFileSync(INDEX, idx);
+
+/* ---------- store.html: same app, but its own title, description, canonical and crawlable intro ----------
+   /store used to be rewritten to index.html, so crawlers that do not run JavaScript saw the home page twice. */
+const STORE_TITLE = 'Marketplace: shared subscriptions and courses | Subora';
+const STORE_DESC = 'Browse shared subscriptions, courses, software seats and digital goods from approved vendors in Nigeria. Pay into escrow, confirm, then the vendor is paid.';
+const storeUrl = SITE + '/store';
+const storeHead = `<!--SEO-HEAD-START-->
+<link rel="canonical" href="${storeUrl}"><meta property="og:url" content="${storeUrl}">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+${ld(ORG, WEBSITE,
+  { '@type': 'CollectionPage', '@id': storeUrl + '#webpage', url: storeUrl, name: 'Subora marketplace', description: STORE_DESC, isPartOf: { '@id': SITE + '/#website' }, publisher: { '@id': SITE + '/#organization' }, inLanguage: 'en-NG' },
+  { '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Home', item: SITE + '/' }, { '@type': 'ListItem', position: 2, name: 'Marketplace', item: storeUrl }] })}
+<!--SEO-HEAD-END-->`;
+const storeCats = [['Subscriptions', 'Subscriptions', 'Shared places on plans for AI assistants, streaming, music and other tools.'], ['Software', 'Software', 'Team seats for design and work tools.'], ['Courses', 'Courses', 'Recorded lessons, project files and templates.'], ['Digital', 'Digital goods', 'Content packs and other downloads.']];
+const storeShell = `<!--SEO-SHELL-START-->
+<div class="wrap land2" id="seo-shell"><nav aria-label="Main" style="display:flex;gap:14px;flex-wrap:wrap;padding:14px 0"><a href="/" style="font-weight:800">Subora</a>${shellNav}<a href="${CTA_LOGIN}">Log in</a><a href="${CTA_SIGNUP}">Sign up</a></nav>
+<header class="lh"><h1>Browse the Subora marketplace</h1><p class="lede">This is where approved vendors list shared subscriptions, courses, software seats and digital goods, priced in naira. Open a listing to read the vendor’s terms and pick a plan length. Your payment is held in escrow until you confirm that your access works.</p></header>
+<div class="larticle"><article class="lbody"><section><h2>Browse by category</h2><ul>${storeCats.map(([c, l, d]) => `<li><a href="/store?c=${c}"><strong>${l}</strong></a>: ${d}</li>`).join('')}</ul><p>Gift cards, crypto and social accounts and numbers are sold only by sellers with extra checks. Listings change as vendors add and remove them, so what you see here is the live list.</p></section>
+<section><h2>Before you buy</h2><p>You can browse without an account and sign up, for free, when you are ready to buy. Read <a href="/how-it-works">how Subora works</a> and <a href="/safety">how buying is protected</a>, then use our guides to <a href="/blog/what-can-i-buy-on-subora-category-guide">what you can buy</a> and <a href="/blog/how-to-check-a-digital-product-listing-before-you-buy">how to check a listing</a>.</p></section></article></div>
+<footer class="lsmall" style="padding:24px 0"><a href="/about">About</a> · <a href="/contact">Contact</a> · <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> · <a href="/refunds">Refunds</a></footer></div>
+<!--SEO-SHELL-END-->`;
+let storeHtml = idx
+  .replace(/<title>[^<]*<\/title>/, () => `<title>${STORE_TITLE}</title>`)
+  .replace(/<meta name="description" content="[^"]*">/, () => `<meta name="description" content="${STORE_DESC}">`)
+  .replace(/<meta property="og:title" content="[^"]*">/, () => `<meta property="og:title" content="Subora marketplace: shared subscriptions and courses">`)
+  .replace(/<meta property="og:description" content="[^"]*">/, () => `<meta property="og:description" content="${STORE_DESC}">`)
+  .replace(/<meta name="twitter:title" content="[^"]*">/, () => `<meta name="twitter:title" content="Subora marketplace: shared subscriptions and courses">`)
+  .replace(/<meta name="twitter:description" content="[^"]*">/, () => `<meta name="twitter:description" content="${STORE_DESC}">`)
+  .replace(/<!--SEO-HEAD-START-->[\s\S]*?<!--SEO-HEAD-END-->/, () => storeHead)
+  .replace(/<!--SEO-SHELL-START-->[\s\S]*?<!--SEO-SHELL-END-->/, () => storeShell);
+if (!storeHtml.includes(storeUrl) || storeHtml === idx) throw new Error('store.html was not generated correctly');
+fs.writeFileSync(path.join(ROOT, 'store.html'), storeHtml);
 
 /* ---------- sitemap.xml, robots.txt, 404.html ---------- */
 const urls = [[SITE + '/', CFG.updated], [SITE + '/store', CFG.updated], ...pages.map(p => [`${SITE}/${p.slug}`, CFG.updated]), ...BLOG.urls];
