@@ -1437,8 +1437,18 @@ const GATED=['casepage','buyer','vendor','admin'];
 const afterAuth=()=>{if(S.after&&S.role==='buyer'){const a=S.after;S.view=a.view;if(a.cat)S.cat=a.cat;if(a.q!=null)S.q=a.q;if(a.pid)S.pid=a.pid;if(a.vid)S.vid=a.vid;S.after=null;S.loading=false}else S.after=null};
 const gateBar=()=>S.after?`<div class="gatebar" role="status">${I('lock',16)}<span><b>Create a free account to continue.</b> It takes about a minute. Already have one? <button class="linkbtn" data-act="nav" data-view="login">Log in</button></span></div>`:'';
 function landing(){
- /* LOGO SLOTS: each .lslot below is a placeholder. To use a real logo, replace the text inside with <img src="..." alt="Name">. */
- const slot=n=>`<span class="lslot" data-logo="${n}" title="Logo placeholder: ${n}"><i>${I('plus',12)}</i>${n}</span>`;
+ /* Brand logos: official brand symbols served as SVGs by Simple Icons. */
+ const brandLogos={
+  'ChatGPT':['chatgpt','10a37f'],'Claude':['claude','d97757'],'Gemini':['googlegemini','8e75b2'],
+  'Netflix':['netflix','e50914'],'Prime Video':['primevideo','00a8e1'],'Spotify':['spotify','1db954'],
+  'Canva':['canva','00c4cc'],'YouTube':['youtube','ff0000'],'Microsoft 365':['microsoft365','d83b01'],
+  'Notion':['notion','000000'],'Instagram':['instagram','e4405f'],'Facebook':['facebook','0866ff'],
+  'Showmax':['showmax','000000'],'Disney+':['disneyplus','113ccf'],'YouTube Premium':['youtubepremium','ff0000'],
+  'Apple Music':['applemusic','fa243c'],'CapCut':['capcut','000000'],'Duolingo':['duolingo','58cc02'],
+  'LinkedIn':['linkedin','0a66c2'],'Coursera':['coursera','0056d2'],'Adobe Creative Cloud':['adobecreativecloud','da1f26'],
+  'Figma':['figma','f24e1e'],'TikTok':['tiktok','000000'],'Perplexity':['perplexity','20b8cd']
+ };
+ const slot=n=>{const b=brandLogos[n];return `<span class="lslot" data-logo="${n}" title="${n}">${b?`<img src="https://cdn.simpleicons.org/${b[0]}/${b[1]}" alt="${n} logo" loading="lazy" onerror="this.style.display='none'">`:''}<span>${n}</span></span>`};
  const row=a=>`<div class="lslots">${a.map(slot).join('')}</div>`;
  const faq=[['Is it safe to pay?','Yes. Every payment is held in escrow. You confirm that your login, code or link works before the vendor is paid. If something breaks, you can report it and get a full or prorated refund.'],['How do I get my login or code?','On your subscription card, usually within seconds. For many listings, sign-in codes and links are delivered automatically, so you never wait for the vendor.'],['Who sells on Subora?','A small number of vendors approved by hand after identity checks. Subora also sells its own official listings.'],['What does it cost?','Buying is free. You only pay the listing price from your wallet. Vendors pay a 10% fee on each sale.'],['What if the vendor does not reply?','Tap Nudge vendor and they are alerted by SMS and email. If they still do not reply, Subora support steps in.'],['Can I delete my chats or payment history?','No. Chats, payments and disputes are kept as permanent records so that any problem can be traced and settled fairly.']];
  const toc=[['what','What is Subora'],['find','What you can find'],['buy','How buying works'],['safe','How your money stays safe'],['access','How you get access'],['sellers','Who sells here'],['cost','What it costs'],['faq','Questions']];
