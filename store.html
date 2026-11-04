@@ -22,7 +22,7 @@
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://www.subora.com.ng/#organization","name":"Subora","url":"https://www.subora.com.ng/","logo":"https://www.subora.com.ng/logo.png","description":"Subora is a Nigerian marketplace for shared subscriptions, online courses, software seats and digital goods, with escrow on every order.","areaServed":"NG","contactPoint":{"@type":"ContactPoint","contactType":"customer support","areaServed":"NG","availableLanguage":"English","email":"support@subora.com.ng","hoursAvailable":{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],"opens":"08:00","closes":"22:00"}}},{"@type":"WebSite","@id":"https://www.subora.com.ng/#website","url":"https://www.subora.com.ng/","name":"Subora","publisher":{"@id":"https://www.subora.com.ng/#organization"},"inLanguage":"en-NG"},{"@type":"CollectionPage","@id":"https://www.subora.com.ng/store#webpage","url":"https://www.subora.com.ng/store","name":"Subora marketplace","description":"Browse shared subscriptions, courses, software seats and digital goods from approved vendors in Nigeria. Pay into escrow, confirm, then the vendor is paid.","isPartOf":{"@id":"https://www.subora.com.ng/#website"},"publisher":{"@id":"https://www.subora.com.ng/#organization"},"inLanguage":"en-NG"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.subora.com.ng/"},{"@type":"ListItem","position":2,"name":"Marketplace","item":"https://www.subora.com.ng/store"}]}]}</script>
 <!--SEO-HEAD-END-->
 </head><body>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.simpleicons.org"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap">
 <style>
 /* Layout: sticky marketplace header + storefront grid; buyer account and vendor console use a left rail (scrolling tabs on phones). Lime on white, dark forest ink for text. */
@@ -1021,9 +1021,11 @@ h1,h2,h3{font-family:var(--fs);letter-spacing:-.025em}
 .lstrip{border-block:1px solid var(--line);padding:18px 0;display:grid;gap:12px;margin-bottom:34px}
 .lcap{font:700 12px var(--fb);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .lslots{display:flex;flex-wrap:wrap;gap:10px}
-.lslot{display:inline-flex;align-items:center;gap:8px;min-width:112px;height:44px;padding:0 14px;border:1.5px dashed var(--line);border-radius:12px;color:var(--muted);font:700 13.5px var(--fb);background:var(--surface);justify-content:center}
+.lslot{display:inline-flex;align-items:center;gap:8px;min-width:112px;height:44px;padding:0 14px;border:1px solid var(--line);border-radius:12px;color:var(--fg);font:700 13.5px var(--fb);background:var(--surface);justify-content:center}
 .lslot i{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--surface2);flex:none}
-.lslot img{max-height:24px;max-width:90px;display:block}
+.lslot img{width:24px;height:24px;max-width:90px;object-fit:contain;display:block;flex:none}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .lslot img.ink{filter:invert(1)}}
+:root[data-theme="dark"] .lslot img.ink{filter:invert(1)}
 .larticle{display:grid;grid-template-columns:200px minmax(0,1fr);gap:48px;align-items:start}
 .ltoc{position:sticky;top:96px;display:grid;gap:2px}.ltoc b{font:700 12px var(--fb);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
 .ltoc button{text-align:left;border:0;background:none;padding:7px 10px;border-radius:10px;font:600 14px var(--fb);color:var(--muted);border-left:2px solid var(--line);border-radius:0 10px 10px 0}.ltoc button:hover{color:var(--fg);border-left-color:var(--lime);background:var(--lime-soft)}
@@ -1427,15 +1429,25 @@ const GATED=['casepage','buyer','vendor','admin'];
 const afterAuth=()=>{if(S.after&&S.role==='buyer'){const a=S.after;S.view=a.view;if(a.cat)S.cat=a.cat;if(a.q!=null)S.q=a.q;if(a.pid)S.pid=a.pid;if(a.vid)S.vid=a.vid;S.after=null;S.loading=false}else S.after=null};
 const gateBar=()=>S.after?`<div class="gatebar" role="status">${I('lock',16)}<span><b>Create a free account to continue.</b> It takes about a minute. Already have one? <button class="linkbtn" data-act="nav" data-view="login">Log in</button></span></div>`:'';
 function landing(){
- /* LOGO SLOTS: each .lslot below is a placeholder. To use a real logo, replace the text inside with <img src="..." alt="Name">. */
- const slot=n=>`<span class="lslot" data-logo="${n}" title="Logo placeholder: ${n}"><i>${I('plus',12)}</i>${n}</span>`;
- const row=a=>`<div class="lslots">${a.map(slot).join('')}</div>`;
+ /* Brand logos: official brand symbols served as SVGs by Simple Icons. */
+ const brandLogos={
+  'ChatGPT':['chatgpt','10a37f'],'Claude':['claude','d97757'],'Gemini':['googlegemini','8e75b2'],
+  'Netflix':['netflix','e50914'],'Prime Video':['primevideo','00a8e1'],'Spotify':['spotify','1db954'],
+  'Canva':['canva','00c4cc'],'YouTube':['youtube','ff0000'],'Microsoft 365':['microsoft365','d83b01'],
+  'Notion':['notion','000000'],'Instagram':['instagram','e4405f'],'Facebook':['facebook','0866ff'],
+  'Showmax':['showmax','000000'],'Disney+':['disneyplus','113ccf'],'YouTube Premium':['youtubepremium','ff0000'],
+  'Apple Music':['applemusic','fa243c'],'CapCut':['capcut','000000'],'Duolingo':['duolingo','58cc02'],
+  'LinkedIn':['linkedin','0a66c2'],'Coursera':['coursera','0056d2'],'Adobe Creative Cloud':['adobecreativecloud','da1f26'],
+  'Figma':['figma','f24e1e'],'TikTok':['tiktok','000000'],'Perplexity':['perplexity','20b8cd'],'Udemy':['udemy','a435f0']
+ };
+ const slot=(n,eager)=>{const b=brandLogos[n];return `<span class="lslot" data-logo="${n}" title="${n}">${b?`<img${b[1]==='000000'?' class="ink"':''} src="https://cdn.simpleicons.org/${b[0]}/${b[1]}" alt="" width="24" height="24" decoding="async" ${eager?'fetchpriority="high"':'loading="lazy"'} onerror="this.style.display='none'">`:''}<span>${n}</span></span>`};
+ const row=(a,eager)=>`<div class="lslots">${a.map(n=>slot(n,eager)).join('')}</div>`;
  const faq=[['Is it safe to pay?','Yes. Every payment is held in escrow. You confirm that your login, code or link works before the vendor is paid. If something breaks, you can report it and get a full or prorated refund.'],['How do I get my login or code?','On your subscription card, usually within seconds. For many listings, sign-in codes and links are delivered automatically, so you never wait for the vendor.'],['Who sells on Subora?','A small number of vendors approved by hand after identity checks. Subora also sells its own official listings.'],['What does it cost?','Buying is free. You only pay the listing price from your wallet. Vendors pay a 10% fee on each sale.'],['What if the vendor does not reply?','Tap Nudge vendor and they are alerted by SMS and email. If they still do not reply, Subora support steps in.'],['Can I delete my chats or payment history?','No. Chats, payments and disputes are kept as permanent records so that any problem can be traced and settled fairly.']];
  const toc=[['what','What is Subora'],['find','What you can find'],['buy','How buying works'],['safe','How your money stays safe'],['access','How you get access'],['sellers','Who sells here'],['cost','What it costs'],['faq','Questions']];
  return `<div class="wrap land2">
  <header class="lh"><span class="pill gold">${I('shield',12)} Escrow on every order</span><h1>Subora marketplace: buy and share digital access, <em>safely</em></h1><p class="lede">Subora is a marketplace for shared subscriptions, online courses, software seats and digital goods. This page explains how it works. Browse the marketplace without an account. Create a free account when you are ready to buy.</p>
   <div class="lcta"><a class="btn pri lg" href="/store">Browse the marketplace</a><button class="btn lg" data-act="start">Create free account</button><button class="btn lg" data-act="nav" data-view="login">Log in</button></div></header>
- <section class="lstrip" aria-label="Services people share on Subora"><span class="lcap">Popular on Subora</span>${row(['ChatGPT','Claude','Netflix','Spotify','Canva','YouTube','Microsoft 365','Notion'])}</section>
+ <section class="lstrip" aria-label="Services people share on Subora"><span class="lcap">Popular on Subora</span>${row(['ChatGPT','Claude','Netflix','Spotify','Canva','YouTube','Microsoft 365','Notion'],true)}</section>
  <div class="larticle">
   <nav class="ltoc" aria-label="On this page"><b>On this page</b>${toc.map(t=>`<button data-act="hjump2" data-id="${t[0]}">${t[1]}</button>`).join('')}<button class="btn sm pri" data-act="start" style="margin-top:12px">Get started</button></nav>
   <article class="lbody">
@@ -1448,7 +1460,7 @@ function landing(){
      <div><h3>AI assistants</h3><p>A private place on plans for chat, writing and image tools.</p>${row(['ChatGPT','Claude','Gemini'])}</div>
      <div><h3>Streaming and music</h3><p>One screen or one seat on a family or premium plan.</p>${row(['Netflix','Prime Video','Spotify'])}</div>
      <div><h3>Design and software</h3><p>Team seats for tools used at work and school.</p>${row(['Canva','Microsoft 365','Notion'])}</div>
-     <div><h3>Courses and templates</h3><p>Recorded lessons, project files, templates and content packs.</p>${row(['Your logo here'])}</div>
+     <div><h3>Courses and templates</h3><p>Recorded lessons, project files, templates and content packs.</p>${row(['Coursera','Udemy','Duolingo'])}</div>
      <div><h3>Accounts and numbers</h3><p>Aged social accounts and virtual numbers, with extra checks on every seller.</p>${row(['Instagram','Facebook'])}</div>
     </div></section>
    <section id="L-buy"><h2>How buying works</h2>
