@@ -252,7 +252,7 @@ function render(p) {
 <meta property="og:image" content="${SITE}/og-image.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${attr(t)}"><meta name="twitter:description" content="${attr(p.desc)}"><meta name="twitter:image" content="${SITE}/og-image.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Manrope:wght@800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Manrope:wght@800&display=swap" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Manrope:wght@800&display=swap"></noscript>
 <link rel="stylesheet" href="/assets/site.css">
 ${ld(...graph)}
 </head><body>
@@ -367,7 +367,7 @@ fs.writeFileSync(path.join(ROOT, '404.html'), `<!doctype html>
 <script>(function(){var p=location.pathname;if(/^[/](store|login|signup|sell|help|account|vendor|admin|case|listing|seller)([/]|$)/.test(p)){try{sessionStorage.setItem('subora_r',p+location.search+location.hash)}catch(e){}document.documentElement.style.visibility='hidden';location.replace('/')}})();</script>
 <meta name="theme-color" content="#d1fe17">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Manrope:wght@800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Manrope:wght@800&display=swap" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Manrope:wght@800&display=swap"></noscript>
 <link rel="stylesheet" href="/assets/site.css">
 </head><body>
 ${header('')}

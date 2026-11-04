@@ -22,8 +22,8 @@
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://www.subora.com.ng/#organization","name":"Subora","url":"https://www.subora.com.ng/","logo":"https://www.subora.com.ng/logo.png","description":"Subora is a Nigerian marketplace for shared subscriptions, online courses, software seats and digital goods, with escrow on every order.","areaServed":"NG","contactPoint":{"@type":"ContactPoint","contactType":"customer support","areaServed":"NG","availableLanguage":"English","email":"support@subora.com.ng","hoursAvailable":{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],"opens":"08:00","closes":"22:00"}}},{"@type":"WebSite","@id":"https://www.subora.com.ng/#website","url":"https://www.subora.com.ng/","name":"Subora","publisher":{"@id":"https://www.subora.com.ng/#organization"},"inLanguage":"en-NG"},{"@type":"CollectionPage","@id":"https://www.subora.com.ng/store#webpage","url":"https://www.subora.com.ng/store","name":"Subora marketplace","description":"Browse shared subscriptions, courses, software seats and digital goods from approved vendors in Nigeria. Pay into escrow, confirm, then the vendor is paid.","isPartOf":{"@id":"https://www.subora.com.ng/#website"},"publisher":{"@id":"https://www.subora.com.ng/#organization"},"inLanguage":"en-NG"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.subora.com.ng/"},{"@type":"ListItem","position":2,"name":"Marketplace","item":"https://www.subora.com.ng/store"}]}]}</script>
 <!--SEO-HEAD-END-->
 </head><body>
-<link rel="preconnect" href="https://cdn.simpleicons.org"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap">
+<link rel="preconnect" href="https://cdn.simpleicons.org"><link rel="preconnect" href="https://znywpatsqmmxkbqtybrr.supabase.co" crossorigin><link rel="preconnect" href="https://cdn.jsdelivr.net"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap"></noscript>
 <style>
 /* Layout: sticky marketplace header + storefront grid; buyer account and vendor console use a left rail (scrolling tabs on phones). Lime on white, dark forest ink for text. */
 :root{
@@ -1220,7 +1220,6 @@ body{margin:0}
 <footer class="lsmall" style="padding:24px 0"><a href="/about">About</a> · <a href="/contact">Contact</a> · <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> · <a href="/refunds">Refunds</a></footer></div>
 <!--SEO-SHELL-END--></div></div></div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="https://js.paystack.co/v1/inline.js"></script>
 <script src="/assets/chat-widget.js" defer></script>
 <script>
 const $=(s,r=document)=>r.querySelector(s);
@@ -3702,8 +3701,10 @@ HF.send=async()=>{
 H.nudge=async()=>{toast('The vendor has been notified in their console.')};
 
 /* ================= wallet ================= */
+const loadPaystack=()=>window.PaystackPop?Promise.resolve():new Promise(res=>{const el=document.createElement('script');el.src='https://js.paystack.co/v1/inline.js';el.onload=()=>res();el.onerror=()=>res();document.head.appendChild(el)});
 H.fundgo=async()=>{
   const v=Math.max(500,+$('#amt').value||0);const key=SUBORA_CONFIG.PAYSTACK_PUBLIC_KEY;
+  if(key)await loadPaystack();
   if(!key||!window.PaystackPop){toast('Wallet funding is not switched on yet. Please contact support.');return}
   const ref='sub_'+crypto.randomUUID().replace(/-/g,'');
   await new Promise((res,rej)=>{window.PaystackPop.setup({key,email:S.profile.email,amount:Math.round(v*100),currency:'NGN',ref,metadata:{user_id:LIVE.uid},callback:()=>res(),onClose:()=>rej(new Error('Payment window closed'))}).openIframe()});
