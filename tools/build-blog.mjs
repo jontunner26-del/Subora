@@ -74,6 +74,8 @@ ${ld(...graph)}
         image: [{ '@type': 'ImageObject', url: img, width: 1200, height: 630 }], datePublished: p.date, dateModified: p.updated, inLanguage: 'en-NG', isAccessibleForFree: true,
         author: { '@id': SITE + '/#editorial' }, publisher: { '@id': SITE + '/#organization' }, isPartOf: { '@id': SITE + '/blog#blog' }, articleSection: p.category, keywords: (p.keywords || []).join(', '), wordCount: words,
         about: (p.about || []).map(a => ({ '@type': 'Thing', name: a })), citation: p.sources.filter(s => !s.internal).map(s => ({ '@type': 'CreativeWork', name: s.title, url: s.url, publisher: { '@type': 'Organization', name: s.publisher } })) },
+      { '@type': 'FAQPage', '@id': url + '#faq', url: url + '#faq', name: typo(p.h1) + ': frequently asked questions', inLanguage: 'en-NG', isPartOf: { '@id': url + '#post' },
+        mainEntity: p.faq.map(([q, a]) => ({ '@type': 'Question', name: typo(textOf(q)), acceptedAnswer: { '@type': 'Answer', text: typo(textOf(a.replace(/<sup[\s\S]*?<\/sup>/g, ''))) } })) },
       { '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Home', item: SITE + '/' }, { '@type': 'ListItem', position: 2, name: 'Blog', item: SITE + '/blog' }, { '@type': 'ListItem', position: 3, name: typo(p.h1), item: url }] }];
 
     const html = head({ title: t, desc: p.desc, url, type: 'article', image: img, graph,
@@ -91,6 +93,7 @@ ${ld(...graph)}
 <section class="faq" aria-labelledby="faq"><h2 id="faq">Frequently asked questions</h2>${faq}</section>
 <section class="sources" aria-labelledby="sources"><h2 id="sources">Sources</h2><p class="muted">Links open the original page. Figures and prices change, so check the source before you act on them.</p><ol>${sources}</ol></section>
 <aside class="note editorial"><p>${p.editorial}</p></aside>
+<section class="more" aria-labelledby="learn"><h2 id="learn">How buying on Subora is protected</h2><ul><li><a href="/escrow">How escrow works, step by step</a></li><li><a href="/safety">Buying safely on Subora</a></li><li><a href="/how-it-works">How Subora works</a></li><li><a href="/faq">Frequently asked questions</a></li></ul></section>
 ${related ? `<section class="more" aria-labelledby="more"><h2 id="more">Keep reading</h2><ul>${related}</ul></section>` : ''}
 ${cta(p.ctaTitle || 'Buy digital access with escrow', p.ctaText || 'Browse listings in naira. Your payment is held until you confirm that your access works.')}
 </article></div></main>${tail}`;
