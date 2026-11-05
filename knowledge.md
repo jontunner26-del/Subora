@@ -37,7 +37,7 @@ Subora is for buyers in Nigeria who want the lower price of a shared plan withou
 Subora charges vendors 10% of each sale and a flat ₦100 for each withdrawal to a bank, plus a monthly marketing levy that pays for adverts that bring buyers to the marketplace. Buyers pay only the price shown on the listing. The full wording is in the Terms and Conditions.
 
 ## Who runs Subora?
-Subora is operated by SUBORA MARKETPLACE.
+Subora is operated by SUBORA MARKETPLACE. We are based in Lagos, Nigeria.
 
 ## Where to read next
 
@@ -309,6 +309,8 @@ Chat with Subora support every day from 8am to 10pm West Africa Time. Chat repli
 - Typical reply: Within 15 to 30 minutes in chat hours
 - Disputes: Decided within 48 hours of both sides sharing evidence
 - Email: support@subora.com.ng
+- WhatsApp: +234 814 084 7139
+- Location: Lagos, Nigeria
 
 ## What should I do if an order goes wrong?
 
