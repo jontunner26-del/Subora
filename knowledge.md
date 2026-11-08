@@ -310,6 +310,7 @@ Chat with Subora support every day from 8am to 10pm West Africa Time. Chat repli
 - Disputes: Decided within 48 hours of both sides sharing evidence
 - Email: support@subora.com.ng
 - WhatsApp: +234 814 084 7139
+- Follow: Instagram · X (Twitter) · Facebook · TikTok · WhatsApp channel
 - Location: Lagos, Nigeria
 
 ## What should I do if an order goes wrong?
@@ -361,7 +362,7 @@ Subora is a marketplace. We provide the place where buyers and vendors meet, and
 ---
 # PAGE /privacy
 This policy explains what personal data Subora collects, why we use it, who we share it with, and the rights you have over it.
-Last updated 4 November 2026
+Last updated 8 November 2026
 
 ## What we collect
 Your name, email, phone number, orders, wallet activity, chats and the device you use. Vendors also give identity documents, a selfie and bank details for verification.
@@ -380,6 +381,9 @@ You can ask to see, correct or export your data, and to delete what we are not r
 
 ## Cookies
 Essential cookies keep you logged in and your cart safe. Optional analytics cookies are used only if you accept them.
+
+## Visitor statistics
+When you visit Subora, a small script counts the visit so we can see which links, posts and adverts bring people to the marketplace. It records a random ID that your browser makes up and keeps on your device, the page you landed on, the campaign tags in the link you clicked (such as utm_source=tiktok) and the name of the website or app you came from. Our visit records do not include your IP address, your name or your email, or a description of your device, except a note if you opened the link inside the TikTok, Instagram or Facebook app. If you create an account, we link it to the source you first came from, so we can see which campaigns bring buyers, and we keep that link while your account exists. We use this only to run and improve Subora and to judge our adverts. We do not sell it. Visit records are deleted after 400 days. The script does not run if your browser sends a Do Not Track or Global Privacy Control signal, and you can clear it any time by clearing this site’s data in your browser.
 
 ## Contact
 Questions about your data: support@subora.com.ng.

@@ -48,7 +48,8 @@ const esc = s => typo(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>
 const attr = s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const has = v => v && String(v).trim();
-const date = new Date(CFG.updated + 'T12:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+const fmtDate = d => new Date(d + 'T12:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+const date = fmtDate(CFG.updated);
 const fullTitle = t => (t.length + 9 <= 60 ? t + ' | Subora' : t);
 
 const MARK = `<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#0e1f10"/><rect x=".75" y=".75" width="30.5" height="30.5" rx="8.4" fill="none" stroke="#d1fe17" stroke-opacity=".35" stroke-width="1.5"/><path d="M21.6 8.4A5.4 5.4 0 1 0 16 16.2" fill="none" stroke="#d1fe17" stroke-width="3.8" stroke-linecap="round"/><path d="M16 16.2A5.4 5.4 0 1 1 10.4 23.6" fill="none" stroke="#fff" stroke-width="3.8" stroke-linecap="round"/><circle cx="23.4" cy="6.6" r="1.7" fill="#d1fe17"/></svg>`;
@@ -86,6 +87,8 @@ const cta = (h = 'Ready to see what is inside?', p = 'Browse listings and compar
 
 /* ---------- organisation data (only what you filled in) ---------- */
 const sameAs = Object.values(CFG.social || {}).filter(has);
+const SOCIAL_LABELS = { tiktok: 'TikTok', instagram: 'Instagram', facebook: 'Facebook', x: 'X (Twitter)', whatsapp_channel: 'WhatsApp channel', linkedin: 'LinkedIn' };
+const followLinks = Object.entries(CFG.social || {}).filter(([k, v]) => has(v) && SOCIAL_LABELS[k]).map(([k, v]) => `<a href="${attr(v)}" rel="noopener">${SOCIAL_LABELS[k]}</a>`).join(' · ');
 const ORG = {
   '@type': 'Organization', '@id': SITE + '/#organization', name: 'Subora', url: SITE + '/', logo: SITE + LOGO,
   description: 'Subora is a Nigerian marketplace for shared subscriptions, online courses, software seats and digital goods, with escrow on every order.',
@@ -205,7 +208,7 @@ ${cta('Shop with escrow on every order', 'Browse listings and compare prices now
     h1: 'Contact Subora',
     lede: `Chat with Subora support every day from 8am to 10pm West Africa Time. Chat replies usually come within 15 to 30 minutes in support hours${emailLine ? ', and email replies within 24 hours' : ''}.`,
     body: `<h2>How can I contact Subora?</h2>
-<dl class="kv"><dt>Live chat</dt><dd>In the app, open the Help Centre and tap Chat with support</dd><dt>Hours</dt><dd>8am to 10pm West Africa Time, every day</dd><dt>Typical reply</dt><dd>Within 15 to 30 minutes in chat hours</dd><dt>Disputes</dt><dd>Decided within 48 hours of both sides sharing evidence</dd>${emailLine ? `<dt>Email</dt><dd>${emailLine}</dd>` : ''}${has(CFG.whatsapp) ? `<dt>WhatsApp</dt><dd><a href="https://wa.me/${attr(CFG.whatsapp.replace(/\D/g, ''))}">${esc(CFG.whatsapp)}</a></dd>` : ''}${has(CFG.phone) ? `<dt>Phone</dt><dd><a href="tel:${attr(CFG.phone.replace(/[^\d+]/g, ''))}">${esc(CFG.phone)}</a></dd>` : ''}${has(CFG.city_state) ? `<dt>Location</dt><dd>${esc(CFG.city_state)}, Nigeria</dd>` : ''}</dl>
+<dl class="kv"><dt>Live chat</dt><dd>In the app, open the Help Centre and tap Chat with support</dd><dt>Hours</dt><dd>8am to 10pm West Africa Time, every day</dd><dt>Typical reply</dt><dd>Within 15 to 30 minutes in chat hours</dd><dt>Disputes</dt><dd>Decided within 48 hours of both sides sharing evidence</dd>${emailLine ? `<dt>Email</dt><dd>${emailLine}</dd>` : ''}${has(CFG.whatsapp) ? `<dt>WhatsApp</dt><dd><a href="https://wa.me/${attr(CFG.whatsapp.replace(/\D/g, ''))}">${esc(CFG.whatsapp)}</a></dd>` : ''}${has(CFG.phone) ? `<dt>Phone</dt><dd><a href="tel:${attr(CFG.phone.replace(/[^\d+]/g, ''))}">${esc(CFG.phone)}</a></dd>` : ''}${followLinks ? `<dt>Follow</dt><dd>${followLinks}</dd>` : ''}${has(CFG.city_state) ? `<dt>Location</dt><dd>${esc(CFG.city_state)}, Nigeria</dd>` : ''}</dl>
 <h2>What should I do if an order goes wrong?</h2>
 <p>Tap Report a problem on the subscription card for that order. The vendor has 48 hours to respond and your payment stays in escrow meanwhile. If the vendor does not reply, tap Nudge vendor in the chat: they are alerted by SMS and email, and Subora support steps in if there is still no answer. See <a href="/safety">how refunds and disputes work</a>.</p>
 <h2>I am a brand or rights holder. How do I report a listing?</h2>
@@ -226,6 +229,7 @@ ${cta('New to Subora?', 'Browse listings and compare prices now. Create a free a
     h1: 'Privacy Policy',
     lede: 'This policy explains what personal data Subora collects, why we use it, who we share it with, and the rights you have over it.',
     upd: true,
+    updDate: '2026-11-08',
     sections: PRIVACY.map(([h, t]) => h === 'Contact' ? [h, has(CFG.support_email) ? t : 'Questions about your data: use Chat with support in the app.'] : [h, t])
   },
   {
@@ -242,7 +246,7 @@ ${cta('New to Subora?', 'Browse listings and compare prices now. Create a free a
 /* ---------- page rendering ---------- */
 const NAV = [['/store', 'Marketplace'], ['/how-it-works', 'How it works'], ['/safety', 'Safety'], ['/faq', 'FAQ'], ['/blog', 'Blog'], ['/about', 'About'], ['/contact', 'Contact']];
 const header = cur => `<a class="skip" href="#main">Skip to content</a><header class="site-hdr"><div class="wrap"><a class="logo" href="/" aria-label="Subora home">${MARK}<span>Subora</span></a><nav aria-label="Main">${NAV.map(([h, l]) => `<a href="${h}"${cur === h ? ' aria-current="page"' : ''}>${l}</a>`).join('')}</nav><div class="acts"><a class="btn sm" href="${CTA_LOGIN}">Log in</a><a class="btn sm pri" href="${CTA_SIGNUP}">Sign up</a></div></div></header>`;
-const footer = () => `<footer class="site-ftr"><div class="wrap"><div class="fgrid"><div><a class="logo" href="/" aria-label="Subora home">${MARK}<span>Subora</span></a><p>Shared subscriptions, courses, software and digital products, with escrow on every order.</p>${has(CFG.business_name) ? `<p>${esc(CFG.business_name)}</p>` : ''}</div><div><h2>Learn</h2><ul><li><a href="/store">Marketplace</a></li><li><a href="/how-it-works">How it works</a></li><li><a href="/safety">Safety</a></li><li><a href="/escrow">How escrow works</a></li><li><a href="/faq">FAQ</a></li><li><a href="/blog">Blog</a></li><li><a href="/about">About</a></li></ul></div><div><h2>Support</h2><ul><li><a href="/contact">Contact</a></li><li><a href="${CTA_SIGNUP}">Create an account</a></li><li><a href="${CTA_SELL}">Sell on Subora</a></li></ul></div><div><h2>Legal</h2><ul><li><a href="/terms">Terms and Conditions</a></li><li><a href="/privacy">Privacy Policy</a></li><li><a href="/refunds">Refund policy</a></li></ul></div></div><div class="fbase"><span>© 2026 Subora.</span><span>Prices are shown in Nigerian naira (₦)</span></div></div></footer>`;
+const footer = () => `<footer class="site-ftr"><div class="wrap"><div class="fgrid"><div><a class="logo" href="/" aria-label="Subora home">${MARK}<span>Subora</span></a><p>Shared subscriptions, courses, software and digital products, with escrow on every order.</p>${has(CFG.business_name) ? `<p>${esc(CFG.business_name)}</p>` : ''}${followLinks ? `<p class="fsoc">Follow us: ${followLinks}</p>` : ''}</div><div><h2>Learn</h2><ul><li><a href="/store">Marketplace</a></li><li><a href="/how-it-works">How it works</a></li><li><a href="/safety">Safety</a></li><li><a href="/escrow">How escrow works</a></li><li><a href="/faq">FAQ</a></li><li><a href="/blog">Blog</a></li><li><a href="/about">About</a></li></ul></div><div><h2>Support</h2><ul><li><a href="/contact">Contact</a></li><li><a href="${CTA_SIGNUP}">Create an account</a></li><li><a href="${CTA_SELL}">Sell on Subora</a></li></ul></div><div><h2>Legal</h2><ul><li><a href="/terms">Terms and Conditions</a></li><li><a href="/privacy">Privacy Policy</a></li><li><a href="/refunds">Refund policy</a></li></ul></div></div><div class="fbase"><span>© 2026 Subora.</span><span>Prices are shown in Nigerian naira (₦)</span></div></div></footer>`;
 
 function render(p) {
   const url = `${SITE}/${p.slug}`;
@@ -282,7 +286,7 @@ function render(p) {
 ${ld(...graph)}
 </head><body>
 ${header('/' + p.slug)}
-<main id="main" class="page"><div class="wrap"><div class="page-in">${crumbs}<h1>${esc(p.h1)}</h1><p class="lede">${esc(p.lede)}</p>${p.upd ? `<p class="upd">Last updated ${date}</p>` : ''}${p.pre || ''}${main}</div></div></main>
+<main id="main" class="page"><div class="wrap"><div class="page-in">${crumbs}<h1>${esc(p.h1)}</h1><p class="lede">${esc(p.lede)}</p>${p.upd ? `<p class="upd">Last updated ${p.updDate ? fmtDate(p.updDate) : date}</p>` : ''}${p.pre || ''}${main}</div></div></main>
 ${footer()}
 <script src="/assets/track.js" defer></script>
 <script src="/assets/chat-widget.js" defer></script>
