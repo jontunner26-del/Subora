@@ -1369,7 +1369,7 @@ function navItems(){
  }
  if(S.role==='admin'){
   const q=S.products.filter(p=>p.status==='pending').length,d=S.cases.filter(c=>c.status!=='resolved').length,w=S.wd.filter(x=>x.status==='queued').length,kq=kycQueue().length;
-  return [{v:'admin',s:'review',l:'Listing review',i:'list',b:q},{v:'admin',s:'kyc',l:'Verifications',i:'shield',b:kq},{v:'admin',s:'disputes',l:'Disputes',i:'undo',b:d},{v:'admin',s:'payouts',l:'Payouts',i:'wallet',b:w},{v:'admin',s:'reports',l:'Reports & flags',i:'flag',b:S.reports.filter(r=>r.status==='open').length+S.flags.filter(f=>f.status==='open').length},{v:'admin',s:'analytics',l:'Analytics',i:'chart'},{v:'admin',s:'plans',l:'Vendor plans',i:'gift'},{v:'admin',s:'settings',l:'Settings',i:'gear'},{v:'admin',s:'people',l:'Accounts',i:'user'},{v:'admin',s:'audit',l:'Audit log',i:'list'},{v:'admin',s:'staff',l:'Staff access',i:'user'},{v:'admin',s:'security',l:'Security',i:'lock'}];
+  return [{v:'admin',s:'review',l:'Listing review',i:'list',b:q},{v:'admin',s:'kyc',l:'Verifications',i:'shield',b:kq},{v:'admin',s:'disputes',l:'Disputes',i:'undo',b:d},{v:'admin',s:'payouts',l:'Payouts',i:'wallet',b:w},{v:'admin',s:'reports',l:'Reports & flags',i:'flag',b:S.reports.filter(r=>r.status==='open').length+S.flags.filter(f=>f.status==='open').length},{v:'admin',s:'analytics',l:'Analytics',i:'chart'},{v:'admin',s:'traffic',l:'Traffic',i:'chart'},{v:'admin',s:'plans',l:'Vendor plans',i:'gift'},{v:'admin',s:'settings',l:'Settings',i:'gear'},{v:'admin',s:'people',l:'Accounts',i:'user'},{v:'admin',s:'audit',l:'Audit log',i:'list'},{v:'admin',s:'staff',l:'Staff access',i:'user'},{v:'admin',s:'security',l:'Security',i:'lock'}];
  }
  const ex=S.subs.filter(s=>s.left>0&&s.left<=5).length;
  return [{v:'buyer',s:'subs',l:'My subscriptions',i:'shield',b:ex},{v:'buyer',s:'orders',l:'Orders',i:'box'},{v:'buyer',s:'messages',l:'Messages',i:'chat'},{v:'buyer',s:'saved',l:'Saved',i:'heart'},{v:'buyer',s:'wallet',l:'Wallet',i:'wallet'},{v:'buyer',s:'disputes',l:'Disputes',i:'undo'},{v:'buyer',s:'profile',l:'My profile',i:'user'}];
@@ -2014,8 +2014,7 @@ function adminAnalytics(){
  const crow=Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([c,v])=>`<div class="hb"><span>${catL(c)}</span><div class="hbt"><i style="width:${(v/tot*100).toFixed(1)}%"></i></div><b>${Math.round(v/tot*100)}%</b></div>`).join('');
  const vend=Object.entries(VENDORS).filter(([id])=>id!=='__none__'&&!VENDORS[id].official).sort((a,b)=>b[1].sales-a[1].sales).slice(0,5);
  const top=[...S.products].filter(x=>x.sold>0&&!PARKED.includes(x.cat)).sort((a,b)=>b.sold*b.price-a.sold*a.price).slice(0,5);
- const fun=[['Visitors',d.nb*14],['Signed up',d.nb*3],['Funded wallet',d.nb*2],['Placed a first order',d.nb]];const fmax=fun[0][1];
- const held=S.orders.filter(o=>['processing','delivered'].includes(o.status)).reduce((a,o)=>a+(o.total||0),0);
+  const held=S.orders.filter(o=>['processing','delivered'].includes(o.status)).reduce((a,o)=>a+(o.total||0),0);
  return `<div class="tabs" role="tablist">${[7,30,90].map(n=>`<button class="${S.aper===n?'on':''}" data-act="aper" data-id="${n}">${n} days</button>`).join('')}</div>
  <div class="kpis"><div class="kpi hi"><span>Sales value</span><b>${N(d.gmv)}</b></div><div class="kpi"><span>Orders</span><b>${d.ord.toLocaleString()}</b></div><div class="kpi"><span>Subora fees earned</span><b>${N(d.fee)}</b></div><div class="kpi"><span>New buyers</span><b>${d.nb}</b></div><div class="kpi"><span>New vendors</span><b>${d.nv}</b></div><div class="kpi"><span>Held in escrow now</span><b>${N(held)}</b></div></div>
  <div class="two"><div class="panel"><h3>Orders over time</h3>${barsHTML(d.lab,d.val)}</div><div class="panel"><h3>Sales by category</h3>${crow||'<p class="muted">No sales yet.</p>'}</div></div>
@@ -2024,9 +2023,65 @@ function adminAnalytics(){
  <div class="panel"><h3>Top listings by revenue</h3><div class="tw"><table><tbody>${top.map((x,i)=>`<tr><td class="num">${i+1}</td><td class="t">${esc(x.title)}</td><td class="num">${N(x.sold*x.price)}</td></tr>`).join('')}</tbody></table></div></div></div>
  `;
 }
+/* ---------- admin: traffic sources (reads the traffic_* database functions; admins only) ---------- */
+const TR_SITE='https://www.subora.com.ng';
+const TR_NAMES={tiktok:'TikTok',instagram:'Instagram',facebook:'Facebook',x:'X (Twitter)',youtube:'YouTube',whatsapp:'WhatsApp',telegram:'Telegram',linkedin:'LinkedIn',snapchat:'Snapchat',pinterest:'Pinterest',reddit:'Reddit',nairaland:'Nairaland',google:'Google',bing:'Bing',duckduckgo:'DuckDuckGo',yahoo:'Yahoo',email:'Email',newsletter:'Newsletter',direct:'Direct',other:'Other'};
+const TR_CHAN={paid:'Paid ads',social:'Social',search:'Search',email:'Email',referral:'Other websites',direct:'Direct'};
+const TR_PLATS=['tiktok','instagram','facebook','x','whatsapp','youtube','telegram','linkedin','snapchat','google','email','other'];
+const TR_MEDIA=[['social','Organic post or bio link'],['cpc','Paid ad'],['email','Email or newsletter'],['influencer','Creator or partner']];
+const TR_PAGES=[['/','Home page'],['/store','Store'],['/escrow','How escrow works'],['/how-it-works','How Subora works'],['/safety','Buying safely'],['/blog','Blog'],['/sell','Become a vendor'],['/signup','Sign up']];
+const trName=s=>TR_NAMES[s]||s;
+const trSlug=(t,n)=>String(t||'').toLowerCase().trim().replace(/[^a-z0-9._-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,n||40);
+const trPct=(a,b)=>b>0?(Math.round(1000*a/b)/10)+'%':'–';
+const trNum=n=>(+n||0).toLocaleString();
+function trUrl(l){const q=new URLSearchParams({utm_source:l.source,utm_medium:l.medium,utm_campaign:l.campaign});if(l.content)q.set('utm_content',l.content);return TR_SITE+(l.destination||'/')+'?'+q.toString()}
+const trBars=(lab,val)=>{let h=barsHTML(lab,val);if(val.length>14)h=h.replace('class="bars"','class="bars" style="gap:2px"').replace(/<em>[^<]*<\/em>/g,'');return h};
+function trErr(e){const m=String((e&&e.message)||e||'');if(/not allowed/i.test(m))return 'Only admins can see traffic.';if(/traffic_|does not exist|schema cache|42883|PGRST20/i.test(m+' '+((e&&e.code)||'')))return 'Traffic tracking is not set up on the database yet. Run the traffic SQL files in Supabase, then try again.';return 'Could not load traffic. '+m}
+async function trLoad(){
+  const T=S.tr;if(!T||T.loading)return;T.loading=true;T.err='';
+  try{
+    const d=T.days;
+    const rs=await Promise.all([sb.rpc('traffic_report',{p_days:d}),sb.rpc('traffic_campaigns',{p_days:d}),sb.rpc('traffic_pages',{p_days:d}),sb.rpc('traffic_daily',{p_days:d}),sb.from('traffic_links').select('*').order('created_at',{ascending:false}).limit(200)]);
+    const bad=rs.find(r=>r.error);if(bad)throw bad.error;
+    T.rep=rs[0].data||[];T.camps=rs[1].data||[];T.pages=rs[2].data||[];T.daily=rs[3].data||[];T.links=rs[4].data||[];T.loaded=true;
+  }catch(e){T.err=trErr(e)}
+  T.loading=false;if(S.role==='admin'&&S.sub==='traffic')render();
+}
+function adminTraffic(){
+  const T=S.tr=S.tr||{days:30,loaded:false,loading:false,err:'',rep:[],camps:[],pages:[],daily:[],links:[]};
+  if(!T.loaded&&!T.loading&&!T.err)setTimeout(trLoad,0);
+  const tabs=`<div class="tabs" role="tablist">${[7,30,90].map(n=>`<button class="${T.days===n?'on':''}" data-act="tr_days" data-id="${n}">${n} days</button>`).join('')}</div>`;
+  if(T.err)return tabs+`<div class="panel empty"><p style="margin:0 0 10px">${esc(T.err)}</p><button class="btn sm" data-act="tr_reload">Try again</button></div>`;
+  if(!T.loaded)return tabs+'<div class="panel empty">Loading traffic…</div>';
+  const R=T.rep,sum=k=>R.reduce((a,r)=>a+(+r[k]||0),0);
+  const visits=sum('visits'),signups=sum('signups'),funded=sum('funded_users'),buyers=sum('buyers'),gmv=sum('order_value'),fee=sum('fee_earned');
+  const kp=[['Visits',trNum(visits),1],['Sign-ups',trNum(signups)],['Funded a wallet',trNum(funded)],['Placed an order',trNum(buyers)],['Sales value',N(gmv)],['Subora fees earned',N(fee)]];
+  const srcRows=R.map(r=>`<tr><td class="t">${esc(trName(r.source))}<div class="xs muted">${esc(TR_CHAN[r.channel]||r.channel)}</div></td><td class="num">${trNum(r.visits)}</td><td class="num">${trNum(r.visitors)}</td><td class="num">${trNum(r.signups)}</td><td class="num">${trPct(+r.signups,+r.visitors)}</td><td class="num">${trNum(r.funded_users)}<div class="xs muted">${N(+r.funded_amount||0)}</div></td><td class="num">${trNum(r.order_count)}</td><td class="num">${N(+r.order_value||0)}</td><td class="num">${N(+r.fee_earned||0)}</td></tr>`).join('');
+  const ch={};R.forEach(r=>{const c=ch[r.channel]=ch[r.channel]||{visits:0,signups:0,funded:0,gmv:0,fee:0};c.visits+=+r.visits||0;c.signups+=+r.signups||0;c.funded+=+r.funded_users||0;c.gmv+=+r.order_value||0;c.fee+=+r.fee_earned||0});
+  const chRows=Object.entries(ch).sort((a,b)=>b[1].visits-a[1].visits).map(([k,c])=>`<tr><td class="t">${esc(TR_CHAN[k]||k)}</td><td class="num">${trNum(c.visits)}</td><td class="num">${trNum(c.signups)}</td><td class="num">${trNum(c.funded)}</td><td class="num">${N(c.gmv)}</td><td class="num">${N(c.fee)}</td></tr>`).join('');
+  const campRows=T.camps.map(r=>`<tr><td class="t">${esc(trName(r.source))}</td><td>${esc(r.medium)}</td><td>${esc(r.campaign)}</td><td class="num">${trNum(r.visits)}</td><td class="num">${trNum(r.signups)}</td><td class="num">${trNum(r.funded_users)}</td><td class="num">${trNum(r.order_count)}</td><td class="num">${N(+r.order_value||0)}</td><td class="num">${N(+r.fee_earned||0)}</td></tr>`).join('');
+  const pageRows=T.pages.slice(0,20).map(r=>`<tr><td class="t">${esc(r.landing_path)}</td><td class="num">${trNum(r.visits)}</td><td class="num">${trNum(r.visitors)}</td></tr>`).join('');
+  let lab=[],val=[];const dl=T.daily||[];
+  if(T.days<=31){dl.forEach((r,i)=>{lab.push(i%5===0||i===dl.length-1?String(r.stat_day).slice(5):'');val.push(+r.visits||0)})}
+  else{for(let i=0;i<dl.length;i+=7){const ch2=dl.slice(i,i+7);lab.push(String(ch2[0].stat_day).slice(5));val.push(ch2.reduce((a,r)=>a+(+r.visits||0),0))}}
+  const find=l=>T.camps.find(r=>r.source===l.source&&r.medium===l.medium&&r.campaign===l.campaign)||{};
+  const linkRows=T.links.map(l=>{const u=find(l);return `<tr${l.archived?' style="opacity:.55"':''}><td class="t">${esc(l.name)}<div class="xs muted">${esc(TR_CHAN[l.medium==='cpc'?'paid':'social']||'')} · ${esc(l.destination)}</div><div class="xs" style="word-break:break-all">${esc(trUrl(l))}</div><div class="acts" style="margin-top:8px"><button class="btn sm pri" data-act="tr_copy" data-id="${esc(l.id)}">Copy link</button><button class="btn sm" data-act="tr_arch" data-id="${esc(l.id)}">${l.archived?'Restore':'Archive'}</button></div></td><td class="num">${trNum(u.visits)}</td><td class="num">${trNum(u.signups)}</td></tr>`}).join('');
+  const opt=(a,sel)=>a.map(([v,t])=>`<option value="${esc(v)}"${v===sel?' selected':''}>${esc(t)}</option>`).join('');
+  return `<div style="display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap">${tabs}<div class="acts"><button class="btn sm" data-act="tr_export">Download CSV</button><button class="btn sm" data-act="tr_reload">Refresh</button></div></div>
+ <div class="kpis">${kp.map(([l,v,hi])=>`<div class="kpi${hi?' hi':''}"><span>${l}</span><b>${v}</b></div>`).join('')}</div>
+ <p class="muted xs" style="margin:6px 0 14px">Visits are counted when a visit starts. Sign-ups, funding, orders and fees follow the accounts that signed up in this period, by the source each one first came from, so very recent sign-ups have had little time to fund or buy. Totals never list people.</p>
+ <div class="panel"><h3>By source</h3>${srcRows?`<div class="tw"><table><thead><tr><th>Source</th><th class="num">Visits</th><th class="num">Visitors</th><th class="num">Sign-ups</th><th class="num">Sign-up rate</th><th class="num">Funded wallet</th><th class="num">Orders</th><th class="num">Sales value</th><th class="num">Fees</th></tr></thead><tbody>${srcRows}</tbody></table></div>`:'<p class="muted" style="margin:0">No visits recorded in this period yet.</p>'}<p class="muted xs" style="margin:10px 0 0">Direct includes people who came from apps that hide where they came from, such as WhatsApp and some in-app browsers. Share tagged links to measure those.</p></div>
+ <div class="two"><div class="panel"><h3>By channel</h3>${chRows?`<div class="tw"><table><thead><tr><th>Channel</th><th class="num">Visits</th><th class="num">Sign-ups</th><th class="num">Funded</th><th class="num">Sales</th><th class="num">Fees</th></tr></thead><tbody>${chRows}</tbody></table></div>`:'<p class="muted" style="margin:0">Nothing yet.</p>'}</div>
+ <div class="panel"><h3>Visits ${T.days>31?'per week':'per day'}</h3>${val.length?trBars(lab,val):'<p class="muted" style="margin:0">Nothing yet.</p>'}</div></div>
+ <div class="panel"><h3>By campaign</h3>${campRows?`<div class="tw"><table><thead><tr><th>Source</th><th>Type</th><th>Campaign</th><th class="num">Visits</th><th class="num">Sign-ups</th><th class="num">Funded</th><th class="num">Orders</th><th class="num">Sales value</th><th class="num">Fees</th></tr></thead><tbody>${campRows}</tbody></table></div>`:'<p class="muted" style="margin:0">No campaigns yet. Create a tracked link below and share it.</p>'}</div>
+ <div class="panel"><h3>Top landing pages</h3>${pageRows?`<div class="tw"><table><thead><tr><th>Page</th><th class="num">Visits</th><th class="num">Visitors</th></tr></thead><tbody>${pageRows}</tbody></table></div>`:'<p class="muted" style="margin:0">Nothing yet.</p>'}</div>
+ <div class="panel"><h3>Create a tracked link</h3><p class="muted sm" style="margin:0 0 10px">Use a different link for each post, ad or message so the numbers show exactly what worked. Paste the link in your TikTok, Instagram or Facebook post, bio or ad.</p>
+ <form class="form" data-act="tr_new" style="align-items:end"><div class="fld"><label for="tr_plat">Platform</label><select id="tr_plat">${TR_PLATS.map(p=>`<option value="${p}">${esc(trName(p))}</option>`).join('')}</select></div><div class="fld"><label for="tr_med">Type of link</label><select id="tr_med">${opt(TR_MEDIA,'social')}</select></div><div class="fld"><label for="tr_cmp">Campaign name</label><input id="tr_cmp" maxlength="60" placeholder="e.g. november promo" required></div><div class="fld"><label for="tr_cnt">Ad or video name (optional)</label><input id="tr_cnt" maxlength="60" placeholder="e.g. clip 1"></div><div class="fld"><label for="tr_pg">Send people to</label><select id="tr_pg">${opt(TR_PAGES,'/')}</select></div><div class="fld"><label for="tr_cu">Or another page (optional)</label><input id="tr_cu" maxlength="200" placeholder="/blog/how-to-check-a-vendor-on-subora-before-you-pay"></div><button class="btn pri" type="submit">Create link</button></form></div>
+ <div class="panel"><h3>Your tracked links</h3>${linkRows?`<div class="tw"><table><thead><tr><th>Link</th><th class="num">Visits</th><th class="num">Sign-ups</th></tr></thead><tbody>${linkRows}</tbody></table></div>`:'<p class="muted" style="margin:0">No links yet. Create your first one above.</p>'}</div>`;
+}
 function admin(){
  const q=S.products.filter(p=>p.status==='pending'),dq=S.products.filter(p=>p.status==='deleting');const w=S.wd.filter(x=>x.status==='queued');const kq=kycQueue();
- const ttl={plans:'Vendor plans',review:'Listing review',kyc:'Vendor verification',disputes:'Disputes',payouts:'Payouts',assets:'Asset protection',reports:'Reports & flags',quality:'Quality & test buys',analytics:'Analytics',settings:'Platform settings',launch:'Launch checklist',people:'Accounts',audit:'Audit log',staff:'Staff access',security:'Security'};
+ const ttl={plans:'Vendor plans',review:'Listing review',kyc:'Vendor verification',disputes:'Disputes',payouts:'Payouts',assets:'Asset protection',reports:'Reports & flags',quality:'Quality & test buys',analytics:'Analytics',traffic:'Traffic sources',settings:'Platform settings',launch:'Launch checklist',people:'Accounts',audit:'Audit log',staff:'Staff access',security:'Security'};
  if(!ttl[S.sub])S.sub='review';
  let body='';
  if(S.sub==='review')body=(q.length||dq.length)?`<div class="tw"><table><thead><tr><th>Listing</th><th>Request</th><th>Vendor</th><th class="num">Price</th><th></th></tr></thead><tbody>${q.map(p=>`<tr><td><span class="t">${esc(p.title)}</span><div class="xs muted">${p.cat} · ${esc(p.deliv)}</div></td><td><span class="pill warn">${p.edited?'Edit review':'New listing'}</span></td><td>${esc(VENDORS[p.v].name)}</td><td class="num">${N(p.price)}</td><td><div class="acts"><button class="btn sm pri" data-act="approve" data-id="${p.id}">Approve</button><button class="btn sm bad" data-act="reject" data-id="${p.id}">Reject</button></div></td></tr>`).join('')}${dq.map(p=>`<tr><td><span class="t">${esc(p.title)}</span><div class="xs muted">${p.cat} · ${S.orders.filter(o=>o.pid===p.id&&!['completed','refunded'].includes(o.status)).length} open orders</div></td><td><span class="pill ${p.kind==='archive'?'warn':'bad'}">${p.kind==='archive'?'Archive':'Deletion'}</span></td><td>${esc(VENDORS[p.v].name)}</td><td class="num">${N(p.price)}</td><td><div class="acts"><button class="btn sm pri" data-act="delok" data-id="${p.id}">${p.kind==='archive'?'Approve archive':'Approve deletion'}</button><button class="btn sm" data-act="deldeny" data-id="${p.id}">Decline</button></div></td></tr>`).join('')}</tbody></table></div>`:`<div class="panel empty">The review queue is clear.</div>`;
@@ -2036,6 +2091,7 @@ function admin(){
  else if(S.sub==='reports')body=reportsView();
  else if(S.sub==='quality')body=qualityView();
  else if(S.sub==='analytics')body=adminAnalytics();
+ else if(S.sub==='traffic')body=adminTraffic();
  else if(S.sub==='plans')body=adminPlansView();
  else if(S.sub==='settings')body=settingsView();
  else if(S.sub==='launch')body=launchView();
@@ -4423,6 +4479,30 @@ H.an_export=async()=>{
  const rows=[['Sales by listing, last '+D.days+' days'],['Listing','Orders','Units','Revenue (net)','Refunded','Buyers'],...(D.listings||[]).map(x=>[x.title,x.orders,x.units,x.revenue,x.refunded,x.buyers]),[],['Buyers'],['Buyer','Orders','Spent','Last order'],...(D.buyers||[]).map(x=>[x.username,x.orders,x.spent,x.last_order?fmtLD(x.last_order):'']),[],['By day'],['Day','Orders','Revenue (net)','Fees','Refunded'],...(D.daily||[]).map(x=>[x.day,x.orders,x.revenue,x.fees,x.refunded])];
  const csv='\ufeff'+rows.map(r=>r.map(cell).join(',')).join('\r\n');
  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='subora-analytics-'+D.days+'d-'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);toast('CSV downloaded');
+};
+
+/* admin: traffic sources */
+H.tr_days=async(el,id)=>{if(!S.tr)return;S.tr.days=+id;S.tr.loaded=false;S.tr.err='';render()};
+H.tr_reload=async()=>{if(!S.tr)return;S.tr.loaded=false;S.tr.err='';render()};
+H.tr_copy=async(el,id)=>{const l=(S.tr&&S.tr.links||[]).find(x=>x.id===id);if(l)copyText(trUrl(l))};
+H.tr_arch=async(el,id)=>{const l=(S.tr&&S.tr.links||[]).find(x=>x.id===id);if(!l)return;const r=await sb.from('traffic_links').update({archived:!l.archived}).eq('id',id);if(r.error){if(r.error.code==='23505')throw new Error('An active link with the same details already exists');throw r.error}l.archived=!l.archived;toast(l.archived?'Link archived. It still works, it is only hidden from new use.':'Link restored');render()};
+HF.tr_new=async f=>{
+  const plat=$('#tr_plat').value,med=$('#tr_med').value,cmp=trSlug($('#tr_cmp').value,80),cnt=trSlug($('#tr_cnt').value,80);
+  if(!cmp)throw new Error('Give the campaign a name, for example november promo');
+  let dest=($('#tr_cu').value||'').trim()||$('#tr_pg').value||'/';
+  try{if(/^https?:/i.test(dest))dest=new URL(dest).pathname}catch(e){}
+  if(!/^\/[A-Za-z0-9\/_.~%-]{0,299}$/.test(dest))throw new Error('The page must start with / and use only letters, numbers and - _ . / (for example /blog)');
+  const row={name:(TR_NAMES[plat]||plat)+' · '+cmp,source:plat,medium:med,campaign:cmp,content:cnt||null,destination:dest};
+  const r=await sb.from('traffic_links').insert(row).select().single();
+  if(r.error){if(r.error.code==='23505')throw new Error('You already have this exact link');throw r.error}
+  S.tr.links.unshift(r.data);toast('Link created. Copy it from the list below.');render();
+};
+H.tr_export=async()=>{
+  const T=S.tr;if(!T||!T.loaded){toast('Wait for the numbers to load first');return}
+  const cell=v=>{if(typeof v==='number')return String(v);let t=String(v==null?'':v);if(/^[=+\-@\t\r]/.test(t))t="'"+t;return '"'+t.replace(/"/g,'""')+'"'};
+  const rows=[['Traffic by source, last '+T.days+' days'],['Source','Channel','Visits','Visitors','Sign-ups','Funded wallet (people)','Funded amount','Buyers','Orders','Sales value','Fees earned'],...T.rep.map(r=>[trName(r.source),r.channel,+r.visits,+r.visitors,+r.signups,+r.funded_users,+r.funded_amount,+r.buyers,+r.order_count,+r.order_value,+r.fee_earned]),[],['By campaign'],['Source','Type','Campaign','Visits','Visitors','Sign-ups','Funded (people)','Funded amount','Buyers','Orders','Sales value','Fees earned'],...T.camps.map(r=>[trName(r.source),r.medium,r.campaign,+r.visits,+r.visitors,+r.signups,+r.funded_users,+r.funded_amount,+r.buyers,+r.order_count,+r.order_value,+r.fee_earned]),[],['Landing pages'],['Page','Visits','Visitors'],...T.pages.map(r=>[r.landing_path,+r.visits,+r.visitors])];
+  const csv='\ufeff'+rows.map(r=>r.map(cell).join(',')).join('\r\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='subora-traffic-'+T.days+'d-'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);toast('CSV downloaded');
 };
 
 H.plan_pick=async(el,id)=>{S.modal={t:'planconfirm',id};paintModal()};
