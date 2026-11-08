@@ -1229,7 +1229,9 @@ body{margin:0}
 <p>Creating an account and buying are free. You pay only the price on the listing, from your wallet. Vendors pay a 10% fee on each sale and a small flat fee on each withdrawal, which keeps the marketplace running and funds the checks above.</p></section><section><h2>Questions</h2><div class="faq"><details><summary>Is it safe to pay?</summary><p>Yes. Every payment is held in escrow. You confirm that your login, code or link works before the vendor is paid. If something breaks, you can report it and get a full or prorated refund.</p></details><details><summary>How do I get my login or code?</summary><p>On your subscription card, usually within seconds. For many listings, sign-in codes and links are delivered automatically, so you never wait for the vendor.</p></details><details><summary>Who sells on Subora?</summary><p>A small number of vendors approved by hand after identity checks. Subora also sells its own official listings.</p></details><details><summary>What does it cost?</summary><p>Buying is free. You only pay the listing price from your wallet. Vendors pay a 10% fee on each sale.</p></details><details><summary>What if the vendor does not reply?</summary><p>Tap Nudge vendor and they are alerted by SMS and email. If they still do not reply, Subora support steps in.</p></details><details><summary>Can I delete my chats or payment history?</summary><p>No. Chats, payments and disputes are kept as permanent records so that any problem can be traced and settled fairly.</p></details></div><p><a href="/faq">See all questions</a></p></section></article></div>
 <footer class="lsmall" style="padding:24px 0"><a href="/about">About</a> · <a href="/contact">Contact</a> · <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> · <a href="/refunds">Refunds</a></footer></div>
 <!--SEO-SHELL-END--></div></div></div></div>
+<script>window.__subq=location.search;window.__subr=document.referrer;window.__subp=location.pathname</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="/assets/track.js" defer></script>
 <script src="/assets/chat-widget.js" defer></script>
 <script>
 const $=(s,r=document)=>r.querySelector(s);
@@ -3369,6 +3371,8 @@ async function hydrate(){
   const uid=sess.user.id;LIVE.uid=uid;
   const prof=ok(await sb.from('profiles').select('*').eq('id',uid).single());
   LIVE.profile=prof;
+  try{if(prof.role==='admin')localStorage.setItem('sub_notrack','1')}catch(e){}
+  trackClaim(uid);
   const ownStore=prof.role==='admin'&&vend.some(v=>v.id===uid&&v.official);
   let mode='';try{mode=sessionStorage.getItem('sub_mode')||''}catch(e){}
   const eff=ownStore&&mode==='store'?'vendor':prof.role;
@@ -3564,11 +3568,13 @@ HF.signup=async()=>{
   if(pw.length<8||pwScore(pw)<3){toast('Use a stronger password: 8+ characters, a number and a capital letter');return}
   if(!$('#su_terms').checked){toast('Accept the Terms and Conditions to continue');return}
   const ref=new URLSearchParams(location.search).get('ref')||undefined;
-  const r=await sb.auth.signUp({email,password:pw,options:{data:{full_name:name,phone,role:'buyer',ref}}});
+  const vid=(window.SuboraTrack&&window.SuboraTrack.vid&&window.SuboraTrack.vid())||undefined;
+  const r=await sb.auth.signUp({email,password:pw,options:{data:{full_name:name,phone,role:'buyer',ref,vid}}});
   if(r.error)throw r.error;
   if(!r.data.session){S.view='login';render();toast('Account created. Check your email to confirm it, then log in.');return}
   await hydrate();S.view='store';afterAuth();render();jump();toast('Account created. Welcome to Subora.');
 };
+function trackClaim(uid){try{if(localStorage.getItem('sub_claimed_'+uid))return;const T=window.SuboraTrack;sb.rpc('traffic_claim',{p_visitor:T&&T.vid?T.vid():null}).then(r=>{if(!r.error)try{localStorage.setItem('sub_claimed_'+uid,'1')}catch(e){}},()=>{})}catch(e){}}
 H.signout=async()=>{S.mfa=null;await sb.auth.signOut();resetLocal();S.view='home';S.modal=null;await hydrate();render();jump();toast('You are signed out')};
 H.forgotgo=async()=>{const v=gv('fg');if(!emailOk(v)){toast('Enter your email address');return}
   ok(await sb.auth.resetPasswordForEmail(v,{redirectTo:location.origin+location.pathname}));S.modal=null;paintModal();toast('If that account exists, a reset link is on its way')};
@@ -3960,7 +3966,8 @@ HF.vrnext=async f=>{
     catch(e){console.warn(e);S.view='vendor';S.sub='verify';render();jump();toast(cleanErr(e)+' Your store is created. Finish under Verification.');return}
     await hydrate();S.view='vendor';S.sub='verify';render();jump();toast('Application received. We review it within 24 hours.');return;
   }
-  const r=await sb.auth.signUp({email:d.email,password:d.pw,options:{data:{full_name:d.name,username:d.user,phone:d.phone,role:'vendor',store_name:d.store}}});
+  const vid=(window.SuboraTrack&&window.SuboraTrack.vid&&window.SuboraTrack.vid())||undefined;
+  const r=await sb.auth.signUp({email:d.email,password:d.pw,options:{data:{full_name:d.name,username:d.user,phone:d.phone,role:'vendor',store_name:d.store,vid}}});
   if(r.error)throw r.error;
   if(!r.data.session){
     /* an email that already has an account comes back as a user with no identities */

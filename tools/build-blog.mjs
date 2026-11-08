@@ -42,7 +42,7 @@ ${extra}<meta name="twitter:card" content="summary_large_image"><meta name="twit
 ${ld(...graph)}
 </head><body>
 `;
-  const tail = `\n${footer()}\n<script src="/assets/chat-widget.js" defer></script>\n</body></html>\n`;
+  const tail = `\n${footer()}\n<script src="/assets/track.js" defer></script>\n<script src="/assets/chat-widget.js" defer></script>\n</body></html>\n`;
 
   /* ---------- one post ---------- */
   const rendered = [];
