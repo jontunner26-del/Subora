@@ -310,7 +310,7 @@ Chat with Subora support every day from 8am to 10pm West Africa Time. Chat repli
 - Disputes: Decided within 48 hours of both sides sharing evidence
 - Email: support@subora.com.ng
 - WhatsApp: +234 814 084 7139
-- Follow: Instagram · X (Twitter) · Facebook · TikTok · WhatsApp channel
+- Follow: TikTok · Instagram · Facebook · X (Twitter) · WhatsApp channel
 - Location: Lagos, Nigeria
 
 ## What should I do if an order goes wrong?

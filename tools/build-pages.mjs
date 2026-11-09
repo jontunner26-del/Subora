@@ -88,7 +88,9 @@ const cta = (h = 'Ready to see what is inside?', p = 'Browse listings and compar
 /* ---------- organisation data (only what you filled in) ---------- */
 const sameAs = Object.values(CFG.social || {}).filter(has);
 const SOCIAL_LABELS = { tiktok: 'TikTok', instagram: 'Instagram', facebook: 'Facebook', x: 'X (Twitter)', whatsapp_channel: 'WhatsApp channel', linkedin: 'LinkedIn' };
-const followLinks = Object.entries(CFG.social || {}).filter(([k, v]) => has(v) && SOCIAL_LABELS[k]).map(([k, v]) => `<a href="${attr(v)}" rel="noopener">${SOCIAL_LABELS[k]}</a>`).join(' · ');
+const SOCIAL_ORDER = ['tiktok', 'instagram', 'facebook', 'x', 'whatsapp_channel', 'linkedin'];
+const socialList = SOCIAL_ORDER.filter(k => has((CFG.social || {})[k])).map(k => [SOCIAL_LABELS[k], CFG.social[k]]);
+const followLinks = socialList.map(([n, u]) => `<a href="${attr(u)}" rel="noopener">${n}</a>`).join(' · ');
 const ORG = {
   '@type': 'Organization', '@id': SITE + '/#organization', name: 'Subora', url: SITE + '/', logo: SITE + LOGO,
   description: 'Subora is a Nigerian marketplace for shared subscriptions, online courses, software seats and digital goods, with escrow on every order.',
@@ -344,8 +346,9 @@ const shell = `<!--SEO-SHELL-START-->
 <div class="wrap land2" id="seo-shell"><nav aria-label="Main" style="display:flex;gap:14px;flex-wrap:wrap;padding:14px 0"><a href="/" style="font-weight:800">Subora</a>${shellNav}<a href="${CTA_LOGIN}">Log in</a><a href="${CTA_SIGNUP}">Sign up</a></nav>
 <header class="lh"><h1>Subora marketplace: buy and share digital access, safely</h1><p class="lede">Subora is a marketplace for shared subscriptions, online courses, software seats and digital goods. This page explains how it works. Browse the marketplace without an account, and create a free account when you are ready to buy.</p><div class="lcta"><a class="btn pri lg" href="/store">Browse the marketplace</a> <a class="btn lg" href="${CTA_SIGNUP}">Create free account</a> <a class="btn lg" href="${CTA_LOGIN}">Log in</a></div></header>
 <div class="larticle"><article class="lbody">${[B.what, B.find, B.steps, B.safe, B.access, B.sellers, B.cost].map(s => `<section>${s}</section>`).join('')}<section><h2>Questions</h2>${faqDetails(FAQ_BASICS)}<p><a href="/faq">See all questions</a></p></section></article></div>
-<footer class="lsmall" style="padding:24px 0"><a href="/about">About</a> · <a href="/contact">Contact</a> · <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> · <a href="/refunds">Refunds</a></footer></div>
+<footer class="lsmall" style="padding:24px 0"><a href="/about">About</a> · <a href="/contact">Contact</a> · <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> · <a href="/refunds">Refunds</a>${followLinks ? `<br>Follow us: ${followLinks}` : ''}</footer></div>
 <!--SEO-SHELL-END-->`;
+idx = idx.replace(/\/\*SOCIAL-START\*\/[\s\S]*?\/\*SOCIAL-END\*\//, () => '/*SOCIAL-START*/' + JSON.stringify(socialList) + '/*SOCIAL-END*/');
 if (idx.includes('<!--SEO-SHELL-START-->')) idx = idx.replace(/<!--SEO-SHELL-START-->[\s\S]*?<!--SEO-SHELL-END-->/, shell);
 else if (idx.includes('<div id="app" data-w="d"></div>')) idx = idx.replace('<div id="app" data-w="d"></div>', `<div id="app" data-w="d">${shell}</div>`);
 else throw new Error('Could not find the empty #app container in index.html');
@@ -369,7 +372,7 @@ const storeShell = `<!--SEO-SHELL-START-->
 <header class="lh"><h1>Browse the Subora marketplace</h1><p class="lede">This is where approved vendors list shared subscriptions, courses, software seats and digital goods, priced in naira. Open a listing to read the vendor’s terms and pick a plan length. Your payment is held in escrow until you confirm that your access works.</p></header>
 <div class="larticle"><article class="lbody"><section><h2>Browse by category</h2><ul>${storeCats.map(([c, l, d]) => `<li><a href="/store?c=${c}"><strong>${l}</strong></a>: ${d}</li>`).join('')}</ul><p>Gift cards, crypto and social accounts and numbers are sold only by sellers with extra checks. Listings change as vendors add and remove them, so what you see here is the live list.</p></section>
 <section><h2>Before you buy</h2><p>You can browse without an account and sign up, for free, when you are ready to buy. Read <a href="/how-it-works">how Subora works</a> and <a href="/safety">how buying is protected</a>, then use our guides to <a href="/blog/what-can-i-buy-on-subora-category-guide">what you can buy</a> and <a href="/blog/how-to-check-a-digital-product-listing-before-you-buy">how to check a listing</a>.</p></section></article></div>
-<footer class="lsmall" style="padding:24px 0"><a href="/about">About</a> · <a href="/contact">Contact</a> · <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> · <a href="/refunds">Refunds</a></footer></div>
+<footer class="lsmall" style="padding:24px 0"><a href="/about">About</a> · <a href="/contact">Contact</a> · <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> · <a href="/refunds">Refunds</a>${followLinks ? `<br>Follow us: ${followLinks}` : ''}</footer></div>
 <!--SEO-SHELL-END-->`;
 let storeHtml = idx
   .replace(/<title>[^<]*<\/title>/, () => `<title>${STORE_TITLE}</title>`)
