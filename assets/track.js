@@ -2,8 +2,9 @@
    What it sends, once per visit: a random visitor id, the landing path, the campaign tags
    (utm_*), the referrer site NAME and a hint if the visit is inside the TikTok, Instagram or
    Facebook app. It never sends an IP address, a full URL, an email, a name or any account data.
-   It respects Do Not Track and Global Privacy Control, skips bots, and skips browsers where an
-   admin has signed in. Every failure is silent so it can never break a page.
+   It respects Do Not Track, Global Privacy Control and the cookie banner (someone who chose
+   "Essential only" is not counted and the id stored for them is deleted), skips bots, and skips
+   browsers where an admin has signed in. Every failure is silent so it can never break a page.
    The anon key below is public by design (it is also in the app). Security is in the database. */
 (function () {
   'use strict';
@@ -33,7 +34,21 @@
   }
 
   var cachedId = null;
+
+  // The cookie banner saves the visitor's choice as { cookie: 'essential' | 'all' } in sb_prefs.
+  function essentialOnly() {
+    try { var pr = JSON.parse(get('localStorage', 'sb_prefs') || 'null'); return !!pr && pr.cookie === 'essential'; } catch (e) { return false; }
+  }
+
+  // Delete everything this script keeps on the device.
+  function forget() {
+    cachedId = null;
+    try { store('localStorage').removeItem('sub_vid'); } catch (e) { /* nothing stored */ }
+    try { store('sessionStorage').removeItem('sub_last'); store('sessionStorage').removeItem('sub_sig'); } catch (e) { /* nothing stored */ }
+  }
+
   function visitorId() {
+    if (essentialOnly()) { forget(); return null; }
     if (cachedId) return cachedId;
     var o = null, raw = get('localStorage', 'sub_vid');
     try { o = raw ? JSON.parse(raw) : null; } catch (e) { o = null; }
@@ -112,6 +127,7 @@
       if (n.doNotTrack === '1' || w.doNotTrack === '1' || n.msDoNotTrack === '1' || n.globalPrivacyControl === true) return true;
       if (BOT.test(ua || '')) return true;
       if (get('localStorage', 'sub_notrack')) return true;
+      if (essentialOnly()) { forget(); return true; }
     } catch (e) { return true; }
     return false;
   }
@@ -151,7 +167,7 @@
   }
 
   // The app reads the visitor id to link a new account to its first source.
-  w.SuboraTrack = { vid: visitorId, _t: { buildPayload: buildPayload, appHint: appHint, hostOf: hostOf } };
+  w.SuboraTrack = { vid: visitorId, consentChanged: function () { if (essentialOnly()) forget(); }, _t: { buildPayload: buildPayload, appHint: appHint, hostOf: hostOf } };
 
   try { run(); } catch (e) { /* never break the page */ }
 })();

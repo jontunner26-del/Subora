@@ -171,3 +171,49 @@ test('a failing request is swallowed (no unhandled rejection)', async () => {
   process.removeListener('unhandledRejection', h);
   assert.equal(unhandled, false);
 });
+
+// ---- cookie banner: the choice is saved by the app as sb_prefs = { cookie: 'essential' | 'all' } ----
+const prefs = cookie => memStore({ sb_prefs: JSON.stringify({ ui: {}, cookie, toured: false }) });
+
+test('Essential only: nothing is sent', () => {
+  assert.equal(load({ local: prefs('essential') }).calls.length, 0);
+});
+
+test('Essential only: the stored visitor id and session keys are deleted', () => {
+  const local = memStore({ sb_prefs: JSON.stringify({ cookie: 'essential' }), sub_vid: JSON.stringify({ id: '22222222-2222-4222-8222-222222222222', t: Date.now() }) });
+  const session = memStore({ sub_last: String(Date.now()), sub_sig: '||' });
+  load({ local, session });
+  assert.equal(local.getItem('sub_vid'), null);
+  assert.equal(session.getItem('sub_last'), null);
+  assert.equal(session.getItem('sub_sig'), null);
+});
+
+test('Essential only: the app gets no visitor id, so sign-ups are not linked to a source', () => {
+  const { win, local } = load({ local: prefs('essential') });
+  assert.equal(win.SuboraTrack.vid(), null);
+  assert.equal(local.getItem('sub_vid'), null, 'no new id may be stored');
+});
+
+test('Accept all, no choice yet, or an unreadable choice: visits are counted', () => {
+  assert.equal(load({ local: prefs('all') }).calls.length, 1);
+  assert.equal(load({ local: prefs(false) }).calls.length, 1);
+  assert.equal(load({ local: memStore({ sb_prefs: '{not json' }) }).calls.length, 1);
+});
+
+test('choosing Essential only while on the page deletes the id straight away', () => {
+  const local = memStore();
+  const a = load({ local });
+  assert.ok(local.getItem('sub_vid'), 'an id was stored while counting');
+  local.setItem('sb_prefs', JSON.stringify({ cookie: 'essential' }));
+  a.win.SuboraTrack.consentChanged();
+  assert.equal(local.getItem('sub_vid'), null);
+  assert.equal(a.win.SuboraTrack.vid(), null, 'a cached id must not be handed out after opting out');
+});
+
+test('consentChanged does nothing when the visitor chose Accept all', () => {
+  const local = memStore();
+  const a = load({ local });
+  local.setItem('sb_prefs', JSON.stringify({ cookie: 'all' }));
+  a.win.SuboraTrack.consentChanged();
+  assert.ok(local.getItem('sub_vid'));
+});
