@@ -232,6 +232,24 @@ td .t{font-weight:600}
 #app[data-w="m"] .hero-in{grid-template-columns:1fr;padding:24px}
 #app[data-w="m"] .pgrid{grid-template-columns:1fr}
 #app[data-w="m"] .buybox{position:static}
+.pd-chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.pd-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:5px 11px;font:650 12.5px var(--fb);background:var(--surface2);color:var(--fg)}
+.pd-chip.good{background:var(--lime-soft);border-color:var(--edge)}
+.pd-desc{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.pd-desc.open{display:block}
+.pd-more{margin-top:6px;font-weight:700}
+.acc>summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;font:650 17px var(--fb)}
+.acc>summary::-webkit-details-marker{display:none}
+.acc>summary::after{content:"+";font:600 22px/1 var(--fb);color:var(--muted)}
+.acc[open]>summary::after{content:"\2212"}
+.acc[open]>summary{margin-bottom:12px}
+.sl-head{display:flex;gap:12px;align-items:center}.sl-name{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.sl-name b{font-size:17px}
+.sl-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.sl-stats>div{border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center;background:var(--surface2)}
+.sl-stats b{display:block;font:700 18px var(--fm)}.sl-stats span{font-size:12px;color:var(--muted)}
+.sl-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.pg2{row-gap:0}.pg2>.pg-a{grid-column:1;grid-row:1}.pg2>.pg-b{grid-column:1;grid-row:2;margin-top:16px}.pg2>.buybox{grid-column:2;grid-row:1/3}
+#app[data-w="m"] .pg2{row-gap:16px}#app[data-w="m"] .pg2>.pg-a,#app[data-w="m"] .pg2>.pg-b,#app[data-w="m"] .pg2>.buybox{grid-column:1;grid-row:auto}#app[data-w="m"] .pg2>.pg-b{margin-top:0}
+
 #app[data-w="m"] .console{grid-template-columns:1fr;gap:12px}
 #app[data-w="m"] .rail{position:static;flex-direction:row;overflow-x:auto;gap:6px;padding-bottom:6px}
 #app[data-w="m"] .rail h4{display:none}
@@ -537,6 +555,11 @@ h1,h2,h3,h4{letter-spacing:-.025em;font-weight:650}
 .tile .cv-txt i{font:500 10.5px var(--fm);letter-spacing:.12em;text-transform:uppercase;opacity:.78;font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tile.big .cv-txt{left:30px}.tile.big .cv-txt b{font-size:clamp(42px,6vw,76px)}.tile.big .cv-txt.long b{font-size:clamp(34px,4.4vw,52px)}.tile.big .cv-txt i{font-size:13px}
 .tile .tile-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.tl-badge{position:absolute;right:10px;bottom:10px;width:34px;height:34px;border-radius:10px;background:#fff;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.28);z-index:1}
+.tl-badge img{width:22px;height:22px;object-fit:contain;display:block}
+.tile.big .tl-badge{width:64px;height:64px;right:18px;bottom:18px;border-radius:16px}.tile.big .tl-badge img{width:42px;height:42px}
+.tile.mini{position:relative;overflow:hidden}
+.tl-mini{position:absolute;inset:0;background:#fff;display:grid;place-items:center}.tl-mini img{width:62%;height:62%;object-fit:contain;display:block}
 .tile.mini{width:56px;height:56px;aspect-ratio:auto;border-radius:14px;font:800 22px var(--fs);flex:none;display:grid;place-items:center;letter-spacing:0}
 .tile .off{top:auto;bottom:10px;right:auto;left:10px;z-index:1}
 .tile .spon{z-index:1}
@@ -2317,10 +2340,32 @@ function settingsView(){
 function emptyHTML(ic,title,text,cta){return `<div class="panel emptyx"><div class="eart">${I(ic,40)}</div><h3>${title}</h3><p class="muted">${text}</p>${cta||''}</div>`}
 const skelHTML=()=>Array.from({length:8},()=>`<div class="skc" aria-hidden="true"><div class="sk-b s1"></div><div class="sk-b s2"></div><div class="sk-b s3"></div></div>`).join('');
 const MOTIF={Subscriptions:'<circle cx="168" cy="26" r="74"/><circle cx="168" cy="26" r="52"/><circle cx="168" cy="26" r="30"/>',Courses:'<circle cx="160" cy="62" r="30"/><path d="M152 48v28l22-14z"/><path d="M14 104h70M14 114h46"/>',Software:'<circle cx="128" cy="30" r="6"/><circle cx="176" cy="56" r="6"/><circle cx="140" cy="98" r="6"/><path d="M128 30 176 56 140 98 128 30M176 56l26-22"/>',Digital:'<rect x="120" y="14" width="56" height="72" rx="8" transform="rotate(12 148 50)"/><rect x="110" y="24" width="56" height="72" rx="8" transform="rotate(-6 138 60)"/>',GiftCards:'<rect x="112" y="22" width="80" height="52" rx="8" transform="rotate(-8 152 48)"/><path d="M150 18v62M112 46h82" transform="rotate(-8 152 48)"/><circle cx="150" cy="44" r="8" transform="rotate(-8 152 48)"/>',Crypto:'<path d="M110 100l18-22 16 10 18-34 16 14 22-40"/><circle cx="200" cy="28" r="4"/><path d="M150 8l16 9v18l-16 9-16-9V17z"/>',Social:'<circle cx="150" cy="44" r="20"/><path d="M118 104c4-20 18-30 32-30s28 10 32 30"/><circle cx="190" cy="30" r="8"/><path d="M196 10l12-6"/>'};
+const SVC_LOGO={'ChatGPT':['chatgpt','10a37f'],'Claude':['claude','d97757'],'Gemini':['googlegemini','8e75b2'],'Perplexity':['perplexity','20b8cd'],'Midjourney':['midjourney','000000'],
+ 'Netflix':['netflix','e50914'],'Prime Video':['primevideo','00a8e1'],'Showmax':['showmax','000000'],'Disney+':['disneyplus','113ccf'],'YouTube Premium':['youtubepremium','ff0000'],
+ 'Spotify':['spotify','1db954'],'Apple Music':['applemusic','fa243c'],'Canva':['canva','00c4cc'],'CapCut':['capcut','000000'],'Duolingo':['duolingo','58cc02'],
+ 'LinkedIn Premium':['linkedin','0a66c2'],'Coursera Plus':['coursera','0056d2'],'Microsoft 365':['microsoft365','d83b01'],'Adobe Creative Cloud':['adobecreativecloud','da1f26'],
+ 'Figma':['figma','f24e1e'],'Notion':['notion','000000'],'Grammarly':['grammarly','15c39a'],'Cursor':['cursor','000000'],'GitHub Copilot':['githubcopilot','000000'],
+ 'NordVPN':['nordvpn','4687ff'],'ExpressVPN':['expressvpn','da3940'],
+ 'YouTube':['youtube','ff0000'],'Instagram':['instagram','e4405f'],'Facebook':['facebook','0866ff'],'TikTok':['tiktok','000000'],'LinkedIn':['linkedin','0a66c2'],'Coursera':['coursera','0056d2'],'Udemy':['udemy','a435f0']};
+const SVC_LOGO_LC=Object.fromEntries(Object.keys(SVC_LOGO).map(k=>[k.toLowerCase(),k]));
+/* exact name first, then a close match such as "YouTube" for "YouTube Premium" */
+function logoFor(name){const n=String(name||'').trim().toLowerCase();if(n.length<3)return null;let k=SVC_LOGO_LC[n];
+ if(!k){const f=Object.keys(SVC_LOGO_LC).find(x=>x.startsWith(n+' ')||n.startsWith(x+' '));k=f?SVC_LOGO_LC[f]:null}
+ return k?SVC_LOGO[k]:null}
+const logoUrl=b=>`https://cdn.simpleicons.org/${b[0]}/${b[1]}`;
+/* small badge on cover tiles. Removes itself if the logo does not load. */
+function logoBadge(name){const b=logoFor(name);return b?`<span class="tl-badge"><img src="${logoUrl(b)}" alt="" width="24" height="24" decoding="async" loading="lazy" onerror="this.parentNode.remove()"></span>`:''}
+/* content of the small square tiles in carts, orders and lists: the logo if there is one, else the initials. */
+function miniArt(p){const t=px(p);if(p.img)return `<img class="tile-img" src="${p.img}" alt="">`;const b=logoFor(t.svc);
+ return esc(init(p.title))+(b?`<span class="tl-mini"><img src="${logoUrl(b)}" alt="" decoding="async" loading="lazy" onerror="this.parentNode.remove()"></span>`:'')}
+
+/* brand logo overlay. If the logo fails to load it removes itself and the generated tile underneath shows instead. */
+function svcLogo(name){const b=logoFor(name);if(!b)return '';
+ return `<span class="svc-ov"><img${b[1]==='000000'?' class="ink"':''} src="${logoUrl(b)}" alt="" width="24" height="24" decoding="async" onerror="this.parentNode.remove()"></span>`}
 function tileArt(p){
  if(p.img)return `<img class="tile-img" src="${p.img}" alt="">`;
  const X=px(p);const name=p.bundle?'Bundle':['Courses','Digital'].includes(p.cat)?p.title:X.svc;
- return `<svg class="cv-art" viewBox="0 0 200 125" preserveAspectRatio="xMidYMid slice" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4">${MOTIF[p.cat]||MOTIF.Digital}</svg><span class="cv-txt ${name.length>13?'long':''}"><b>${esc(name)}</b><i>${esc(p.bundle?X.plan:X.plan)}</i></span>`;
+ return `<svg class="cv-art" viewBox="0 0 200 125" preserveAspectRatio="xMidYMid slice" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4">${MOTIF[p.cat]||MOTIF.Digital}</svg><span class="cv-txt ${name.length>13?'long':''}"><b>${esc(name)}</b><i>${esc(p.bundle?X.plan:X.plan)}</i></span>${p.bundle||p.nologo?'':logoBadge(X.svc)}`;
 }
 const flashChip=(p,inl)=>{const f=flashOf(p);return f?`<span class="flash ${inl?'inl':''}">${I('bolt',12)} Flash −${f.pct}% · <span data-end="${f.end}">${left(f.end)}</span></span>`:''};
 function card(p){
@@ -2340,27 +2385,27 @@ const GUARD={
  crypto:[['Rate locked for 15 minutes','The price you see is the price you pay.'],['Your wallet, your network','Enter your own address. We check its format before you pay.'],['Vendor sends on-chain','They add the transaction ID. We match the amount, address and network.'],['Released after confirmation','The vendor is paid only after the network confirms. Nothing in 1 hour? Report it.']],
  acct:[['Login after payment','The details show only to you.'],['24 hours to check','Change the password and recovery email. Report it if the account is locked or taken back.'],['Vendor fixes or refunds','They have 2 hours to replace it or refund you.'],['Strikes for repeat problems','Vendors with confirmed claims are paused, then suspended.']],
  otp:[['Number shown after payment','Use it for one verification code.'],['Code appears on your order','Usually within a minute.'],['No SMS, no charge','If nothing arrives in 20 minutes, your money comes back by itself.']]};
+function sellerCard(p,v){const lab=v.trust>=95?'Excellent':v.trust>=88?'Very good':v.trust>=80?'Good':'Building trust';
+ return `<h3>About the seller</h3><div class="sl-head"><span class="av">${esc(init(v.name))}</span><div style="min-width:0;flex:1"><div class="sl-name"><b>${esc(v.name)}</b>${bdg(v,16)}${v.official?'<span class="pill gold">Official Subora store</span>':v.verified?'<span class="pill info">Verified vendor</span>':''}</div><div class="muted sm">${v.since?'Selling since '+esc(v.since):'New on Subora'}${v.resp?' · '+esc(v.resp):''}</div></div></div>
+ <div class="sl-stats"><div><b>${v.rating?v.rating.toFixed(1):'New'}</b><span>Rating</span></div><div><b>${v.sales.toLocaleString()}</b><span>Sales</span></div><div><b>${v.trust}%</b><span>${lab}</span></div></div>
+ ${v.bio?`<p class="muted sm" style="margin:12px 0 0">${esc(v.bio)}</p>`:''}
+ <div class="sl-acts"><button class="btn sm" data-act="vprof" data-id="${p.v}">View store</button><button class="btn sm" data-act="chatvendor" data-id="${p.id}">${I('chat',14)} Chat with vendor</button></div>`}
 function product(){
  const p=prod(S.pid);const v=VENDORS[p.v];const X=px(p);const rv=(VFEED[p.v]||[]).filter(f=>f.i===p.title).slice(0,5).map(f=>[f.n,String(f.s),f.t]);
  const m=hasTiers(p)?(S.cm[p.id]||1):1;const lp=loyalPct(p);const price=unit(p,m);const final=lp?Math.round(price*(1-lp/100)):price;
  const q=QUAL[p.id];const wr=q?Math.round(q.ok/(q.ok+q.bad)*100):null;const saved=S.wish.some(w=>w.pid===p.id);
  const live=p.status==='live'&&!v.suspended;const k=kindOf(p);const d=disc(p);
  return `<div class="wrap"><div class="crumbs"><button data-act="nav" data-view="store">Marketplace</button> / <button data-act="cat" data-id="${p.cat}">${catL(p.cat)}</button> / ${esc(p.title)}</div>
- <div class="pgrid"><div>
+ <div class="pgrid pg2"><div class="pg-a">
   <div class="tile big c-${p.cat}" style="border-radius:18px;aspect-ratio:21/9">${tileArt(p)}${flashChip(p)}</div>
-  <div class="panel" style="margin-top:16px"><div class="ph" style="margin:0 0 8px"><h2 class="serif" style="font-size:clamp(28px,3.4vw,40px)">${esc(p.title)}</h2><div class="acts"><button class="btn sm ${saved?'good saved':''}" data-act="wish" data-id="${p.id}">${I('heart',14)}${saved?'Saved':'Save'}</button><button class="btn sm" data-act="share" data-kind="listing" data-id="${p.id}">${I('share',14)}Share</button></div></div>
-   <div class="meta" style="margin-bottom:12px">${stars(p.rating)}<span>${p.sold.toLocaleString()} sold</span><span>${esc(catL(p.cat))}</span>${p.status!=='live'?pill(p.status):''}</div><p style="margin:0">${esc(p.desc)}</p>${p.reason&&p.status==='suspended'?`<div class="warnbox" style="margin-top:12px">${I('shield',16)}<span>${esc(p.reason)}</span></div>`:''}</div>
+  <div class="panel pd-sum" style="margin-top:16px"><div class="ph" style="margin:0 0 8px"><h2 class="serif" style="font-size:clamp(26px,3.2vw,38px)">${esc(p.title)}</h2><div class="acts"><button class="btn sm ${saved?'good saved':''}" data-act="wish" data-id="${p.id}">${I('heart',14)}${saved?'Saved':'Save'}</button><button class="btn sm" data-act="share" data-kind="listing" data-id="${p.id}">${I('share',14)}Share</button></div></div>
+   <div class="meta" style="margin-bottom:12px">${stars(p.rating)}<span>${p.sold.toLocaleString()} sold</span><span>${esc(catL(p.cat))}</span>${p.status!=='live'?pill(p.status):''}</div>
+   <div class="pd-chips"><span class="pd-chip">${I('bolt',13)} ${esc(p.deliv)}</span><span class="pd-chip">${esc(p.dur)}</span><span class="pd-chip good">${I('shield',13)} Escrow protected</span></div>
+   <p class="pd-desc" style="margin:0">${esc(p.desc)}</p>${String(p.desc||'').length>150?`<button type="button" class="linkbtn pd-more" onclick="var d=this.previousElementSibling;d.classList.toggle('open');this.textContent=d.classList.contains('open')?'Show less':'Read full description'">Read full description</button>`:''}${p.reason&&p.status==='suspended'?`<div class="warnbox" style="margin-top:12px">${I('shield',16)}<span>${esc(p.reason)}</span></div>`:''}</div>
   ${k?`<div class="protect" style="margin-top:16px"><div class="mh"><h3 style="margin:0">${I('shield',18)} Asset Guard</h3><span class="pill good">Protected</span></div><ol>${GUARD[k].map(g=>`<li><span><b>${g[0]}</b><span class="muted sm">${g[1]}</span></span></li>`).join('')}</ol></div>`:''}
   ${q?`<div class="panel"><h3>Quality record</h3><div class="qgrid"><div><b>${wr}%</b><span>of buyers said it works</span></div><div><b>${esc(q.dt)}</b><span>average delivery</span></div><div><b>${esc(q.rep)}</b><span>needed a fix or refund</span></div><div><b>${(q.ok+q.bad).toLocaleString()}</b><span>buyer check-ins</span></div></div><p class="hint" style="margin:10px 0 0">From buyers’ day-1 and day-7 check-ins. A listing that drops below 80% is paused automatically and reviewed.</p></div>`:''}
   ${p.bundle?`<div class="panel"><h3>In this bundle</h3>${p.bundle.map(b=>{const x=prod(b);return `<div class="line"><span>${esc(x.title)}</span><s class="muted mono">${N(x.price)}</s></div>`}).join('')}<div class="line"><b>Bundle price</b><b class="mono">${N(fp(p))}</b></div></div>`:''}
-  <div class="panel"><h3>${X.spec?'Details':'Plan and access'}</h3><dl class="kv">${X.spec?X.spec.map(s=>`<dt>${esc(s[0])}</dt><dd>${esc(s[1])}</dd>`).join(''):`<dt>Service</dt><dd>${esc(X.svc)}</dd><dt>Plan</dt><dd>${esc(X.plan)}</dd><dt>Access type</dt><dd>${esc(X.atype)}</dd><dt>Duration</dt><dd>${esc(p.dur)}</dd><dt>Slots</dt><dd>${p.stock} of 50 available</dd>`}</dl></div>
-  <div class="panel"><h3>What’s included</h3><ul class="cap">${X.feat.map(f=>`<li>${I('check',16)}<span>${esc(f)}</span></li>`).join('')}</ul></div>
-  <div class="panel"><h3>Vendor terms</h3><p class="muted sm" style="margin:0 0 10px">Set by ${esc(v.name)}. Read these before you pay. They sit on top of Subora’s own Terms and Conditions.</p><ol class="cap">${X.terms.map((t,i)=>`<li><b>${i+1}.</b><span>${esc(t)}</span></li>`).join('')}</ol></div>
-  ${p.cat==='Social'&&k==='acct'?`<div class="warnbox" style="margin-top:16px">${I('shield',16)}<span>Buying or selling accounts can break the platform’s own rules, and the platform can close an account at any time. Subora protects the handover, not what the platform does later.</span></div>`:''}
-  ${k?'':`<div class="panel"><h3>How it works</h3><ol class="steps"><li><b>1. Pay from wallet</b>Funds are held in escrow.</li><li><b>2. Get access</b>${esc(p.deliv)} on your order page.</li><li><b>3. Confirm</b>Release payment, or request a refund.</li></ol></div>`}
-  <div class="panel"><h3>Reviews</h3>${(VFEED[p.v]&&isAsset(p)?VFEED[p.v].map(f=>[f.n,String(f.s),f.t]):rv).map(r=>`<div class="rev"><div class="meta"><b style="color:var(--fg)">${esc(r[0])}</b>${stars(+r[1])}<span class="pill good">Verified buyer</span></div><p style="margin:6px 0 0">${esc(r[2])}</p></div>`).join('')}</div>
-  <div style="margin-top:14px"><button class="linkbtn quiet" data-act="report" data-kind="listing" data-id="${p.id}">${I('flag',13)} Report this listing</button></div>
- </div>
+  </div>
  <aside class="panel buybox"><span class="pill ${live&&p.stock>0?'good':'bad'}">${!live?'Not available right now':p.stock<1?'Sold out':isAsset(p)?p.stock+' available':p.stock+' of 50 slots left'}</span>${flashOf(p)?' '+flashChip(p,1):''}
   ${hasTiers(p)?`<div class="tiers" role="group" aria-label="Plan length">${[1,3,6].map(n=>`<button type="button" class="${m===n?'on':''}" data-act="tier" data-id="${p.id}" data-m="${n}" aria-pressed="${m===n}"><b>${n} month${n>1?'s':''}</b><span>${N(unit(p,n))}</span>${tdOf(p,n)?`<em>Save ${Math.round(tdOf(p,n)*100)}%</em>`:'<em style="color:var(--muted)">Monthly</em>'}</button>`).join('')}</div>`:''}
   <div style="margin-top:10px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><span class="big">${N(final)}</span>${p.old>fp(p)?`<s class="muted">${N(p.old*m)}</s>`:''}${d>0?`<span class="pill ad">-${d}%</span>`:''}</div>
@@ -2370,7 +2415,18 @@ function product(){
   ${k==='card'?`<div class="warnbox" style="margin-bottom:10px">${I('key',16)}<span>The code is hidden until you pay, and only you can reveal it.</span></div>`:''}
   <label class="sm" style="display:flex;gap:8px;align-items:flex-start;margin-bottom:10px"><input type="checkbox" id="agree" style="margin-top:3px"> <span>I have read the details, features and vendor terms.</span></label>
   <div style="display:grid;gap:8px"><button class="btn pri full" data-act="buynow" data-id="${p.id}" ${!live||p.stock<1?'disabled':''}>Buy now</button><button class="btn full" data-act="add" data-id="${p.id}" ${!live||p.stock<1?'disabled':''}>${I('cart')} Add to cart</button><button class="btn full" data-act="chatvendor" data-id="${p.id}">${I('chat')} Chat with vendor</button></div>
-  <div class="note" style="margin-top:14px">${I('shield')}<span>${k?'Asset Guard: payment stays in escrow until the code, transfer or account checks out.':'Escrow protected. The vendor is paid only after you confirm access, or after 48 hours with no dispute.'}</span></div></aside></div></div>`;
+  <div class="note" style="margin-top:14px">${I('shield')}<span>${k?'Asset Guard: payment stays in escrow until the code, transfer or account checks out.':'Escrow protected. The vendor is paid only after you confirm access, or after 48 hours with no dispute.'}</span></div></aside>
+ <div class="pg-b">
+  <div class="panel"><h3>${X.spec?'Details':'Plan and access'}</h3><dl class="kv">${X.spec?X.spec.map(s=>`<dt>${esc(s[0])}</dt><dd>${esc(s[1])}</dd>`).join(''):`<dt>Service</dt><dd>${esc(X.svc)}</dd><dt>Plan</dt><dd>${esc(X.plan)}</dd><dt>Access type</dt><dd>${esc(X.atype)}</dd><dt>Duration</dt><dd>${esc(p.dur)}</dd><dt>Slots</dt><dd>${p.stock} of 50 available</dd>`}</dl></div>
+  <div class="panel acc" id="pd_seller">${sellerCard(p,v)}</div>
+  <div class="panel"><h3>What’s included</h3><ul class="cap">${X.feat.map(f=>`<li>${I('check',16)}<span>${esc(f)}</span></li>`).join('')}</ul></div>
+  <details class="panel acc"><summary>Vendor terms</summary><p class="muted sm" style="margin:0 0 10px">Set by ${esc(v.name)}. Read these before you pay. They sit on top of Subora’s own Terms and Conditions.</p><ol class="cap">${X.terms.map((t,i)=>`<li><b>${i+1}.</b><span>${esc(t)}</span></li>`).join('')}</ol></details>
+  ${p.cat==='Social'&&k==='acct'?`<div class="warnbox" style="margin-top:16px">${I('shield',16)}<span>Buying or selling accounts can break the platform’s own rules, and the platform can close an account at any time. Subora protects the handover, not what the platform does later.</span></div>`:''}
+  ${k?'':`<details class="panel acc"><summary>How it works</summary><ol class="steps"><li><b>1. Pay from wallet</b>Funds are held in escrow.</li><li><b>2. Get access</b>${esc(p.deliv)} on your order page.</li><li><b>3. Confirm</b>Release payment, or request a refund.</li></ol></details>`}
+  <details class="panel acc"><summary>Reviews</summary>${(VFEED[p.v]&&isAsset(p)?VFEED[p.v].map(f=>[f.n,String(f.s),f.t]):rv).map(r=>`<div class="rev"><div class="meta"><b style="color:var(--fg)">${esc(r[0])}</b>${stars(+r[1])}<span class="pill good">Verified buyer</span></div><p style="margin:6px 0 0">${esc(r[2])}</p></div>`).join('')}</details>
+  <div style="margin-top:14px"><button class="linkbtn quiet" data-act="report" data-kind="listing" data-id="${p.id}">${I('flag',13)} Report this listing</button></div>
+ </div>
+</div></div>`;
 }
 function assetOk(id){const p=prod(id);if(kindOf(p)!=='crypto')return true;const X=px(p);const a=(($('#cw')||{}).value||S.cwal[id]||'').trim();
  const ok=X.net==='TRC20'?/^T[1-9A-HJ-NP-Za-km-z]{33}$/.test(a):/^(bc1[02-9ac-hj-np-z]{11,71}|[13][1-9A-HJ-NP-Za-km-z]{25,34})$/.test(a);
@@ -2448,7 +2504,7 @@ function subCard(s){
  const due=null;
  const lp=S.loyal[p.v]||0;
  return `<article class="sub ${st}">
- <div class="sub-h"><div class="tile c-${p.cat} mini">${esc(init(p.title))}</div><div style="min-width:0"><h3>${esc(p.title)}</h3><div class="xs muted">${esc(v.name)} · Order ${s.oid}${s.m>1?' · '+s.m+' months':''}</div></div></div>
+ <div class="sub-h"><div class="tile c-${p.cat} mini">${miniArt(p)}</div><div style="min-width:0"><h3>${esc(p.title)}</h3><div class="xs muted">${esc(v.name)} · Order ${s.oid}${s.m>1?' · '+s.m+' months':''}</div></div></div>
  <div class="meta">${pill(st)}<span class="pill good">${I('shield',12)} Protected</span><span class="pill">${s.left>0?s.left+' days left':'Ended'}</span></div>
  <div><div class="bar" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><span style="width:${pct}%"></span></div><div class="meta" style="justify-content:space-between;margin-top:5px"><span>${used} of ${s.span} days used</span><span>${pct}%</span></div></div>
  ${due?`<div class="check"><b>${due==='d1'?'Day 1':'Day 7'} check: is your access working?</b><span class="xs muted">Your answer keeps listings honest. Listings with many “No” answers are paused automatically.</span><div class="acts" style="justify-content:flex-start"><button class="btn sm good" data-act="chk" data-id="${s.id}" data-k="${due}" data-v="yes">${I('check',14)} Yes, it works</button><button class="btn sm bad" data-act="chk" data-id="${s.id}" data-k="${due}" data-v="no">${I('x',14)} No, there’s a problem</button></div></div>`:''}
@@ -2483,7 +2539,7 @@ function aCard(o){
   body=A.rev?`<dl class="kv" style="margin:0"><dt>Login</dt><dd class="mono xs">${esc(A.login)}</dd><dt>Password</dt><dd class="mono">${esc(A.pw)}</dd></dl><div class="warnbox">${I('lock',16)}<span>Change the password, email and recovery details now. You have 24 hours to report a problem.</span></div>`:`<div class="revealbox hidden">Login hidden</div>`;
   acts=!A.rev?`<button class="btn sm pri" data-act="areveal" data-id="${o.id}">${I('key',14)} Show login</button>`:o.status==='completed'?'<span class="pill good">Handover done</span>':cl?'':`<button class="btn sm good" data-act="aok" data-id="${o.id}">${I('check',14)} Handover done</button><button class="btn sm bad" data-act="aclaim" data-id="${o.id}">There’s a problem</button>`;
  }
- return `<article class="aord ${cl&&cl.status==='vendor'?'claim':''}"><div class="sub-h"><div class="tile c-${p.cat} mini">${esc(init(px(p).svc))}</div><div style="min-width:0"><h3 style="font-size:17px">${esc(p.title)}</h3><div class="xs muted">${esc(v.name)} · Order ${o.id} · ${esc(o.date)}</div></div></div>
+ return `<article class="aord ${cl&&cl.status==='vendor'?'claim':''}"><div class="sub-h"><div class="tile c-${p.cat} mini">${miniArt(p)}</div><div style="min-width:0"><h3 style="font-size:17px">${esc(p.title)}</h3><div class="xs muted">${esc(v.name)} · Order ${o.id} · ${esc(o.date)}</div></div></div>
  <div class="meta">${pill(o.status)}<span class="pill good">${I('shield',12)} Asset Guard</span><span class="mono">${N(o.total)}</span></div>${body}${claimed}<div class="acts" style="justify-content:flex-start">${acts}<button class="btn sm" data-act="chatorder" data-id="${o.id}">${I('chat',14)}Message vendor</button><button class="btn sm" data-act="receipt" data-id="${o.id}">Receipt</button></div></article>`;
 }
 function assetsView(){
@@ -2493,7 +2549,7 @@ function assetsView(){
 }
 function savedView(){
  if(!S.wish.length)return emptyHTML('heart','Nothing saved yet','Tap the heart on any listing. We’ll tell you when the price drops.',`<button class="btn pri" data-act="nav" data-view="store">Browse the marketplace</button>`);
- return `<div class="subs">${S.wish.map(w=>{const p=prod(w.pid);const now=fp(p);const drop=w.at-now;return `<article class="sub"><div class="sub-h"><div class="tile c-${p.cat} mini">${esc(init(p.title))}</div><div style="min-width:0"><h3>${esc(p.title)}</h3><div class="xs muted">${esc(VENDORS[p.v].name)}</div></div></div>
+ return `<div class="subs">${S.wish.map(w=>{const p=prod(w.pid);const now=fp(p);const drop=w.at-now;return `<article class="sub"><div class="sub-h"><div class="tile c-${p.cat} mini">${miniArt(p)}</div><div style="min-width:0"><h3>${esc(p.title)}</h3><div class="xs muted">${esc(VENDORS[p.v].name)}</div></div></div>
  <div class="meta">${drop>0?`<span class="pill good">${I('bolt',12)} Price dropped ${N(drop)}</span>`:'<span class="pill">Watching the price</span>'}${p.status!=='live'?'<span class="pill warn">Not available now</span>':''}${flashChip(p,1)}</div>
  <div class="price" style="padding:0"><b>${N(now)}</b>${drop>0?`<s>${N(w.at)}</s>`:''}</div>
  <div class="acts" style="justify-content:flex-start"><button class="btn sm pri" data-act="open" data-id="${p.id}">View</button><button class="btn sm" data-act="wish" data-id="${p.id}">Remove</button></div></article>`}).join('')}</div><p class="hint">You get an alert by your chosen channels when a saved listing’s price drops. Change channels in My profile.</p>`;
@@ -2633,7 +2689,7 @@ function qualityView(){
 function auditView(){return lockNote('Every staff and system action is written here and can’t be edited or deleted. Times are Lagos time.')+`<div style="height:12px"></div><div class="tw"><table><thead><tr><th>Time</th><th>Who</th><th>Vendor</th><th>Plan</th><th>Action</th><th>Before and after</th><th>Reason</th></tr></thead><tbody>${S.audit.map(a=>`<tr><td class="xs mono">${esc(a.t)}</td><td>${esc(a.who)}</td><td class="sm">${esc(a.v||'')}</td><td class="sm">${esc(a.pl?planLabel(a.pl):'')}</td><td class="t">${esc(a.a)}</td><td class="sm">${esc(a.b||a.af?(a.b||'none')+' → '+(a.af||'none'):a.x)}</td><td class="sm">${esc(a.rs||'')}</td></tr>`).join('')}</tbody></table></div>`}
 /* ---------- v3: home extras ---------- */
 function flashStrip(){const L=S.flash.filter(f=>f.end>Date.now()).map(f=>prod(f.pid)).filter(p=>p&&p.status==='live');if(!L.length)return '';return `<div class="sec"><div><h2>Flash deals</h2><div class="muted sm">Short sales with a countdown. When the timer ends, the price goes back.</div></div><button class="btn sm" data-act="nav" data-view="store">See all</button></div><div class="grid">${L.map(card).join('')}</div>`}
-function votm(){const top=Object.entries(VENDORS).filter(([k,x])=>k!=='__none__'&&!x.official&&x.sales>0&&!x.suspended).sort((a,b)=>b[1].sales-a[1].sales)[0];if(!top)return '';const id=top[0],v=top[1];const items=S.products.filter(p=>p.v===id&&p.status==='live');return `<section class="votm"><div><span class="pill gold">${I('star',12)} Top seller on Subora</span><div class="vhead" style="margin-top:14px"><span class="av big">${esc(init(v.name))}</span><div style="min-width:0"><h2>${esc(v.name)}${bdg(v,24)}</h2><div class="muted">@${esc(v.user)} · ${v.trust}% trust · ${v.sales} sales</div></div></div>${(VFEED[id]||[])[0]?`<blockquote>“${esc(VFEED[id][0].t)}”<cite>${esc(VFEED[id][0].n)}, verified buyer</cite></blockquote>`:''}<button class="btn pri" data-act="vprof" data-id="${id}">Visit store</button></div><div class="vt-r">${items.slice(0,3).map(p=>`<button class="vt-item" data-act="open" data-id="${p.id}"><span class="tile c-${p.cat} mini">${esc(init(p.title))}</span><span><b>${esc(p.title)}</b><small>${N(fp(p))}</small></span></button>`).join('')}</div></section>`}
+function votm(){const top=Object.entries(VENDORS).filter(([k,x])=>k!=='__none__'&&!x.official&&x.sales>0&&!x.suspended).sort((a,b)=>b[1].sales-a[1].sales)[0];if(!top)return '';const id=top[0],v=top[1];const items=S.products.filter(p=>p.v===id&&p.status==='live');return `<section class="votm"><div><span class="pill gold">${I('star',12)} Top seller on Subora</span><div class="vhead" style="margin-top:14px"><span class="av big">${esc(init(v.name))}</span><div style="min-width:0"><h2>${esc(v.name)}${bdg(v,24)}</h2><div class="muted">@${esc(v.user)} · ${v.trust}% trust · ${v.sales} sales</div></div></div>${(VFEED[id]||[])[0]?`<blockquote>“${esc(VFEED[id][0].t)}”<cite>${esc(VFEED[id][0].n)}, verified buyer</cite></blockquote>`:''}<button class="btn pri" data-act="vprof" data-id="${id}">Visit store</button></div><div class="vt-r">${items.slice(0,3).map(p=>`<button class="vt-item" data-act="open" data-id="${p.id}"><span class="tile c-${p.cat} mini">${miniArt(p)}</span><span><b>${esc(p.title)}</b><small>${N(fp(p))}</small></span></button>`).join('')}</div></section>`}
 const assetBand=()=>'';
 function assetRecord(id){const v=VENDORS[id];const cl=S.claims.filter(c=>c.v===id);const n=S.vstrikes[id]||0;return `<div class="panel"><h3>Asset Guard record</h3><dl class="kv"><dt>Security deposit</dt><dd>${N(v.bond||0)} held</dd><dt>Claims (90 days)</dt><dd>${cl.length}</dd><dt>Fixed in good faith</dt><dd>${cl.filter(c=>c.status==='goodfaith').length}</dd><dt>Strikes</dt><dd><span class="strk">${[0,1,2,3,4].map(i=>`<i class="${i<n?'on':''}"></i>`).join('')}</span></dd></dl><p class="hint" style="margin:0">Strikes come from claims Subora confirmed. They expire after 90 clean days.</p></div>`}
 /* ---------- v3: help, footer, overlays ---------- */
@@ -2779,15 +2835,6 @@ function crsSync(){const c=nlType()==='Courses';const b=$('#course_box');if(b)b.
  const f=$('#f_feat');if(f&&c)f.placeholder='What buyers learn, one per line, e.g.\nEdit videos from start to finish\nColour, sound and export settings'}
 const crsVal=id=>(($('#'+id)||{}).value||'').trim();
 const urlOk=u=>/^https?:\/\/[^\s.]+\.[^\s]{2,}$/i.test(u);
-const SVC_LOGO={'ChatGPT':['chatgpt','10a37f'],'Claude':['claude','d97757'],'Gemini':['googlegemini','8e75b2'],'Perplexity':['perplexity','20b8cd'],'Midjourney':['midjourney','000000'],
- 'Netflix':['netflix','e50914'],'Prime Video':['primevideo','00a8e1'],'Showmax':['showmax','000000'],'Disney+':['disneyplus','113ccf'],'YouTube Premium':['youtubepremium','ff0000'],
- 'Spotify':['spotify','1db954'],'Apple Music':['applemusic','fa243c'],'Canva':['canva','00c4cc'],'CapCut':['capcut','000000'],'Duolingo':['duolingo','58cc02'],
- 'LinkedIn Premium':['linkedin','0a66c2'],'Coursera Plus':['coursera','0056d2'],'Microsoft 365':['microsoft365','d83b01'],'Adobe Creative Cloud':['adobecreativecloud','da1f26'],
- 'Figma':['figma','f24e1e'],'Notion':['notion','000000'],'Grammarly':['grammarly','15c39a'],'Cursor':['cursor','000000'],'GitHub Copilot':['githubcopilot','000000'],
- 'NordVPN':['nordvpn','4687ff'],'ExpressVPN':['expressvpn','da3940']};
-/* brand logo overlay. If the logo fails to load it removes itself and the generated tile underneath shows instead. */
-function svcLogo(name){const b=SVC_LOGO[name];if(!b)return '';
- return `<span class="svc-ov"><img${b[1]==='000000'?' class="ink"':''} src="https://cdn.simpleicons.org/${b[0]}/${b[1]}" alt="" width="24" height="24" decoding="async" onerror="this.parentNode.remove()"></span>`}
 function nlIco(){const e=$('#nl_ico');if(!e)return;const v=nlVal('f_svc'),hit=SVC.find(x=>x[0].toLowerCase()===v.toLowerCase());const lg=hit?svcLogo(hit[0]):'';e.innerHTML=lg||I('search',20)}
 function nlOwn(){const b=$('#nl_own');if(!b)return;const v=nlVal('f_svc');const known=SVC.some(x=>x[0].toLowerCase()===v.toLowerCase());
  b.hidden=!v||known;const th=$('#nl_own_th'),tx=$('#nl_own_tx'),rm=$('#nl_own_rm');
@@ -2799,7 +2846,7 @@ function nlSug(){
  if(!q){box.hidden=true;inp.setAttribute('aria-expanded','false');return}
  const hits=SVC.filter(s=>s[0].toLowerCase().includes(q)).sort((a,b)=>a[0].toLowerCase().indexOf(q)-b[0].toLowerCase().indexOf(q)).slice(0,6);
  const exact=hits.some(s=>s[0].toLowerCase()===q);
- box.innerHTML=hits.map((s,i)=>`<button type="button" role="option" class="${i===0?'act':''}" data-act="nl_pick" data-id="${esc(s[0])}"><span class="tile mini-cv c-${s[1]}">${tileArt({cat:s[1],title:s[0],x:{svc:s[0],plan:''}})}${svcLogo(s[0])}</span><span><b>${esc(s[0])}</b><small>${catL(s[1])} · ${s[2].slice(0,3).map(esc).join(', ')}</small></span>${I('check',16)}</button>`).join('')
+ box.innerHTML=hits.map((s,i)=>`<button type="button" role="option" class="${i===0?'act':''}" data-act="nl_pick" data-id="${esc(s[0])}"><span class="tile mini-cv c-${s[1]}">${tileArt({cat:s[1],title:s[0],nologo:1,x:{svc:s[0],plan:''}})}${svcLogo(s[0])}</span><span><b>${esc(s[0])}</b><small>${catL(s[1])} · ${s[2].slice(0,3).map(esc).join(', ')}</small></span>${I('check',16)}</button>`).join('')
   +(exact?'':`<button type="button" role="option" class="custom ${hits.length?'':'act'}" data-act="nl_custom"><span class="nl-plus">${I('plus',16)}</span><span><b>Use “${esc(inp.value.trim())}”</b><small>Not in the list. You can add your own photo.</small></span></button>`);
  box.hidden=false;inp.setAttribute('aria-expanded','true');
 }
