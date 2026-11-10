@@ -964,6 +964,18 @@ h1,h2,h3{font-family:var(--fs);letter-spacing:-.025em}
 .nl-sug button>svg{opacity:0;color:var(--link)}
 .nl-sug button.act,.nl-sug button:hover{background:var(--lime-soft)}.nl-sug button.act>svg{opacity:1}
 .nl-sug b{display:block;font-size:14.5px}.nl-sug small{display:block;color:var(--muted);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.svc-ov{position:absolute;inset:0;display:grid;place-items:center;background:var(--surface2);border-radius:inherit}
+.svc-ov img{width:24px;height:24px;object-fit:contain;display:block}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .svc-ov img.ink{filter:invert(1)}}
+:root[data-theme="dark"] .svc-ov img.ink{filter:invert(1)}
+.tile.mini-cv{position:relative;overflow:hidden}
+.nl-ico{display:grid;place-items:center;width:28px;height:28px;flex:none;position:relative;border-radius:8px;overflow:hidden}
+.nl-ico .svc-ov img{width:22px;height:22px}
+.nl-own{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px;padding:12px;border:1.5px dashed var(--edge);border-radius:14px;background:var(--lime-soft)}
+.nl-own[hidden]{display:none}
+.nl-own-th{width:56px;height:56px;border-radius:12px;overflow:hidden;flex:none;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;color:var(--muted)}
+.nl-own-th img{width:100%;height:100%;object-fit:cover}
+.nl-own-tx{flex:1 1 160px;min-width:0}.nl-own-tx b{display:block;font-size:14px}.nl-own-tx span{display:block;color:var(--muted);font-size:12.5px}
 .tile.mini-cv{width:64px;height:40px;aspect-ratio:auto;border-radius:9px;flex:none}
 .tile.mini-cv .cv-txt{left:7px;right:4px}.tile.mini-cv .cv-txt b{font-size:10px!important;letter-spacing:-.01em}.tile.mini-cv .cv-txt i{display:none}
 .nl-plus{width:64px;height:40px;border-radius:9px;display:grid;place-items:center;border:1.5px dashed var(--line);color:var(--muted)}
@@ -1830,8 +1842,9 @@ function vendor(){
   <div class="nl-top">
    <div class="nl-left">
     <div class="nl-q-wrap"><label for="f_svc" class="nl-lab">What are you selling?</label>
-     <div class="nl-search">${I('search',20)}<input id="f_svc" required autocomplete="off" placeholder="Search ChatGPT, Netflix, Canva, Instagram account…" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="nl_sug"></div>
-     <div class="nl-sug" id="nl_sug" role="listbox" hidden></div></div>
+     <div class="nl-search"><span class="nl-ico" id="nl_ico">${I('search',20)}</span><input id="f_svc" required autocomplete="off" placeholder="Search ChatGPT, Netflix, Canva, Instagram account…" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="nl_sug"></div>
+     <div class="nl-sug" id="nl_sug" role="listbox" hidden></div>
+     <div class="nl-own" id="nl_own" hidden><span class="nl-own-th" id="nl_own_th">${I('plus',20)}</span><span class="nl-own-tx" id="nl_own_tx"></span><label class="btn sm" for="f_img">${I('plus',14)} Add photo</label><button type="button" class="btn sm" data-act="nl_reset" id="nl_own_rm" hidden>Remove</button></div></div>
     <div class="fld"><label for="f_plan">Plan</label><div class="opts nl-plans" id="nl_plans"></div><input id="f_plan" required placeholder="Pick above or type one, e.g. Plus, Premium 4K, $50"></div>
     <div class="fld"><label>Listing type <span class="muted">set from the service</span></label><div class="opts" id="f_type">${CATS.slice(1).map((c,i)=>`<button type="button" class="${i===0?'on':''}" data-act="ltype" data-id="${c}">${ASSETC.includes(c)&&S.akyc!=='verified'?I('lock',13)+' ':''}${catL(c)}</button>`).join('')}</div></div>
    </div>
@@ -1932,7 +1945,7 @@ function vendor(){
   <div class="sec"><div><h2 style="font-size:20px">Issue a refund</h2><div class="muted sm">Full, prorated by days left, or a custom amount</div></div></div>
   ${el.length?`<div class="tw"><table><thead><tr><th>Order</th><th>Buyer</th><th>Days left</th><th class="num">Paid</th><th class="num">Prorated</th><th></th></tr></thead><tbody>${el.map(o=>{const d=DAYS[o.id];return `<tr><td><span class="mono">${o.id}</span><div class="xs muted">${esc(prod(o.pid).title)}</div></td><td>${esc(o.buyer)}</td><td>${d?`${d[0]} of ${d[1]}`:'<span class="muted">n/a</span>'}</td><td class="num">${N(o.total)}</td><td class="num">${d?N(refundAmt(o,'prorated')):'-'}</td><td><div class="acts"><button class="btn sm warn" data-act="vrefund" data-id="${o.id}">Refund</button></div></td></tr>`}).join('')}</tbody></table></div>`:`<div class="panel empty">No orders to refund.</div>`}${vClaims()}`;
  } else if(S.sub==='wallet'){
-  body=`<div class="kpis"><div class="kpi hi"><span>Available</span><b>${N(S.vw.avail)}</b></div><div class="kpi"><span>In escrow</span><b>${N(S.vw.pend)}</b></div><div class="kpi"><span>Commission</span><b>10% per sale</b></div></div>
+  body=`<div class="kpis"><div class="kpi hi"><span>Available</span><b>${N(S.vw.avail)}</b></div><div class="kpi"><span>In escrow</span><b>${N(S.vw.pend)}</b></div></div>
   <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap"><button class="btn pri" data-act="withdraw">Withdraw to bank</button><button class="btn" data-act="fund">${I('plus',16)} Add funds for ads</button></div>
   ${feeStatement()}${payoutSchedule()}${payoutPanel()}${levyPanel()}
   <div class="two"><div><h3 style="font-size:17px;margin-bottom:8px">Transactions</h3>${lockNote('Permanent ledger. Entries can’t be edited or deleted.')}<div style="height:8px"></div><div class="tw"><table><tbody>${S.vw.tx.map((t,i,ar)=>`<tr><td class="mono xs muted">VW-${1000+ar.length-i}</td><td>${t.d}</td><td>${esc(t.l)}</td><td class="num" style="color:${t.a>0?'var(--good)':'inherit'}">${t.a>0?'+':'-'}${N(Math.abs(t.a))}</td></tr>`).join('')}</tbody></table></div></div>
@@ -2752,7 +2765,7 @@ function nlCover(){
  tile.innerHTML=S.newImg?`<img class="tile-img" src="${S.newImg}" alt="">`:tileArt({cat:t,title:nlVal('f_title')||svc,x:{svc,plan:plan||'Choose a plan'}});
  const ti=$('#nl_t');if(ti)ti.textContent=nlVal('f_title')||((svc&&plan?svc+' '+plan:svc)+(t==='Subscriptions'||t==='Software'?' shared slot':''));
  const pr=$('#nl_p');if(pr){const v=+nlVal('f_price');pr.textContent=v?N(v)+(nlVal('f_dur')&&!DUR_FIXED[t]?' · '+nlVal('f_dur'):''):'Set a price'}
- const r=$('#nl_reset');if(r)r.hidden=!S.newImg;const h=$('#nl_cvh');if(h)h.textContent=S.newImg?'Using your uploaded cover.':'Made automatically from the service and plan.';
+ const r=$('#nl_reset');if(r)r.hidden=!S.newImg;if(typeof nlOwn==='function')nlOwn();const h=$('#nl_cvh');if(h)h.textContent=S.newImg?'Using your uploaded cover.':'Made automatically from the service and plan.';
 }
 function nlSync(){
  const t=nlType(),fx=nlFixedDur(),w=$('#nl_durw'),d=$('#f_dur'),fd=$('#nl_durfix');
@@ -2766,13 +2779,28 @@ function crsSync(){const c=nlType()==='Courses';const b=$('#course_box');if(b)b.
  const f=$('#f_feat');if(f&&c)f.placeholder='What buyers learn, one per line, e.g.\nEdit videos from start to finish\nColour, sound and export settings'}
 const crsVal=id=>(($('#'+id)||{}).value||'').trim();
 const urlOk=u=>/^https?:\/\/[^\s.]+\.[^\s]{2,}$/i.test(u);
+const SVC_LOGO={'ChatGPT':['chatgpt','10a37f'],'Claude':['claude','d97757'],'Gemini':['googlegemini','8e75b2'],'Perplexity':['perplexity','20b8cd'],'Midjourney':['midjourney','000000'],
+ 'Netflix':['netflix','e50914'],'Prime Video':['primevideo','00a8e1'],'Showmax':['showmax','000000'],'Disney+':['disneyplus','113ccf'],'YouTube Premium':['youtubepremium','ff0000'],
+ 'Spotify':['spotify','1db954'],'Apple Music':['applemusic','fa243c'],'Canva':['canva','00c4cc'],'CapCut':['capcut','000000'],'Duolingo':['duolingo','58cc02'],
+ 'LinkedIn Premium':['linkedin','0a66c2'],'Coursera Plus':['coursera','0056d2'],'Microsoft 365':['microsoft365','d83b01'],'Adobe Creative Cloud':['adobecreativecloud','da1f26'],
+ 'Figma':['figma','f24e1e'],'Notion':['notion','000000'],'Grammarly':['grammarly','15c39a'],'Cursor':['cursor','000000'],'GitHub Copilot':['githubcopilot','000000'],
+ 'NordVPN':['nordvpn','4687ff'],'ExpressVPN':['expressvpn','da3940']};
+/* brand logo overlay. If the logo fails to load it removes itself and the generated tile underneath shows instead. */
+function svcLogo(name){const b=SVC_LOGO[name];if(!b)return '';
+ return `<span class="svc-ov"><img${b[1]==='000000'?' class="ink"':''} src="https://cdn.simpleicons.org/${b[0]}/${b[1]}" alt="" width="24" height="24" decoding="async" onerror="this.parentNode.remove()"></span>`}
+function nlIco(){const e=$('#nl_ico');if(!e)return;const v=nlVal('f_svc'),hit=SVC.find(x=>x[0].toLowerCase()===v.toLowerCase());const lg=hit?svcLogo(hit[0]):'';e.innerHTML=lg||I('search',20)}
+function nlOwn(){const b=$('#nl_own');if(!b)return;const v=nlVal('f_svc');const known=SVC.some(x=>x[0].toLowerCase()===v.toLowerCase());
+ b.hidden=!v||known;const th=$('#nl_own_th'),tx=$('#nl_own_tx'),rm=$('#nl_own_rm');
+ if(th)th.innerHTML=S.newImg?`<img src="${S.newImg}" alt="">`:I('plus',20);
+ if(tx)tx.innerHTML=S.newImg?'<b>Your photo is set</b><span>It will be the cover of this listing.</span>':'<b>Add a photo or logo for “'+esc(v)+'”</b><span>Not in our list, so add your own. JPG or PNG, under 3 MB.</span>';
+ if(rm)rm.hidden=!S.newImg}
 function nlSug(){
  const box=$('#nl_sug'),inp=$('#f_svc');if(!box||!inp)return;const q=inp.value.trim().toLowerCase();
  if(!q){box.hidden=true;inp.setAttribute('aria-expanded','false');return}
  const hits=SVC.filter(s=>s[0].toLowerCase().includes(q)).sort((a,b)=>a[0].toLowerCase().indexOf(q)-b[0].toLowerCase().indexOf(q)).slice(0,6);
  const exact=hits.some(s=>s[0].toLowerCase()===q);
- box.innerHTML=hits.map((s,i)=>`<button type="button" role="option" class="${i===0?'act':''}" data-act="nl_pick" data-id="${esc(s[0])}"><span class="tile mini-cv c-${s[1]}">${tileArt({cat:s[1],title:s[0],x:{svc:s[0],plan:''}})}</span><span><b>${esc(s[0])}</b><small>${catL(s[1])} · ${s[2].slice(0,3).map(esc).join(', ')}</small></span>${I('check',16)}</button>`).join('')
-  +(exact?'':`<button type="button" role="option" class="custom ${hits.length?'':'act'}" data-act="nl_custom"><span class="nl-plus">${I('plus',16)}</span><span><b>Use “${esc(inp.value.trim())}”</b><small>Not in the list. The cover is made from your own name.</small></span></button>`);
+ box.innerHTML=hits.map((s,i)=>`<button type="button" role="option" class="${i===0?'act':''}" data-act="nl_pick" data-id="${esc(s[0])}"><span class="tile mini-cv c-${s[1]}">${tileArt({cat:s[1],title:s[0],x:{svc:s[0],plan:''}})}${svcLogo(s[0])}</span><span><b>${esc(s[0])}</b><small>${catL(s[1])} · ${s[2].slice(0,3).map(esc).join(', ')}</small></span>${I('check',16)}</button>`).join('')
+  +(exact?'':`<button type="button" role="option" class="custom ${hits.length?'':'act'}" data-act="nl_custom"><span class="nl-plus">${I('plus',16)}</span><span><b>Use “${esc(inp.value.trim())}”</b><small>Not in the list. You can add your own photo.</small></span></button>`);
  box.hidden=false;inp.setAttribute('aria-expanded','true');
 }
 function nlPick(name){
@@ -2781,19 +2809,19 @@ function nlPick(name){
  const pl=$('#nl_plans');if(pl)pl.innerHTML=(s?s[2]:[]).map(p=>`<button type="button" data-act="nl_plan" data-id="${esc(p)}">${esc(p)}</button>`).join('');
  const fp=$('#f_plan');if(fp)fp.value='';
  const box=$('#nl_sug');if(box)box.hidden=true;inp.setAttribute('aria-expanded','false');
- S.nlTitleAuto=true;nlAutoTitle();nlSync();const f=s&&s[2].length?null:$('#f_plan');if(f)f.focus();
+ S.nlTitleAuto=true;nlAutoTitle();nlSync();nlIco();nlOwn();const f=s&&s[2].length?null:$('#f_plan');if(f)f.focus();
 }
 function nlAutoTitle(){const t=$('#f_title');if(!t||(!S.nlTitleAuto&&t.value))return;const svc=nlVal('f_svc'),plan=nlVal('f_plan'),ty=nlType();
  const suf=ty==='Subscriptions'||ty==='Software'?' shared slot':ty==='GiftCards'||ty==='Crypto'?'':'';t.value=(svc+(plan?(ty==='GiftCards'||ty==='Crypto'?' · ':' ')+plan:'')+suf).trim();S.nlTitleAuto=true}
 function nlEvent(a,el){
  if(a==='nl_pick')return nlPick(el.dataset.id);
- if(a==='nl_custom'){const v=nlVal('f_svc');const box=$('#nl_sug');if(box)box.hidden=true;const pl=$('#nl_plans');if(pl)pl.innerHTML='';S.nlTitleAuto=true;nlAutoTitle();nlSync();const f=$('#f_plan');if(f)f.focus();return}
+ if(a==='nl_custom'){const v=nlVal('f_svc');const box=$('#nl_sug');if(box)box.hidden=true;const pl=$('#nl_plans');if(pl)pl.innerHTML='';S.nlTitleAuto=true;nlAutoTitle();nlSync();nlIco();nlOwn();const f=$('#f_plan');if(f)f.focus();return}
  if(a==='nl_plan'){document.querySelectorAll('#nl_plans button').forEach(b=>b.classList.toggle('on',b===el));$('#f_plan').value=el.dataset.id;nlAutoTitle();nlSync();return}
  if(a==='nl_dur'){document.querySelectorAll('#nl_durs button').forEach(b=>{const on=b===el;b.classList.toggle('on',on);b.setAttribute('aria-checked',on)});$('#f_dur').value=el.dataset.id;nlSync();return}
- if(a==='nl_reset'){S.newImg=null;const f=$('#f_img');if(f)f.value='';nlCover();return}
+ if(a==='nl_reset'){S.newImg=null;S.newImgFile=null;const f=$('#f_img');if(f)f.value='';nlCover();return}
 }
 document.addEventListener('input',e=>{const t=e.target;if(!t.closest||!t.closest('form[data-act="create"]'))return;
- if(t.id==='f_svc'){S.nlTitleAuto=S.nlTitleAuto!==false;const pl=$('#nl_plans');if(pl)pl.innerHTML='';nlSug();nlAutoTitle();nlCover()}
+ if(t.id==='f_svc'){S.nlTitleAuto=S.nlTitleAuto!==false;const pl=$('#nl_plans');if(pl)pl.innerHTML='';nlSug();nlAutoTitle();nlCover();nlIco();nlOwn()}
  else if(t.id==='f_plan'){document.querySelectorAll('#nl_plans button').forEach(b=>b.classList.toggle('on',b.dataset.id===t.value.trim()));nlAutoTitle();nlCover()}
  else if(t.id==='f_title'){S.nlTitleAuto=!t.value;nlCover()}
  else if(t.id==='f_price')nlCover();
