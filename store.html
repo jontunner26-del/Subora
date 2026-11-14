@@ -1351,6 +1351,7 @@ const P=(id,title,cat,v,price,old,dur,stock,status,rating,sold,deliv,desc)=>({id
 const DEFX={svc:'',plan:'Standard',atype:'Password',feat:['Private access for the paid period','Replacement if access breaks','Support through chat'],terms:['Do not change the password, email or profile settings.','Do not share your access with anyone else.','Access ends when the paid period ends.','Refunds follow the Subora refund policy and are prorated for unused days.']};
 const PX={};
 const px=p=>({...DEFX,svc:p.title.split(' ')[0],...(PX[p.id]||{}),...(p.x||{})});
+const NJ={state:'unknown',checked:false,waiting:false,tries:0,ret:false,last:null};
 const S={role:'buyer',dev:'web',view:'home',auth:false,sub:'subs',pid:null,cat:'All',q:'',sort:'featured',f:{maxp:0,deliv:'any',ver:false},per:30,sRole:'buyer',vid:'',profile:{name:'',user:'',phone:'',email:''},kyc:{status:'none'},levy:{amount:2000,next:''},kycq:[],suStep:1,su:{},sf:'all',lq:'',cart:[],modal:null,toast:'',tid:null,lstat:'live',
  products:[],orders:[],threads:[],ads:[],buyer:{wallet:0,tx:[]},vw:{avail:0,pend:0,tx:[]},wd:[],sales:[],subs:[],refs:[],
  auto:{on:true,greet:'',away:false,awayMsg:'',rules:[],quick:[],assist:false,hours:''},inbox:{},alog:[],cases:[],
@@ -1961,11 +1962,12 @@ function vendor(){
   const k=S.kyc,st=k.status;
   const feat=['Sponsored ads','Analytics','Verified badge on your profile and listings'];
   body=`<div class="panel"><div class="mh" style="margin-bottom:10px"><h3 style="margin:0">Verification status</h3>${st==='verified'?'<span class="pill good">Verified</span>':st==='review'?'<span class="pill warn">Under review</span>':st==='rejected'?'<span class="pill bad">Needs changes</span>':'<span class="pill">Not started</span>'}</div>
-   <ol class="steps"><li><b>1. Send details</b>${st==='none'||st==='rejected'?'Fill in the form below.':'Sent '+esc(k.submitted||'')}</li><li><b>2. Review</b>${st==='verified'?'Done':'Usually within 24 hours.'}</li><li><b>3. Verified</b>${st==='verified'?'Verified '+esc(k.at||'today'):'Pro features unlock.'}</li></ol>
-   ${st==='rejected'?`<div class="note" style="margin-top:12px;background:var(--bad-soft)">${I('x')}<span><b>Not approved.</b> ${esc(k.reason||'Please resubmit with clearer documents.')}</span></div>`:''}
-   ${st==='review'?`<div class="note" style="margin-top:12px">${I('check')}<span>Sent by <b>${esc(k.name)}</b> with ${esc(k.idType)} ending ${esc(k.last4)}. We will tell you as soon as the review is done.</span></div>`:''}
+   <ol class="steps"><li><b>1. Send details</b>${st==='none'||st==='rejected'?(njOn()?'Start the secure check below.':'Fill in the form below.'):'Sent '+esc(k.submitted||'')}</li><li><b>2. Review</b>${st==='verified'?'Done':(njOn()&&(st==='none'||st==='rejected')?'Usually under a minute.':'Usually within 24 hours.')}</li><li><b>3. Verified</b>${st==='verified'?'Verified '+esc(k.at||'today'):'Pro features unlock.'}</li></ol>
+   ${st==='rejected'?`<div class="note" style="margin-top:12px;background:var(--bad-soft)">${I('x')}<span><b>Not approved.</b> ${esc(k.reason||njReason()||'Please resubmit with clearer documents.')}</span></div>`:''}
+   ${st==='review'?`<div class="note" style="margin-top:12px">${I('check')}<span>${k.last4?`Sent by <b>${esc(k.name)}</b> with ${esc(k.idType)} ending ${esc(k.last4)}. We will tell you as soon as the review is done.`:'Your identity check needs a quick manual look by our team. We will tell you within 24 hours.'}</span></div>`:''}
    ${st==='verified'?`<div class="note" style="margin-top:12px">${I('shield')}<span>Your account is verified. The badge now shows on your public page and every listing.</span></div><div style="margin-top:12px"><button class="btn sm info" data-act="vprof" data-id="${MYV}">View public page</button></div>`:''}</div>
-  ${st==='none'||st==='rejected'?`<form class="panel" data-act="kycgo"><h3>Your details</h3><div class="form">
+  ${(st==='none'||st==='rejected')&&njOn()?njPanel():''}
+  ${(st==='none'||st==='rejected')&&!njOn()?`<form class="panel" data-act="kycgo"><h3>Your details</h3><div class="form">
    <div class="fld"><label for="kyc_name">Full legal name</label><input id="kyc_name" required placeholder="As on your ID"></div>
    <div class="fld"><label for="kyc_type">ID type</label><select id="kyc_type"><option>National ID (NIN)</option><option>Driver's licence</option><option>International passport</option><option>Voter's card</option></select></div>
    <div class="fld"><label for="kyc_id">ID number</label><input id="kyc_id" required></div>
@@ -3603,6 +3605,9 @@ async function hydrate(){
     me.name=vr.store_name;me.user=vr.username||'';me.bio=vr.bio||'';me.offers=vr.offers||[];me.verified=vr.kyc_status==='verified';me.suspended=vr.suspended;
     const lastKyc=kyc.find(k=>k.kind==='standard'),lastAsset=kyc.find(k=>k.kind==='asset');
     S.kyc={status:vr.kyc_status,submitted:lastKyc?fmtD(lastKyc.submitted_at):'',name:lastKyc&&lastKyc.full_name,reason:lastKyc&&lastKyc.reject_reason||'',last4:lastKyc&&lastKyc.details&&lastKyc.details.idLast4,idType:lastKyc&&lastKyc.details&&lastKyc.details.idType||'ID',at:lastKyc&&lastKyc.reviewed_at?fmtD(lastKyc.reviewed_at):''};
+    try{NJ.last=(ok(await sb.from('ninja_kyc_sessions').select('outcome,status,sandbox,created_at').eq('vendor_id',uid).order('created_at',{ascending:false}).limit(1))||[])[0]||null}catch(e){NJ.last=null}
+    if(!NJ.checked&&(S.kyc.status==='none'||S.kyc.status==='rejected')){NJ.checked=true;ninjaCheck()}
+    ninjaReturn();
     S.akyc=vr.asset_status;
     S.wd=wds.map(w=>({id:w.id,amt:+w.amount,bank:w.bank_label||'Bank account',date:fmtD(w.created_at),status:w.status,due:w.due_at||null,planReq:w.plan_at_request||null}));
     S.ads=ads.map(a=>({id:a.id,pid:a.product_id,place:a.placement,daily:+a.daily,days:a.days,start:fmtD(a.starts_at),imp:a.impressions,clk:a.clicks,status:(a.status==='active'&&new Date(a.starts_at).getTime()+a.days*864e5<Date.now())?'ended':a.status}));
@@ -3688,6 +3693,49 @@ document.addEventListener('submit',e=>{const f=e.target;const h=HF[f.dataset.act
 const gv=i=>(($('#'+i)||{}).value||'').trim();
 const ordBy=id=>S.orders.find(x=>x.id===id);
 async function after(msg,view,sub){await hydrate();S.modal=null;if(view){S.view=view;if(sub)S.sub=sub}render();jump();if(msg)toast(msg)}
+/* ---- Ninja hosted verification (vendors). Falls back to the manual form when Ninja is not configured. ---- */
+const NJ_REASONS={mismatch:'The details you entered did not match your ID record. Check your name and date of birth and try again.',not_found:'We could not find a record for that ID number. Check the number and try again.',underage:'You must be 18 or older to sell on Subora.',face_mismatch:'Your selfie did not match the photo on your ID. Try again in good light, facing the camera.',liveness_failed:'The live-person check did not pass. Try again in good light, facing the camera.'};
+function njOn(){return NJ.state==='on'}
+function njReason(){return NJ.last&&NJ.last.status==='completed'&&NJ_REASONS[String(NJ.last.outcome||'').toLowerCase()]||''}
+function njPanel(){return NJ.waiting?`<div class="panel"><h3>Checking your result</h3><p class="muted sm" style="margin:0">This usually takes under a minute. You can leave this page open.</p></div>`
+ :`<div class="panel"><h3>Verify with your ID and a selfie</h3>
+   <p class="muted sm" style="margin:0 0 10px">It takes about two minutes. You will open a secure page, enter your NIN or BVN with your name and date of birth, then take a selfie. Subora does not store your ID number.</p>
+   ${NJ.last&&NJ.last.status==='pending'?`<div class="note" style="margin-bottom:10px">${I('check')}<span>Your last check is still being processed. If you finished it, you will get a notification shortly.</span> <button type="button" class="btn sm" data-act="njrefresh">Refresh</button></div>`:''}
+   <label class="sm note" style="display:flex;gap:8px;align-items:flex-start;margin-top:6px"><input type="checkbox" id="nj_terms" style="margin-top:3px"> <span>I confirm my details are true. I agree to the <button type="button" class="linkbtn" data-act="terms">Terms and Conditions</button>, including the 10% fee on each sale, the ${N(WFEE)} withdrawal fee and the monthly marketing levy of ${N(S.levy.amount)}.</span></label>
+   <div style="margin-top:14px"><button type="button" class="btn pri" data-act="ninjago">Start verification</button></div></div>`}
+async function ninjaCheck(){
+  try{const r=await sb.functions.invoke('ninja-kyc-start',{body:{check:true}});NJ.state=(!r.error&&r.data&&r.data.configured)?'on':'off'}catch(e){NJ.state='off'}
+  render();
+}
+async function ninjaErr(error){try{const b=await error.context.json();return b&&b.error||''}catch(e){return ''}}
+H.njrefresh=async()=>{await after()};
+H.ninjago=async()=>{
+  if(!$('#nj_terms')||!$('#nj_terms').checked){toast('Confirm your details and accept the terms to continue');return}
+  const r=await sb.functions.invoke('ninja-kyc-start',{body:{}});
+  if(r.error||!r.data||!r.data.url){
+    const c=r.error?await ninjaErr(r.error):'';
+    if(c==='not_configured'){NJ.state='off';render();toast('Quick verification is not available right now. Use the form instead.');return}
+    if(c==='too_many_attempts'){toast('Too many attempts today. Please try again tomorrow or contact support.');return}
+    if(c==='in_review'||c==='already_verified'){await after();return}
+    toast('We could not start the verification. Please try again.');return;
+  }
+  location.href=r.data.url;   // Ninja's hosted page; it sends the vendor back here when done
+};
+/* The vendor returns from Ninja with ?vs_id=...&status=...: treat that as UX only and wait for the signed webhook to update the account. */
+function ninjaReturn(){
+  if(NJ.ret||!/[?&](vs_id|kyc)=/.test(location.search))return;
+  NJ.ret=true;try{history.replaceState(null,'',location.pathname)}catch(e){}
+  if(S.role==='vendor'&&S.kyc&&(S.kyc.status==='none'||S.kyc.status==='rejected')){S.view='vendor';S.sub='verify';NJ.waiting=true;NJ.tries=0;render();ninjaPoll()}
+}
+async function ninjaPoll(){
+  while(NJ.waiting&&NJ.tries<20){
+    await new Promise(r=>setTimeout(r,3000));NJ.tries++;
+    try{await hydrate()}catch(e){}
+    if((NJ.last&&NJ.last.status==='completed')||!(S.kyc.status==='none'||S.kyc.status==='rejected'))break;
+  }
+  NJ.waiting=false;render();
+  if(S.kyc.status==='verified')toast('You are verified. Pro features are unlocked.');
+}
 const dest=()=>S.role==='vendor'?['vendor','overview']:S.role==='admin'?['admin','review']:['store','subs'];
 const emailOk=v=>/^\S+@\S+\.\S+$/.test(v);
 
