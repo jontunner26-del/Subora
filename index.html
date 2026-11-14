@@ -2154,7 +2154,7 @@ function admin(){
  if(!ttl[S.sub])S.sub='review';
  let body='';
  if(S.sub==='review')body=(q.length||dq.length)?`<div class="tw"><table><thead><tr><th>Listing</th><th>Request</th><th>Vendor</th><th class="num">Price</th><th></th></tr></thead><tbody>${q.map(p=>`<tr><td><span class="t">${esc(p.title)}</span><div class="xs muted">${p.cat} · ${esc(p.deliv)}</div></td><td><span class="pill warn">${p.edited?'Edit review':'New listing'}</span></td><td>${esc(VENDORS[p.v].name)}</td><td class="num">${N(p.price)}</td><td><div class="acts"><button class="btn sm pri" data-act="approve" data-id="${p.id}">Approve</button><button class="btn sm bad" data-act="reject" data-id="${p.id}">Reject</button></div></td></tr>`).join('')}${dq.map(p=>`<tr><td><span class="t">${esc(p.title)}</span><div class="xs muted">${p.cat} · ${S.orders.filter(o=>o.pid===p.id&&!['completed','refunded'].includes(o.status)).length} open orders</div></td><td><span class="pill ${p.kind==='archive'?'warn':'bad'}">${p.kind==='archive'?'Archive':'Deletion'}</span></td><td>${esc(VENDORS[p.v].name)}</td><td class="num">${N(p.price)}</td><td><div class="acts"><button class="btn sm pri" data-act="delok" data-id="${p.id}">${p.kind==='archive'?'Approve archive':'Approve deletion'}</button><button class="btn sm" data-act="deldeny" data-id="${p.id}">Decline</button></div></td></tr>`).join('')}</tbody></table></div>`:`<div class="panel empty">The review queue is clear.</div>`;
- else if(S.sub==='kyc')body=(kq.length?`<div class="tw"><table><thead><tr><th>Vendor</th><th>Sells</th><th>Submitted</th><th>Checks</th><th></th></tr></thead><tbody>${kq.map(k=>`<tr><td class="t">${esc(k.name)}</td><td>${esc(k.type)}</td><td>${esc(k.submitted)}</td><td class="xs">ID photo, selfie, BVN and bank name match</td><td><div class="acts"><button class="btn sm" data-act="kycview" data-id="${k.id}">Review documents</button><button class="btn sm pri" data-act="kycapprove" data-id="${k.id}">Approve</button><button class="btn sm bad" data-act="kycreject" data-id="${k.id}">Reject</button></div></td></tr>`).join('')}</tbody></table></div>`:`<div class="panel empty">No verifications waiting.</div>`)+pendApps();
+ else if(S.sub==='kyc')body=(kq.length?`<div class="tw"><table><thead><tr><th>Vendor</th><th>Sells</th><th>Submitted</th><th>Checks</th><th></th></tr></thead><tbody>${kq.map(k=>`<tr><td class="t">${esc(k.name)}</td><td>${esc(k.type)}</td><td>${esc(k.submitted)}</td><td class="xs">${k.ninja?njSummary(k):'ID photo, selfie, BVN and bank name match'}</td><td><div class="acts"><button class="btn sm" data-act="kycview" data-id="${k.id}">${k.ninja?'Review result':'Review documents'}</button><button class="btn sm pri" data-act="kycapprove" data-id="${k.id}">Approve</button><button class="btn sm bad" data-act="kycreject" data-id="${k.id}">Reject</button></div></td></tr>`).join('')}</tbody></table></div>`:`<div class="panel empty">No verifications waiting.</div>`)+pendApps();
  else if(S.sub==='disputes')body='<p class="muted sm" style="margin:0 0 10px">Open cases are sorted by the vendor’s plan: Fastest review (Elite), then Priority (Growth), then standard.</p>'+caseTable([...S.cases].sort((a,b)=>(a.status==='resolved')-(b.status==='resolved')||supRank(b.sl)-supRank(a.sl)),true);
  else if(S.sub==='assets')body=assetAdmin();
  else if(S.sub==='reports')body=reportsView();
@@ -3013,6 +3013,7 @@ const vrv=k=>esc(S.vr.d[k]||'');
 const vrSave=()=>{document.querySelectorAll('[data-vr]').forEach(el=>{S.vr.d[el.dataset.vr]=el.type==='checkbox'?el.checked:(el.value||'').trim()})};
 const vrFile=(k,l,h)=>`<label class="vrf ${S.vr.files[k]?'has':''}"><input type="file" accept="image/*,.pdf" data-vrf="${k}"><span class="vrf-i">${I(S.vr.files[k]?'check':'plus',18)}</span><span><b>${l}</b><small>${S.vr.files[k]?esc(S.vr.files[k]):h}</small></span></label>`;
 function vregView(){
+ if(NJ.state==='unknown'&&!NJ.checked){NJ.checked=true;setTimeout(ninjaCheck,0)}
  const st=S.vr.step,d=S.vr.d,asset=(d.sells||[]).some(x=>ASSETC.includes(x));
  const ex=S.auth&&S.role==='buyer';
  if(ex){d.user=S.profile.user;d.email=S.profile.email;if(!d.name)d.name=S.profile.name;if(!d.phone)d.phone=S.profile.phone}
@@ -3033,7 +3034,9 @@ function vregView(){
   <div class="fld"><label>What will you sell?</label><div class="vr-chips">${VR_SELLS.map(c=>`<button type="button" class="${(d.sells||[]).includes(c[0])?'on':''}" data-act="vrsell" data-id="${c[0]}">${c[1]}</button>`).join('')}</div>${asset?`<span class="hint">${I('shield',13)} Gift cards, crypto and accounts need Asset Guard checks: a short video selfie and a refundable security deposit after approval.</span>`:''}</div>
   <div class="fld"><label for="vr_bio">Short description</label><textarea id="vr_bio" data-vr="bio" rows="3" maxlength="240" placeholder="What you offer and how fast you deliver">${vrv('bio')}</textarea></div>
   <div class="fld"><label for="vr_link">Social or website link <span class="muted">(optional)</span></label><input id="vr_link" data-vr="link" value="${vrv('link')}" placeholder="instagram.com/yourstore"></div>`;
- if(st===3)body=`<h2>Verify your identity</h2><p class="muted">We check every vendor by hand. Your documents are only seen by the review team and are never shown to buyers.</p>
+ if(st===3)body=njOn()?`<h2>Verify your identity</h2><p class="muted">Right after you apply, you will check your identity on a secure page. You enter your NIN or BVN with your name and date of birth, then take a selfie. It takes about two minutes.</p>
+  <div class="note">${I('shield')}<span>Subora does not store your ID number or BVN. Keep your ID number handy and use a phone or laptop with a camera.</span></div>
+  <div class="fld"><label for="vr_addr">Home address</label><input id="vr_addr" data-vr="addr" value="${vrv('addr')}" placeholder="Street, city, state"></div>`:`<h2>Verify your identity</h2><p class="muted">We check every vendor by hand. Your documents are only seen by the review team and are never shown to buyers.</p>
   <div class="form"><div class="fld"><label for="vr_dob">Date of birth</label><input id="vr_dob" type="date" data-vr="dob" value="${vrv('dob')}"></div>
   <div class="fld"><label for="vr_idt">ID type</label><select id="vr_idt" data-vr="idt">${['NIN slip or card','International passport',"Driver's licence","Voter's card"].map(o=>`<option ${d.idt===o?'selected':''}>${o}</option>`).join('')}</select></div></div>
   <div class="form"><div class="fld"><label for="vr_idn">ID number</label><input id="vr_idn" data-vr="idn" value="${vrv('idn')}" placeholder="Number on the document"></div>
@@ -3046,7 +3049,7 @@ function vregView(){
   <p class="hint" style="margin:0">We check that the account name matches your ID before your first payout.</p>
   <div class="note">${I('wallet')}<span>Payouts arrive after buyers confirm delivery. Each withdrawal costs a flat ${N(WFEE)}. Changing this account later is reviewed for 24 hours to protect you.</span></div>`;
  if(st===5)body=`<h2>Review and agree</h2><p class="muted">Check your details, then submit. Most applications are reviewed within 24 hours.</p>
-  <div class="vr-sum">${[['Name',d.name],['Username','@'+(d.user||'')],['Email',d.email],['Phone',d.phone],['Store',d.store],['Sells',(d.sells||[]).map(catL).join(', ')],['ID',d.idt+' ending '+String(d.idn||'').slice(-4)],['Documents',Object.keys(S.vr.files).length+' of 3 uploaded'],['Bank',d.bank+' · ****'+String(d.acct||'').slice(-4)]].map((r,i)=>`<div><span>${r[0]}</span><b>${esc(r[1]||'')}</b><button type="button" class="linkbtn" data-act="vrgo" data-id="${[1,1,1,1,2,2,3,3,4][i]}">Edit</button></div>`).join('')}</div>
+  <div class="vr-sum">${[['Name',d.name],['Username','@'+(d.user||'')],['Email',d.email],['Phone',d.phone],['Store',d.store],['Sells',(d.sells||[]).map(catL).join(', ')],...(njOn()?[['Address',d.addr],['Identity','Checked next, on a secure page']]:[['ID',d.idt+' ending '+String(d.idn||'').slice(-4)],['Documents',Object.keys(S.vr.files).length+' of 3 uploaded']]),['Bank',d.bank+' · ****'+String(d.acct||'').slice(-4)]].map((r,i)=>`<div><span>${r[0]}</span><b>${esc(r[1]||'')}</b><button type="button" class="linkbtn" data-act="vrgo" data-id="${[1,1,1,1,2,2,3,3,4][i]}">Edit</button></div>`).join('')}</div>
   <div class="fees vr-fees"><div><b>10%</b><span>fee on each sale</span></div><div><b>${N(WFEE)}</b><span>per withdrawal</span></div><div><b>${N(S.levy.amount)}</b><span>monthly marketing levy</span></div></div>
   <label class="sm vr-ck"><input type="checkbox" data-vr="a1" ${d.a1?'checked':''}><span>I agree to the <button type="button" class="linkbtn" data-act="terms">Terms and Conditions</button> and the Refund and Dispute policy. I understand chats and transactions are permanent records.</span></label>
   <label class="sm vr-ck"><input type="checkbox" data-vr="a2" ${d.a2?'checked':''}><span>I agree to the 10% sale fee, the ${N(WFEE)} withdrawal fee and the ${N(S.levy.amount)} monthly marketing levy (Terms, sections 3 and 6).</span></label>
@@ -3064,7 +3067,8 @@ function vrValidate(){
  const d=S.vr.d,st=S.vr.step,t=m=>{toast(m);return false};
  if(st===1){if((d.name||'').split(/\s+/).length<2)return t('Enter your first and last name');if(S.auth&&S.role==='buyer'){if((d.phone||'').replace(/\D/g,'').length<10)return t('Enter a phone number with at least 10 digits');return true}if(!/^[a-z0-9_]{3,20}$/i.test(d.user||''))return t('Choose a username of 3 to 20 letters, numbers or underscores');if(S.vr.userOk===false)return t('That username is taken');if(!/^\S+@\S+\.\S+$/.test(d.email||''))return t('Enter a valid email address');if((d.phone||'').replace(/\D/g,'').length<10)return t('Enter a phone number with at least 10 digits');if((d.pw||'').length<8||pwScore(d.pw)<3)return t('Use a stronger password: 8+ characters, a number and a capital letter')}
  if(st===2){if((d.store||'').length<2)return t('Enter your store name');if(!(d.sells||[]).length)return t('Pick at least one thing you will sell');if((d.bio||'').length<10)return t('Add a short description of your store')}
- if(st===3){if(!d.dob)return t('Enter your date of birth');const age=(Date.now()-new Date(d.dob))/31557600000;if(!(age>=18))return t('Vendors must be 18 or older');if((d.idn||'').length<5)return t('Enter your ID number');if(!/^\d{11}$/.test(d.bvn||''))return t('BVN must be 11 digits');if((d.addr||'').length<8)return t('Enter your home address');if(!S.vr.files.idf||!S.vr.files.selfie)return t('Upload your ID and a selfie holding it')}
+ if(st===3&&njOn()){if((d.addr||'').length<8)return t('Enter your home address')}
+ if(st===3&&!njOn()){if(!d.dob)return t('Enter your date of birth');const age=(Date.now()-new Date(d.dob))/31557600000;if(!(age>=18))return t('Vendors must be 18 or older');if((d.idn||'').length<5)return t('Enter your ID number');if(!/^\d{11}$/.test(d.bvn||''))return t('BVN must be 11 digits');if((d.addr||'').length<8)return t('Enter your home address');if(!S.vr.files.idf||!S.vr.files.selfie)return t('Upload your ID and a selfie holding it')}
  if(st===4){if(!d.bank)return t('Choose your bank');if(!/^\d{10}$/.test(d.acct||''))return t('Account number must be 10 digits');}
  if(st===5){if(!d.a1||!d.a2||!d.a3)return t('Tick all three boxes to submit')}
  return true;
@@ -3643,7 +3647,7 @@ async function hydrate(){
     profs.forEach(p=>S.adminNames[p.id]=p.full_name||p.username||p.id.slice(0,6));
     const nm=id=>S.adminNames[id]||nameOf(id)||'User';
     S.wd=allWd.map(w=>({id:w.id,amt:+w.amount,bank:w.bank_label||'Bank account',date:fmtD(w.created_at),status:w.status,due:w.due_at||null,planReq:w.plan_at_request||null,vname:nameOf(w.vendor_id)||nm(w.vendor_id)}));
-    S.kycq=kycs.map(k=>({id:k.id,name:nameOf(k.vendor_id)||nm(k.vendor_id),type:k.kind==='asset'?'Asset seller: video selfie, address, deposit':'Subscriptions and software',submitted:fmtD(k.submitted_at),status:k.status,kind:k.kind,vendor:k.vendor_id,details:k.details||{},paths:k.doc_paths||[],legal:k.full_name}));
+    S.kycq=kycs.map(k=>({id:k.id,name:nameOf(k.vendor_id)||nm(k.vendor_id),type:k.kind==='asset'?'Asset seller: video selfie, address, deposit':'Subscriptions and software',submitted:fmtD(k.submitted_at),status:k.status,kind:k.kind,vendor:k.vendor_id,details:k.details||{},paths:k.doc_paths||[],legal:k.full_name,ninja:!!(k.details&&k.details.provider==='ninja')}));
     S.pendApps=[];try{S.pendApps=ok(await sb.rpc('admin_pending_vendor_applicants'))}catch(e){console.warn('pending applicants unavailable',e)}
     S.reports=reps.map(r=>{const sup=r.reason==='Support request',app=r.reason==='Suspension appeal';return {id:r.id,sl:r.support_level||null,kind:sup?'Support':app?'Appeal':r.kind==='vendor'?'Vendor':'Listing',target:sup||app?nm(r.reporter_id):r.kind==='vendor'?(nameOf(r.target_id)||'Vendor'):(pt[r.target_id]||'Listing'),tid:r.target_id,by:nm(r.reporter_id),reason:sup?(r.details||''):r.reason+(r.details?': '+r.details:''),when:fmtT(r.created_at),status:r.status}});
     S.audit=aud.map(a=>({t:fmtL(a.created_at),who:a.actor_label||'System',a:a.action,x:a.detail||'',v:a.vendor_id?(nameOf(a.vendor_id)||''):'',pl:a.plan_at_time||'',b:a.before_value||'',af:a.after_value||'',rs:a.reason||''}));
@@ -3716,9 +3720,22 @@ function njPanel(){return NJ.waiting?`<div class="panel"><h3>Checking your resul
    <label class="sm note" style="display:flex;gap:8px;align-items:flex-start;margin-top:6px"><input type="checkbox" id="nj_terms" style="margin-top:3px"> <span>I confirm my details are true. I agree to the <button type="button" class="linkbtn" data-act="terms">Terms and Conditions</button>, including the 10% fee on each sale, the ${N(WFEE)} withdrawal fee and the monthly marketing levy of ${N(S.levy.amount)}.</span></label>
    <div style="margin-top:14px"><button type="button" class="btn pri" data-act="ninjago">Start verification</button></div></div>`}
 async function ninjaCheck(){
+  NJ.checked=true;
   try{const r=await sb.functions.invoke('ninja-kyc-start',{body:{check:true}});NJ.state=(!r.error&&r.data&&r.data.configured)?'on':'off'}catch(e){NJ.state='off'}
+  if(document.querySelector('[data-vr]'))vrSave();   // keep anything typed in the application before the screen redraws
   render();
 }
+const NJ_REJECT='We could not confirm your identity. Please run the verification again and make sure your name and date of birth match your ID.';
+const NJ_LABEL={verified:'Verified',review:'Needs a human look',mismatch:'Details did not match',not_found:'No registry record',underage:'Under 18',face_mismatch:'Selfie did not match',liveness_failed:'Liveness check failed'};
+function njSummary(k){const d=k.details||{},o=String(d.outcome||'').toLowerCase(),b=[esc(NJ_LABEL[o]||d.outcome||'Ninja result')];
+  if(typeof d.score==='number')b.push('match '+Math.round(d.score*100)+'%');if(typeof d.face_score==='number')b.push('selfie '+Math.round(d.face_score)+'/100');if(d.sandbox)b.push('TEST');return 'Ninja: '+b.join(' · ')}
+function njModal(m,head,k){const d=k.details||{},o=String(d.outcome||'').toLowerCase(),f=Array.isArray(d.fields)?d.fields:[];
+  const rows=[['Store',k.name],['Result',NJ_LABEL[o]||d.outcome],['Name and date match',typeof d.score==='number'?Math.round(d.score*100)+'%':'-'],['Selfie match',typeof d.face_score==='number'?Math.round(d.face_score)+' / 100':'Not scored'],['Environment',d.sandbox?'Sandbox (test)':'Live'],['Ninja reference',d.ninja_verification_id]];
+  return {cls:'c',c:head('Review identity check')+`<div class="vr-sum">${rows.map(r=>`<div><span>${r[0]}</span><b>${esc(r[1]||'-')}</b><i></i></div>`).join('')}</div>
+  ${f.length?`<div class="mlist">${f.map(x=>`<div class="mi"><span>${esc(x.field)}: ${esc(x.match)} (${Math.round((+x.score||0)*100)}%)</span></div>`).join('')}</div>`:''}
+  <div class="note">${I('shield')}<span>Ninja sent this to review because the match was close but not certain, or the selfie could not be scored. The selfie and ID details stay in your Ninja dashboard (selfies on review cases are kept for 7 days). Open verification <b>${esc(d.ninja_verification_id||'')}</b> there before you decide.</span></div>
+  <div class="mlist"><label class="mi"><input type="checkbox" id="njk_ck"> <span>I looked at this result, and the selfie in Ninja if needed</span></label></div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn pri" data-act="kycokn" data-id="${m.id}">Approve vendor</button><button class="btn bad" data-act="kycrejn" data-id="${m.id}">Reject</button></div><p class="hint" style="margin:0">Every decision is written to the audit log.</p>`}}
 async function ninjaErr(error){try{const b=await error.context.json();return b&&b.error||''}catch(e){return ''}}
 H.njrefresh=async()=>{await after()};
 H.ninjago=async()=>{
@@ -4132,6 +4149,10 @@ HF.kycgo=async()=>{
 document.addEventListener('change',e=>{const f=e.target.closest&&e.target.closest('[data-vrf]');if(!f)return;S.vr.fobj=S.vr.fobj||{};if(f.files&&f.files[0])S.vr.fobj[f.dataset.vrf]=f.files[0]},true);
 /* Sends the identity documents and payout bank for the logged-in user. Used by the application and by the resume-after-confirmation path. */
 async function vrSubmitDocs(d,fobj){
+  if(d.nj||njOn()){   // Ninja verifies identity after the account exists; only the payout bank is saved here
+    if(!(S.bankIds||[]).length)ok(await sb.from('bank_accounts').insert({user_id:LIVE.uid,bank_name:d.bank,last4:String(d.acct).slice(-4),acct_number:String(d.acct),account_name:d.name}));
+    return;
+  }
   const files=Object.values(fobj||{}).filter(Boolean);
   if(files.length<2)throw new Error('Attach your ID photo and a selfie holding it.');
   const paths=await uploadKyc(files);
@@ -4139,6 +4160,7 @@ async function vrSubmitDocs(d,fobj){
     details:{dob:d.dob,idType:d.idt,idLast4:String(d.idn).slice(-4),bvnLast4:String(d.bvn).slice(-4),addr:d.addr,bank:d.bank,acctLast4:String(d.acct).slice(-4),link:d.link||'',sells:d.sells||[]}}));
   if(!(S.bankIds||[]).length)ok(await sb.from('bank_accounts').insert({user_id:LIVE.uid,bank_name:d.bank,last4:String(d.acct).slice(-4),acct_number:String(d.acct),account_name:d.name}));
 }
+const vrMsg=d=>d&&d.nj?'Account created. Now verify your identity to start selling.':'Application received. We review it within 24 hours.';
 const vrStore=d=>({p_store:d.store,p_bio:d.bio||'',p_offers:(d.sells||[]).filter(x=>x!=='Social')});
 const vrFresh=()=>({step:1,d:{sells:[]},files:{},bankOk:false,userOk:null});
 /* An application that could not be sent yet (email not confirmed) waits in this browser, without the password, until the person logs in. */
@@ -4160,12 +4182,12 @@ async function vrResume(){
     if(!have.length)await vrSubmitDocs(p.d,p.files);
     await pendDel(key);
     await hydrate();S.view='vendor';S.sub='verify';S.modal=null;render();jump();
-    toast('Application received. We review it within 24 hours.');
+    toast(vrMsg(p.d));
   }catch(e){console.warn(e);toast(cleanErr(e)+' You can finish under Verification.')}
   finally{S.vrResuming=false}
 }
 HF.vrnext=async f=>{
-  vrSave();if(!vrValidate())return;
+  vrSave();if(!vrValidate())return;S.vr.d.nj=njOn();
   if(S.vr.step<VR_STEPS.length){S.vr.step++;render();jump();return}
   if(!S.cfg.vendorsOpen){toast('Vendor applications are closed right now. Please try again later.');return}
   const d=S.vr.d,fobj=S.vr.fobj||{};
@@ -4176,7 +4198,7 @@ HF.vrnext=async f=>{
     S.vr=vrFresh();
     try{await vrSubmitDocs(d,fobj)}
     catch(e){console.warn(e);S.view='vendor';S.sub='verify';render();jump();toast(cleanErr(e)+' Your store is created. Finish under Verification.');return}
-    await hydrate();S.view='vendor';S.sub='verify';render();jump();toast('Application received. We review it within 24 hours.');return;
+    await hydrate();S.view='vendor';S.sub='verify';render();jump();toast(vrMsg(d));return;
   }
   const vid=(window.SuboraTrack&&window.SuboraTrack.vid&&window.SuboraTrack.vid())||undefined;
   const r=await sb.auth.signUp({email:d.email,password:d.pw,options:{data:{full_name:d.name,username:d.user,phone:d.phone,role:'vendor',store_name:d.store,vid}}});
@@ -4193,7 +4215,7 @@ HF.vrnext=async f=>{
   ok(await sb.rpc('become_vendor',vrStore(d)));
   await vrSubmitDocs(d,fobj);
   S.vr=vrFresh();
-  await hydrate();S.view='vendor';S.sub='verify';render();jump();toast('Application received. We review it within 24 hours.');
+  await hydrate();S.view='vendor';S.sub='verify';render();jump();toast(vrMsg(d));
 };
 H.vruser=async()=>{
   vrSave();const u=(S.vr.d.user||'').toLowerCase();
@@ -4216,7 +4238,9 @@ H.reject=async(el,id)=>{await rpc('admin_review_listing',{p_product:id,p_approve
 H.deldeny=async(el,id)=>{const p=prod(id);await setStatus(id,cleanStatus(p.prev));await after('Deletion declined. Listing returned to the vendor.')};
 H.delok=async(el,id)=>{const p=prod(id);const k=(p.extra&&p.extra.kind)||'delete';await setStatus(id,k==='archive'?'archived':'deleted');S.modal=null;await after(k==='archive'?'Listing archived':'Listing removed. Records are kept.')};
 H.kycapprove=async(el,id)=>{await rpc('admin_review_kyc',{p_submission:id,p_approve:true});await after('Vendor verified')};
-H.kycreject=async(el,id)=>{await rpc('admin_review_kyc',{p_submission:id,p_approve:false,p_reason:'A document was unclear. Upload sharper photos and resubmit.'});await after('Rejected. Vendor notified.')};
+H.kycreject=async(el,id)=>{const nk=(S.kycq.find(x=>x.id===id)||{}).ninja;await rpc('admin_review_kyc',{p_submission:id,p_approve:false,p_reason:nk?NJ_REJECT:'A document was unclear. Upload sharper photos and resubmit.'});await after('Rejected. Vendor notified.')};
+H.kycokn=async(el,id)=>{if(!$('#njk_ck')||!$('#njk_ck').checked){toast('Confirm you checked the result first');return}await rpc('admin_review_kyc',{p_submission:id,p_approve:true});S.modal=null;await after('Vendor verified','admin','kyc')};
+H.kycrejn=async(el,id)=>{await rpc('admin_review_kyc',{p_submission:id,p_approve:false,p_reason:NJ_REJECT});S.modal=null;await after('Rejected. Vendor notified.','admin','kyc')};
 H.kycok=async(el,id)=>{
   const n=document.querySelectorAll('.kyc_ck:checked').length;if(n<5){toast('Tick all five checks before approving');return}
   await rpc('admin_review_kyc',{p_submission:id,p_approve:true});S.modal=null;await after('Vendor verified','admin','kyc');
@@ -4728,6 +4752,7 @@ H.ap_end=async(el,id)=>{const r=gv('ax_r');if(r.length<3){toast('Add a reason fi
 /* admin: review a vendor application from real stored details */
 MODALS.kycview=(m,head)=>{
   const k=S.kycq.find(x=>x.id===m.id)||{details:{},paths:[]};const d=k.details||{};
+  if(k.ninja)return njModal(m,head,k);
   const rows=[['Legal name',k.legal],['Store',k.name],['Date of birth',d.dob],['Address',d.addr],['ID',(d.idType||'ID')+' ending '+(d.idLast4||'')],['BVN','•••••••'+(d.bvnLast4||'')],['Bank',(d.bank||'')+' ending '+(d.acctLast4||'')],['Sells',(d.sells||[]).map(catL).join(', ')]];
   return {cls:'c',c:head('Review application')+`<div class="vr-sum">${rows.map(r=>`<div><span>${r[0]}</span><b>${esc(r[1]||'-')}</b><i></i></div>`).join('')}</div>
   <div class="mlist">${(k.paths||[]).map((p,i)=>`<button class="mi" data-act="kycfile" data-id="${esc(p)}"><span>Open document ${i+1}</span></button>`).join('')||'<p class="muted sm">No documents were uploaded.</p>'}</div>
